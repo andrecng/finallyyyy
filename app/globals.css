@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Binance Dark Theme Colors */
+  --bg-primary: #0B0E11;
+  --bg-secondary: #1E2329;
+  --bg-tertiary: #2B3139;
+  --text-primary: #EAECEF;
+  --text-secondary: #B7BDC6;
+  --text-muted: #848E9C;
+  --green: #0ECB81;
+  --red: #F6465D;
+  --yellow: #FCD535;
+  --blue: #4EAFFD;
+  --border: #2B3139;
+  --border-light: #3C4651;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply text-[--text-primary];
+    background-color: var(--bg-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+  
+  .binance-panel {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  
+  .binance-input {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 4px;
+    padding: 8px 12px;
+    transition: all 0.2s;
+  }
+  
+  .binance-input:focus {
+    border-color: var(--yellow);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(252, 213, 53, 0.1);
+  }
+  
+  .binance-button {
+    background-color: var(--yellow);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .binance-button:hover {
+    background-color: #E6C02F;
+    transform: translateY(-1px);
+  }
+  
+  .binance-button:disabled {
+    background-color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .profit {
+    color: var(--green);
+  }
+  
+  .loss {
+    color: var(--red);
+  }
+  
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+}
+
+@layer utilities {
+  .text-primary {
+    color: var(--text-primary);
+  }
+  
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .text-muted {
+    color: var(--text-muted);
+  }
+  
+  .bg-primary {
+    background-color: var(--bg-primary);
+  }
+  
+  .bg-secondary {
+    background-color: var(--bg-secondary);
+  }
+  
+  .bg-tertiary {
+    background-color: var(--bg-tertiary);
+  }
+  
+  .border-primary {
+    border-color: var(--border);
+  }
+  
+  .border-light {
+    border-color: var(--border-light);
+  }
+}
