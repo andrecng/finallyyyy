@@ -60,11 +60,27 @@ export default function ParametersPanel() {
               <div>
                 <Label>Capital Initial</Label>
                 <Input
-                  type="number"
-                  value={config.capital.initial}
-                  onChange={(e) => updateConfig({
-                    capital: { ...config.capital, initial: Number(e.target.value) }
-                  })}
+                  type="text"
+                  value={config.capital.initial.toLocaleString('fr-FR')}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\s/g, '');
+                    const numValue = Number(value);
+                    if (!isNaN(numValue) && numValue >= 0) {
+                      updateConfig({
+                        capital: { ...config.capital, initial: numValue }
+                      });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const value = e.target.value.replace(/\s/g, '');
+                    const numValue = Number(value);
+                    if (!isNaN(numValue) && numValue >= 0) {
+                      updateConfig({
+                        capital: { ...config.capital, initial: numValue }
+                      });
+                    }
+                  }}
+                  placeholder="100 000"
                   className="binance-input"
                 />
               </div>
