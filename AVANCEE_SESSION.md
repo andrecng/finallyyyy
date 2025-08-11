@@ -32,12 +32,18 @@ Créer une interface complète et fonctionnelle pour le laboratoire de simulatio
 - **Dépendances ajoutées:** zustand
 - **Dépendances supprimées:** .bolt/*
 
-### 🚀 Prochaines Étapes
-- [ ] **Backend FastAPI** pour simulations réelles
-- [ ] **Export fonctionnel** (CSV, PNG, PDF)
-- [ ] **Comparaison de simulations**
-- [ ] **Tests automatisés**
-- [ ] **Déploiement en production**
+### 🚀 Prochaines Étapes (Session 2)
+- [ ] **Évaluer et installer** TA-Lib pour indicateurs techniques
+- [ ] **Créer backend FastAPI** avec simulations Monte-Carlo basiques
+- [ ] **Implémenter export CSV** des résultats de simulation
+- [ ] **Ajouter comparaison** de 2-3 simulations côte à côte
+- [ ] **Intégrer NumPy** pour calculs mathématiques avancés
+- [ ] **Valider les calculs** avec des données de test simples
+
+### 🎯 Objectifs Session 2
+**Priorité 1:** Backend fonctionnel avec simulations réelles
+**Priorité 2:** Export et comparaison de simulations
+**Priorité 3:** Validation des calculs et métriques
 
 ### 💡 Leçons Apprises
 - **Zustand** est excellent pour la gestion d'état React

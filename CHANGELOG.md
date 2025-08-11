@@ -8,11 +8,20 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ## [Unreleased]
 
 ### Added
-- [ ] Backend FastAPI pour simulations réelles
-- [ ] Export CSV/PNG/PDF fonctionnel
-- [ ] Comparaison de simulations
-- [ ] Tests automatisés
-- [ ] Déploiement en production
+- [ ] Backend FastAPI avec simulations Monte-Carlo réelles
+- [ ] Export CSV des résultats de simulation
+- [ ] Comparaison de 2-3 simulations côte à côte
+- [ ] Intégration TA-Lib pour indicateurs techniques
+- [ ] Calculs NumPy pour mathématiques avancées
+- [ ] Validation des calculs avec données de test
+
+### Changed
+- [ ] Amélioration des performances de simulation
+- [ ] Optimisation de l'interface utilisateur
+
+### Fixed
+- [ ] Validation des paramètres de simulation
+- [ ] Gestion des erreurs de calcul
 
 ### Changed
 - [ ] Optimisation des performances
