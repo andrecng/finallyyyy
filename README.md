@@ -1,8 +1,8 @@
-# ForexMM Pro - Laboratoire de Simulation de Trading
+# 2048 Asset Management - Laboratoire de Simulation de Trading
 
 ## 🎯 Description
 
-**ForexMM Pro** est un laboratoire de simulation de trading avancé développé avec Next.js. Il permet de configurer, tester et analyser des stratégies de trading via des simulations Monte-Carlo avec une interface professionnelle.
+**2048 Asset Management** est un laboratoire de simulation de trading avancé développé avec Next.js. Il permet de configurer, tester et analyser des stratégies de trading via des simulations Monte-Carlo avec une interface professionnelle.
 
 ## ✨ Fonctionnalités
 
@@ -97,4 +97,4 @@ Projet privé - Tous droits réservés
 
 ---
 
-**Développé avec ❤️ pour la simulation de trading professionnelle**
+**Développé avec ❤️ par 2048 Asset Management**

@@ -1,4 +1,4 @@
-# Avancée des Sessions - ForexMM Pro
+# Avancée des Sessions - 2048 Asset Management
 
 Journal de bord des sessions de développement et résolution de problèmes.
 
@@ -44,6 +44,19 @@ Créer une interface complète et fonctionnelle pour le laboratoire de simulatio
 - **shadcn/ui** + **Tailwind** = Interface professionnelle rapide
 - **Next.js 13** avec App Router est très performant
 - **Nettoyage régulier** du cache évite les erreurs de build
+
+### ⚠️ Limitations Identifiées
+- **Algorithmes de trading** : Nécessite une bibliothèque spécialisée (ex: QuantLib, TA-Lib)
+- **Calculs Monte-Carlo** : Complexité mathématique avancée
+- **Métriques de risque** : VaR, ES, Ulcer nécessitent des experts
+- **Backend** : Limité pour les simulations financières complexes
+- **Validation** : Besoin de tests avec données réelles
+
+### 🔧 Recommandations Techniques
+- **Intégrer QuantLib** ou équivalent pour les calculs financiers
+- **Collaborer avec un expert** trading pour les algorithmes
+- **Utiliser des bibliothèques** financières existantes et testées
+- **Valider les calculs** avec des données de marché réelles
 
 ---
 

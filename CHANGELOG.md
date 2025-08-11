@@ -1,4 +1,4 @@
-# Changelog - ForexMM Pro
+# Changelog - 2048 Asset Management
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 

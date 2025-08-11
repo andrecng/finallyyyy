@@ -30,7 +30,7 @@ export default function MainNavigation() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <Link href="/lab" className="text-xl font-bold text-primary">
-              ForexMM Pro
+              2048 Asset Management
             </Link>
             
             <div className="hidden md:flex items-center space-x-1">

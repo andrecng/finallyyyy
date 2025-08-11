@@ -6,8 +6,8 @@ import MainNavigation from '@/components/navigation/MainNavigation';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ForexMM Pro - Money Management & Sizing',
-  description: 'Professional Forex Money Management and Position Sizing Tool',
+  title: '2048 Asset Management - Money Management & Sizing',
+  description: 'Professional Asset Management and Position Sizing Tool',
 };
 
 export default function RootLayout({
