@@ -1,379 +1,254 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSimulationStore } from '@/stores/simulationStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Save, Download } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Save, Download, ChevronDown, Settings, DollarSign, Target, TrendingUp, Zap, BarChart3 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function ParametersPanel() {
   const { config, updateConfig, savePreset, exportConfig } = useSimulationStore();
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    capital: true,
-    edge: true,
-    kelly: false,
-    bayes: false,
-    sequence: false,
-    dd_paliers: false,
-    cppi: false,
-    vol_target: false,
-    markov: false,
-    portfolio: false,
-    stops: false,
-    stress: false,
-  });
-
   const [presetForm, setPresetForm] = useState({ name: '', description: '' });
+  const [showBaseOptions, setShowBaseOptions] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const toggleSection = (section: string) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  // Fermer le dropdown quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowBaseOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSavePreset = () => {
-    if (presetForm.name) {
+    if (presetForm.name.trim()) {
       savePreset(presetForm.name, presetForm.description);
       setPresetForm({ name: '', description: '' });
     }
   };
 
   return (
-    <div className="space-y-4 h-full overflow-y-auto sidebar-scrollbar pr-2">
-      {/* Capital & Coûts */}
-      <Card className="binance-panel">
-        <Collapsible open={openSections.capital} onOpenChange={() => toggleSection('capital')}>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-sm">
-                Capital & Coûts
-                <ChevronDown size={16} className={openSections.capital ? 'rotate-180' : ''} />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Capital Initial</Label>
-                <Input
-                  type="text"
-                  value={config.capital.initial.toLocaleString('fr-FR')}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\s/g, '');
-                    const numValue = Number(value);
-                    if (!isNaN(numValue) && numValue >= 0) {
-                      updateConfig({
-                        capital: { ...config.capital, initial: numValue }
-                      });
-                    }
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value.replace(/\s/g, '');
-                    const numValue = Number(value);
-                    if (!isNaN(numValue) && numValue >= 0) {
-                      updateConfig({
-                        capital: { ...config.capital, initial: numValue }
-                      });
-                    }
-                  }}
-                  placeholder="100 000"
-                  className="binance-input"
-                />
-              </div>
-              <div>
-                <Label>Base de Calcul</Label>
-                <Select
-                  value={config.capital.basis}
-                  onValueChange={(value) => updateConfig({
-                    capital: { ...config.capital, basis: value as any }
-                  })}
-                >
-                  <SelectTrigger className="binance-input">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="balance">Balance</SelectItem>
-                    <SelectItem value="equity">Equity</SelectItem>
-                    <SelectItem value="risk_capital">Risk Capital</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Fees (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={config.capital.fees}
-                    onChange={(e) => updateConfig({
-                      capital: { ...config.capital, fees: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                  />
-                </div>
-                <div>
-                  <Label>Spread (bp)</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.capital.spread_bp}
-                    onChange={(e) => updateConfig({
-                      capital: { ...config.capital, spread_bp: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Edge */}
-      <Card className="binance-panel">
-        <Collapsible open={openSections.edge} onOpenChange={() => toggleSection('edge')}>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-sm">
-                Edge
-                <ChevronDown size={16} className={openSections.edge ? 'rotate-180' : ''} />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label>Win Rate</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="1"
-                    value={config.edge.win_rate}
-                    onChange={(e) => updateConfig({
-                      edge: { ...config.edge, win_rate: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                  />
-                </div>
-                <div>
-                  <Label>R Win</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.edge.r_win}
-                    onChange={(e) => updateConfig({
-                      edge: { ...config.edge, r_win: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                  />
-                </div>
-                <div>
-                  <Label>R Loss</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.edge.r_loss}
-                    onChange={(e) => updateConfig({
-                      edge: { ...config.edge, r_loss: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Source</Label>
-                <Select
-                  value={config.edge.source}
-                  onValueChange={(value) => updateConfig({
-                    edge: { ...config.edge, source: value as any }
-                  })}
-                >
-                  <SelectTrigger className="binance-input">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">Fixe</SelectItem>
-                    <SelectItem value="bayes">Bayes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Kelly */}
-      <Card className="binance-panel">
-        <Collapsible open={openSections.kelly} onOpenChange={() => toggleSection('kelly')}>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-sm">
-                Kelly
-                <ChevronDown size={16} className={openSections.kelly ? 'rotate-180' : ''} />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={config.kelly.enabled}
-                  onCheckedChange={(checked) => updateConfig({
-                    kelly: { ...config.kelly, enabled: checked }
-                  })}
-                />
-                <Label>Activer Kelly</Label>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Fraction Cap</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="1"
-                    value={config.kelly.fraction_cap}
-                    onChange={(e) => updateConfig({
-                      kelly: { ...config.kelly, fraction_cap: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                    disabled={!config.kelly.enabled}
-                  />
-                </div>
-                <div>
-                  <Label>Cap Global (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="1"
-                    value={config.kelly.cap_global_pct}
-                    onChange={(e) => updateConfig({
-                      kelly: { ...config.kelly, cap_global_pct: Number(e.target.value) }
-                    })}
-                    className="binance-input"
-                    disabled={!config.kelly.enabled}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Stress Tests */}
-      <Card className="binance-panel">
-        <Collapsible open={openSections.stress} onOpenChange={() => toggleSection('stress')}>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-sm">
-                Tests de Stress
-                <ChevronDown size={16} className={openSections.stress ? 'rotate-180' : ''} />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-3">
-              {Object.entries({
-                wr_minus_10: 'WR -10%',
-                wr_plus_10: 'WR +10%',
-                vol_plus_50: 'Vol +50%',
-                costs_x2: 'Coûts ×2',
-                costs_x3: 'Coûts ×3',
-                corr_to_1: 'Corr → 1.0',
-                black_swan_5r: 'Black Swan -5R',
-              }).map(([key, label]) => (
-                <div key={key} className="flex items-center space-x-2">
-                  <Switch
-                    checked={config.stress_flags[key as keyof typeof config.stress_flags]}
-                    onCheckedChange={(checked) => updateConfig({
-                      stress_flags: { ...config.stress_flags, [key]: checked }
-                    })}
-                  />
-                  <Label className="text-sm">{label}</Label>
-                </div>
-              ))}
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Simulation Parameters */}
-      <Card className="binance-panel">
-        <CardHeader>
-          <CardTitle className="text-sm">Paramètres de Simulation</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label>N Trades</Label>
-              <Input
-                type="number"
-                value={config.n_trades}
-                onChange={(e) => updateConfig({ n_trades: Number(e.target.value) })}
-                className="binance-input"
-              />
+    <div className="space-y-6 h-full overflow-y-auto p-6">
+      {/* Capital & Coûts - Style Binance */}
+      <Card className="card-hover-effect border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent overflow-hidden relative">
+        {/* Effet de brillance */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <CardHeader className="pb-4 relative z-10">
+          <CardTitle className="flex items-center gap-4 text-xl text-foreground">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-binance">
+              <DollarSign className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <Label>Seed</Label>
-              <Input
-                type="number"
-                value={config.seed}
-                onChange={(e) => updateConfig({ seed: Number(e.target.value) })}
-                className="binance-input"
-              />
+              <div className="text-lg font-bold">Capital & Coûts</div>
+              <div className="text-sm text-muted-foreground font-normal">Configuration du capital initial et de la base de calcul</div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 relative z-10">
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary"></div>
+              Capital Initial
+            </Label>
+            <Input
+              type="text"
+              value={config.capital.initial.toLocaleString('fr-FR')}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\s/g, '');
+                const numValue = Number(value);
+                if (!isNaN(numValue) && numValue >= 0) {
+                  updateConfig({
+                    capital: { ...config.capital, initial: numValue }
+                  });
+                }
+              }}
+              placeholder="100 000"
+              className="input-modern h-12 text-lg font-bold bg-card border-2 border-border hover:border-primary/40 focus:border-primary"
+            />
+            <Badge className="badge-primary text-xs px-3 py-1">
+              💰 Capital disponible pour les simulations
+            </Badge>
+          </div>
+          
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary"></div>
+              Base de Calcul
+            </Label>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowBaseOptions(!showBaseOptions)}
+                className="w-full h-12 px-4 text-sm bg-card border-2 border-border hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl flex items-center justify-between text-left transition-all duration-200 text-foreground font-medium"
+              >
+                <span className="flex items-center gap-3">
+                  {config.capital.basis === 'balance' ? '💰 Balance' : '📊 Equity'}
+                  <span className="text-muted-foreground text-xs">
+                    {config.capital.basis === 'balance' ? '(Solde du compte)' : '(Valeur nette)'}
+                  </span>
+                </span>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform duration-200 text-primary",
+                  showBaseOptions ? "rotate-180" : ""
+                )} />
+              </button>
+              
+              {showBaseOptions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card border-2 border-primary rounded-xl shadow-2xl z-[9999] overflow-hidden animate-scale-in">
+                  <button
+                    onClick={() => {
+                      updateConfig({ capital: { ...config.capital, basis: 'balance' } });
+                      setShowBaseOptions(false);
+                    }}
+                    className="w-full px-4 py-4 text-sm text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer text-left border-b border-border last:border-b-0 transition-colors font-medium"
+                  >
+                    💰 Balance (Solde du compte)
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateConfig({ capital: { ...config.capital, basis: 'equity' } });
+                      setShowBaseOptions(false);
+                    }}
+                    className="w-full px-4 py-4 text-sm text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer text-left transition-colors font-medium"
+                  >
+                    📊 Equity (Valeur nette)
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Preset Management */}
-      <Card className="binance-panel">
-        <CardHeader>
-          <CardTitle className="text-sm">Presets</CardTitle>
+      {/* Edge & Kelly - Style Binance */}
+      <Card className="card-hover-effect border-2 border-success/30 bg-gradient-to-br from-success/5 via-success/3 to-transparent overflow-hidden relative">
+        {/* Effet de brillance */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-success/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <CardHeader className="pb-4 relative z-10">
+          <CardTitle className="flex items-center gap-4 text-xl text-foreground">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg">
+              <Target className="h-6 w-6 text-success-foreground" />
+            </div>
+            <div>
+              <div className="text-lg font-bold">Edge & Kelly</div>
+              <div className="text-sm text-muted-foreground font-normal">Paramètres de performance et de risque</div>
+            </div>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Nom du Preset</Label>
+        <CardContent className="space-y-6 relative z-10">
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-success"></div>
+              Win Rate
+            </Label>
             <Input
+              type="number"
+              step="0.01"
+              min="0"
+              max="1"
+              value={config.edge.win_rate}
+              onChange={(e) => updateConfig({
+                edge: { ...config.edge, win_rate: Number(e.target.value) }
+              })}
+              className="input-modern h-12 bg-surface border-2 border-border hover:border-success/40 focus:border-success"
+            />
+            <div className="flex items-center gap-3">
+              <Badge className="badge-success text-xs px-3 py-1">
+                {Math.round(config.edge.win_rate * 100)}% de réussite
+              </Badge>
+              <div className="flex-1 bg-card rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-success to-success/80 transition-all duration-300"
+                  style={{ width: `${config.edge.win_rate * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-success"></div>
+              R Win
+            </Label>
+            <Input
+              type="number"
+              step="0.1"
+              value={config.edge.r_win}
+              onChange={(e) => updateConfig({
+                edge: { ...config.edge, r_win: Number(e.target.value) }
+              })}
+              className="input-modern h-12 bg-surface border-2 border-border hover:border-success/40 focus:border-success"
+            />
+            <div className="flex items-center gap-3">
+              <Badge className="badge-success text-xs px-3 py-1">
+                Ratio gain/perte: {config.edge.r_win}:1
+              </Badge>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Gain moyen: {config.edge.r_win}x</span>
+                <span>•</span>
+                <span>Perte moyenne: 1x</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Presets - Style Binance */}
+      <Card className="card-hover-effect border-2 border-warning/30 bg-gradient-to-br from-warning/5 via-warning/3 to-transparent overflow-hidden relative">
+        {/* Effet de brillance */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-warning/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <CardHeader className="pb-4 relative z-10">
+          <CardTitle className="flex items-center gap-4 text-xl text-foreground">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-warning to-warning/80 flex items-center justify-center shadow-lg">
+              <Settings className="h-6 w-6 text-warning-foreground" />
+            </div>
+            <div>
+              <div className="text-lg font-bold">Presets & Configuration</div>
+              <div className="text-sm text-muted-foreground font-normal">Sauvegarde et export des configurations</div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 relative z-10">
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-warning"></div>
+              Nom du preset
+            </Label>
+            <Input
+              placeholder="Ex: Stratégie Conservative"
               value={presetForm.name}
-              onChange={(e) => setPresetForm(prev => ({ ...prev, name: e.target.value }))}
-              className="binance-input"
-              placeholder="Mon preset..."
+              onChange={(e) => setPresetForm({ ...presetForm, name: e.target.value })}
+              className="input-modern h-12 bg-surface border-2 border-border hover:border-warning/40 focus:border-warning"
             />
           </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={presetForm.description}
-              onChange={(e) => setPresetForm(prev => ({ ...prev, description: e.target.value }))}
-              className="binance-input"
-              placeholder="Description du preset..."
-              rows={2}
-            />
-          </div>
-          <div className="flex space-x-2">
+          
+          <div className="flex gap-3">
             <Button
               onClick={handleSavePreset}
-              disabled={!presetForm.name}
-              className="binance-button flex-1"
+              className="btn-primary flex-1 h-12 text-base font-semibold"
             >
-              <Save size={16} className="mr-2" />
+              <Save className="h-5 w-5" />
               Sauvegarder
             </Button>
             <Button
               onClick={exportConfig}
               variant="outline"
-              className="flex-1"
+              className="btn-modern h-12 border-2 border-border hover:border-warning/40 hover:bg-warning/10 text-foreground font-semibold"
             >
-              <Download size={16} className="mr-2" />
-              Export JSON
+              <Download className="h-5 w-5" />
+              Exporter
             </Button>
           </div>
         </CardContent>

@@ -1,134 +1,293 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Binance Dark Theme Colors */
-  --bg-primary: #0B0E11;
-  --bg-secondary: #1E2329;
-  --bg-tertiary: #2B3139;
-  --text-primary: #EAECEF;
-  --text-secondary: #B7BDC6;
-  --text-muted: #848E9C;
-  --green: #0ECB81;
-  --red: #F6465D;
-  --yellow: #FCD535;
-  --blue: #4EAFFD;
-  --border: #2B3139;
-  --border-light: #3C4651;
-}
-
 @layer base {
+  :root {
+    /* Palette Binance - Mode Sombre */
+    --background: 220 14% 4%;
+    --foreground: 220 9% 94%;
+    --card: 220 14% 8%;
+    --card-foreground: 220 9% 94%;
+    
+    /* Couleurs principales Binance */
+    --primary: 45 100% 51%;           /* #F0B90B - Jaune Binance */
+    --primary-foreground: 220 14% 4%;
+    --secondary: 220 14% 12%;
+    --secondary-foreground: 220 9% 94%;
+    
+    /* Couleurs d'accent Binance */
+    --success: 156 100% 40%;          /* #0ECB81 - Vert vif */
+    --success-foreground: 220 14% 4%;
+    --warning: 0 100% 60%;            /* #F6465D - Rouge vif */
+    --warning-foreground: 220 9% 94%;
+    --info: 210 100% 60%;             /* #3C9AF5 - Bleu vif */
+    --info-foreground: 220 9% 94%;
+    
+    /* Couleurs de surface Binance */
+    --muted: 220 14% 12%;
+    --muted-foreground: 220 13% 60%;
+    
+    /* Bordures et inputs */
+    --border: 220 14% 12%;
+    --input: 220 14% 12%;
+    --ring: 45 100% 51%;
+    --radius: 0.5rem;
+    
+    /* Accents et popovers */
+    --accent: 220 14% 12%;
+    --accent-foreground: 220 9% 94%;
+    --popover: 220 14% 8%;
+    --popover-foreground: 220 9% 94%;
+    
+    /* Destructive */
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 220 9% 94%;
+    
+    /* Chart colors */
+    --chart-1: 45 100% 51%;
+    --chart-2: 156 100% 40%;
+    --chart-3: 0 100% 60%;
+    --chart-4: 210 100% 60%;
+    --chart-5: 220 9% 94%;
+  }
+
+  .light {
+    /* Mode clair adapté Binance */
+    --background: 0 0% 98%;
+    --foreground: 220 14% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 14% 10%;
+    --primary: 45 100% 51%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 14% 14%;
+    --success: 156 100% 40%;
+    --success-foreground: 0 0% 98%;
+    --warning: 0 100% 60%;
+    --warning-foreground: 0 0% 98%;
+    --info: 210 100% 60%;
+    --info-foreground: 0 0% 98%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 13% 46%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 45 100% 51%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 14% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 14% 10%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --chart-1: 45 100% 51%;
+    --chart-2: 156 100% 40%;
+    --chart-3: 0 100% 60%;
+    --chart-4: 210 100% 60%;
+    --chart-5: 220 14% 10%;
+  }
+
   * {
     @apply border-border;
   }
-  
+
   body {
-    @apply text-[--text-primary];
-    background-color: var(--bg-primary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
-  
-  .binance-panel {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 4px;
+}
+
+@layer components {
+  /* Effets glassmorphism Binance */
+  .glass {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20;
   }
-  
-  .binance-input {
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    border-radius: 4px;
-    padding: 8px 12px;
-    transition: all 0.2s;
+
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-lg border border-white/10;
   }
-  
-  .binance-input:focus {
-    border-color: var(--yellow);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(252, 213, 53, 0.1);
+
+  /* Effets de carte avec hover style Binance */
+  .card-hover-effect {
+    @apply transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-1 hover:border-primary/30;
   }
-  
-  .binance-button {
-    background-color: var(--yellow);
-    color: var(--bg-primary);
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
+
+  /* Boutons style Binance */
+  .btn-modern {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 ease-out;
   }
-  
-  .binance-button:hover {
-    background-color: #E6C02F;
-    transform: translateY(-1px);
+
+  .btn-modern:not(:disabled) {
+    @apply hover:scale-105 active:scale-95;
   }
-  
-  .binance-button:disabled {
-    background-color: var(--text-muted);
-    cursor: not-allowed;
-    transform: none;
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg;
+    @apply hover:from-primary/90 hover:to-primary/70 hover:shadow-xl;
   }
-  
-  .profit {
-    color: var(--green);
+
+  .btn-secondary {
+    @apply bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground;
+    @apply hover:from-secondary/90 hover:to-secondary/70;
   }
-  
-  .loss {
-    color: var(--red);
+
+  .btn-success {
+    @apply bg-gradient-to-r from-success to-success/80 text-success-foreground shadow-lg;
+    @apply hover:from-success/90 hover:to-success/70 hover:shadow-xl;
   }
-  
-  .sidebar-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+
+  .btn-warning {
+    @apply bg-gradient-to-r from-warning to-warning/80 text-warning-foreground shadow-lg;
+    @apply hover:from-warning/90 hover:to-warning/70 hover:shadow-xl;
   }
-  
-  .sidebar-scrollbar::-webkit-scrollbar {
-    width: 4px;
+
+  /* Inputs style Binance */
+  .input-modern {
+    @apply rounded-lg border-2 border-border bg-card px-3 py-2 text-sm transition-all duration-200;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+    @apply hover:border-primary/40;
+    @apply text-foreground placeholder:text-muted-foreground;
   }
-  
-  .sidebar-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+
+  /* Badges style Binance */
+  .badge-modern {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors;
   }
-  
-  .sidebar-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 2px;
+
+  .badge-primary {
+    @apply bg-primary/20 text-primary border border-primary/30;
+  }
+
+  .badge-success {
+    @apply bg-success/20 text-success border border-success/30;
+  }
+
+  .badge-warning {
+    @apply bg-warning/20 text-warning border border-warning/30;
+  }
+
+  /* Navigation style Binance */
+  .nav-item {
+    @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply hover:bg-accent hover:text-primary;
+  }
+
+  .nav-item-active {
+    @apply bg-primary text-primary-foreground shadow-lg;
+  }
+
+  /* Animations personnalisées */
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.4s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 }
 
 @layer utilities {
-  .text-primary {
-    color: var(--text-primary);
+  /* Utilitaires pour les animations */
+  .animation-delay-100 {
+    animation-delay: 100ms;
   }
-  
-  .text-secondary {
-    color: var(--text-secondary);
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
   }
-  
-  .text-muted {
-    color: var(--text-muted);
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
   }
-  
-  .bg-primary {
-    background-color: var(--bg-primary);
+
+  /* Utilitaires pour les gradients Binance */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary to-primary/80;
   }
-  
-  .bg-secondary {
-    background-color: var(--bg-secondary);
+
+  .gradient-success {
+    @apply bg-gradient-to-r from-success to-success/80;
   }
-  
-  .bg-tertiary {
-    background-color: var(--bg-tertiary);
+
+  .gradient-warning {
+    @apply bg-gradient-to-r from-warning to-warning/80;
   }
-  
-  .border-primary {
-    border-color: var(--border);
+
+  .gradient-info {
+    @apply bg-gradient-to-r from-info to-info/80;
   }
-  
-  .border-light {
-    border-color: var(--border-light);
+
+  /* Ombres style Binance */
+  .shadow-binance {
+    box-shadow: 0 4px 20px rgba(240, 185, 11, 0.15);
+  }
+
+  .shadow-surface {
+    box-shadow: 0 4px 20px rgba(30, 32, 38, 0.3);
+  }
+}
+
+/* Keyframes pour les animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(240, 185, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(240, 185, 11, 0.8);
   }
 }
