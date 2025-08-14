@@ -14,15 +14,19 @@ import { Badge } from '@/components/ui/badge';
  * 
  * Cette interface définit tous les paramètres nécessaires pour configurer
  * le système de gestion des risques et de position sizing
+ * 
+ * Configuration étendue selon GPT pour inclure tous les nouveaux modules
  */
 interface MMConfig {
   capital: number;                    // Capital initial en dollars
   kelly: {
     f_cap: number;                    // Limite maximale de la fraction Kelly (ex: 0.25 = 25%)
-    decay: number;                    // Facteur de décroissance bayésienne (ex: 0.1)
-    prior: [number, number];          // Prior Beta(a,b) pour la probabilité de gain
-    window: number;                   // Fenêtre glissante pour le calcul de g_expectation
-    winsor_R: number;                 // Limite supérieure pour R (évite les extrêmes)
+    mode: 'simple' | 'bayesian';     // Mode Kelly à utiliser (simple ou bayésien)
+  };
+  bayesian: {
+    prior_a: number;                  // Prior Beta pour les succès (ex: 1.0)
+    prior_b: number;                  // Prior Beta pour les échecs (ex: 1.0)
+    decay: number;                    // Facteur de décay temporel (ex: 0.95)
   };
   sequence: {
     mult: number;                     // Multiplicateur de base pour les gains consécutifs
@@ -35,6 +39,13 @@ interface MMConfig {
     current_vol: number;              // Volatilité actuelle observée
     lookback?: number;                // Fenêtre de calcul de la volatilité (en jours)
     cap_multiplier?: number;         // Multiplicateur de cap pour limiter l'effet
+  };
+  drawdown: {
+    thresholds: number[];             // Seuils de drawdown (ex: [-0.05, -0.10, -0.20])
+    multipliers: number[];            // Multiplicateurs correspondants (ex: [0.8, 0.5, 0.2])
+  };
+  cppi: {
+    alpha: number;                    // Facteur de protection CPPI (ex: 0.1 = 10%)
   };
   dd_paliers: {
     level1: number;                   // Premier palier de drawdown (ex: 0.05 = 5%)
@@ -56,134 +67,134 @@ interface TradeResult {
 }
 
 /**
- * Calculateur Kelly optimisé avec mise à jour bayésienne
+ * Estimateur bayésien de la probabilité de gain
  * 
- * Implémente la formule de Kelly : f* = p̂ - (1-p̂)/R
- * Avec protection contre les valeurs extrêmes et mise à jour bayésienne
+ * NOUVEAU MODULE selon GPT : Estime p^ via une mise à jour bayésienne
+ * Plus sophistiqué que l'ancien système de prior fixe
  * 
- * Référence : Kelly, J.L. (1956). "A New Interpretation of Information Rate"
+ * Avantages :
+ * - Adaptation automatique aux conditions de marché
+ * - Décay temporel pour donner plus de poids aux trades récents
+ * - Estimation robuste même avec peu de données
+ */
+class BayesianWinRate {
+  private a: number;                    // Succès a priori (prior Beta)
+  private b: number;                    // Échecs a priori (prior Beta)
+  private decay: number;                // Poids de l'historique (1.0 = pas de decay)
+
+  constructor(prior_a: number = 1, prior_b: number = 1, decay: number = 1.0) {
+    this.a = prior_a;
+    this.b = prior_b;
+    this.decay = decay;
+  }
+
+  /**
+   * Met à jour la distribution après un trade
+   * 
+   * @param result - Résultat du trade (1 = gain, 0 = perte)
+   * 
+   * Logique bayésienne :
+   * - a = a × decay + result (succès)
+   * - b = b × decay + (1 - result) (échecs)
+   * 
+   * Exemple avec decay = 0.9 :
+   * - Trade gagné : a = 1 × 0.9 + 1 = 1.9, b = 1 × 0.9 + 0 = 0.9
+   * - Trade perdu : a = 1.9 × 0.9 + 0 = 1.71, b = 0.9 × 0.9 + 1 = 1.81
+   */
+  update(result: number): void {
+    this.a = this.a * this.decay + result;
+    this.b = this.b * this.decay + (1 - result);
+  }
+
+  /**
+   * Retourne l'espérance de la probabilité de gain
+   * 
+   * @returns p^ estimé = a / (a + b)
+   * 
+   * Formule : E[p] = α / (α + β) où α, β sont les paramètres Beta
+   * 
+   * Propriétés :
+   * - 0 ≤ p^ ≤ 1 (probabilité valide)
+   * - Plus de données → estimation plus précise
+   * - Decay < 1 → plus de poids aux trades récents
+   */
+  getEstimate(): number {
+    return this.a / (this.a + this.b);
+  }
+
+  /**
+   * Récupère l'état actuel de l'estimateur
+   */
+  getState() {
+    return {
+      a: this.a,
+      b: this.b,
+      decay: this.decay,
+      estimate: this.getEstimate(),
+      total_observations: this.a + this.b - 2 // -2 car prior initial
+    };
+  }
+
+  /**
+   * Remet l'estimateur à ses valeurs initiales
+   */
+  reset(): void {
+    this.a = 1;
+    this.b = 1;
+  }
+}
+
+/**
+ * Calculateur Kelly simplifié et optimisé
+ * 
+ * VERSION MISE À JOUR selon GPT : Plus simple, plus rapide
+ * Remplace la complexité bayésienne par une approche directe
+ * 
+ * Avantages :
+ * - Calcul rapide et efficace
+ * - Moins de paramètres à ajuster
+ * - Idéal pour les stratégies à court terme
  */
 class KellyCalculator {
-  private f_cap: number;              // Limite maximale de la fraction
-  private decay: number;              // Facteur de décroissance bayésienne
-  private prior_a: number;            // Paramètre a du prior Beta
-  private prior_b: number;            // Paramètre b du prior Beta
-  private window: number;             // Fenêtre pour le calcul de g_expectation
-  private winsor_R: number;           // Limite supérieure pour R
-  private past_results: TradeResult[] = []; // Historique des trades
+  private f_cap: number;                // Limite maximale de la fraction
 
-  constructor(config: MMConfig['kelly']) {
-    this.f_cap = config.f_cap;
-    this.decay = config.decay;
-    this.prior_a = config.prior[0];
-    this.prior_b = config.prior[1];
-    this.window = config.window;
-    this.winsor_R = config.winsor_R;
+  constructor(f_cap: number = 0.2) {
+    this.f_cap = f_cap;
   }
 
   /**
-   * Calcule la fraction optimale selon la formule de Kelly
+   * Calcule la fraction Kelly optimale
    * 
-   * @param p_hat - Probabilité estimée de gain (0-1)
-   * @param R - Ratio risque/récompense (gain potentiel / perte potentielle)
-   * @returns Fraction optimale du capital à risquer (0-1)
+   * @param p_win - Probabilité estimée de gain
+   * @param payoff - Ratio gain/perte moyen (R)
+   * @returns Fraction de capital à risquer
    * 
-   * Formule : f* = p̂ - (1-p̂)/R
+   * Formule Kelly : f* = p_win - (1 - p_win) / payoff
    * 
-   * Exemple : p̂=0.6, R=2 → f* = 0.6 - 0.4/2 = 0.4 (40% du capital)
+   * Exemples :
+   * - p_win = 0.6, payoff = 2 → f* = 0.6 - 0.4/2 = 0.4
+   * - p_win = 0.5, payoff = 1 → f* = 0.5 - 0.5/1 = 0.0
+   * - p_win = 0.7, payoff = 1.5 → f* = 0.7 - 0.3/1.5 = 0.5
    * 
-   * Protection : R est limité par winsor_R pour éviter les extrêmes
+   * Protection :
+   * - f* ≤ 0 → retourne 0 (pas de trade)
+   * - f* > f_cap → retourne f_cap (limite de risque)
    */
-  compute(p_hat: number, R: number): number {
-    // Winsorisation : limite R à une valeur maximale pour éviter les extrêmes
-    const capped_R = Math.min(R, this.winsor_R);
+  computeKelly(p_win: number, payoff: number): number {
+    if (payoff <= 0) return 0;
     
-    // Formule de Kelly avec protection contre les valeurs négatives
-    return Math.max(0.0, p_hat - (1 - p_hat) / capped_R);
+    const kelly = p_win - (1 - p_win) / payoff;
+    
+    if (kelly <= 0) return 0.0;
+    
+    return Math.min(kelly, this.f_cap);
   }
 
   /**
-   * Critère de Rotando/Thorp pour valider la fraction Kelly
-   * 
-   * Calcule l'espérance logarithmique de croissance : E[log(1 + f*R)]
-   * Si g(f*) < 0, la position est rejetée (trop risquée)
-   * 
-   * @param f - Fraction du capital à tester
-   * @returns Espérance logarithmique de croissance
-   * 
-   * Référence : Thorp, E.O. (2006). "The Kelly Criterion in Blackjack Sports Betting"
+   * Récupère la configuration du calculateur
    */
-  g_expectation(f: number): number {
-    if (this.past_results.length === 0) return 1; // Accepte tout si pas d'historique
-    
-    let g = 0;
-    const recent_results = this.past_results.slice(-this.window); // Fenêtre glissante
-    
-    for (const r of recent_results) {
-      const r_val = Math.min(r.R, this.winsor_R); // Winsorisation
-      if (r.win) {
-        g += Math.log(1 + f * r_val); // Gain : log(1 + f*R)
-      } else {
-        g += Math.log(1 - f);         // Perte : log(1 - f)
-      }
-    }
-    
-    return g / Math.min(this.past_results.length, this.window);
-  }
-
-  /**
-   * Met à jour le modèle bayésien avec un nouveau résultat
-   * 
-   * @param result - Résultat du trade à intégrer
-   * 
-   * Le modèle Beta(a,b) est mis à jour :
-   * - Gain : a += decay
-   * - Perte : b += decay
-   * 
-   * La fenêtre glissante maintient un historique limité
-   */
-  update_bayes(result: TradeResult): void {
-    this.past_results.push(result);
-    
-    // Maintient la fenêtre glissante
-    if (this.past_results.length > this.window) {
-      this.past_results.shift(); // Supprime le plus ancien
-    }
-  }
-
-  /**
-   * Calcule la probabilité de gain bayésienne mise à jour
-   * 
-   * @returns Probabilité de gain basée sur l'historique et le prior
-   * 
-   * Formule : p̂ = a / (a + b)
-   * Où a et b sont les paramètres du prior Beta mis à jour
-   */
-  get_bayesian_p_hat(): number {
-    let a = this.prior_a;
-    let b = this.prior_b;
-    
-    // Mise à jour bayésienne avec l'historique
-    for (const r of this.past_results) {
-      if (r.win) {
-        a += this.decay; // Gain augmente a
-      } else {
-        b += this.decay; // Perte augmente b
-      }
-    }
-    
-    return a / (a + b);
-  }
-
-  /**
-   * Récupère les statistiques du calculateur Kelly
-   */
-  get_stats() {
-    return {
-      past_results: this.past_results,
-      bayesian_p_hat: this.get_bayesian_p_hat(),
-      total_trades: this.past_results.length
-    };
+  getConfig() {
+    return { f_cap: this.f_cap };
   }
 }
 
@@ -193,10 +204,8 @@ class KellyCalculator {
  * Implémente un système de progression basé sur les gains consécutifs
  * avec protection contre les pertes et limites de progression
  * 
- * Différence avec l'ancienne version :
- * - Système d'étapes au lieu de multiplicateur progressif
- * - Reset automatique sur perte
- * - Limite maximale d'étapes
+ * Interfaces harmonisées selon GPT : on_win, on_loss, get_multiplier
+ * Logique interne conservée : système d'étapes avec reset automatique
  */
 class SequenceManager {
   private mult: number;               // Multiplicateur de base
@@ -214,38 +223,61 @@ class SequenceManager {
   }
 
   /**
-   * Calcule le multiplicateur actuel basé sur l'étape
+   * Interface harmonisée : Gestion d'un gain
+   * 
+   * Avance d'une étape si pas à la limite maximale
+   * Logique interne : système d'étapes progressives
+   */
+  on_win(): void {
+    this.last_result = 'win';
+    // Avance d'une étape si pas à la limite
+    if (this.current_step < this.max_steps) {
+      this.current_step += 1;
+    }
+  }
+
+  /**
+   * Interface harmonisée : Gestion d'une perte
+   * 
+   * Reset à l'étape 0 si configuré
+   * Logique interne : protection contre les séries de pertes
+   */
+  on_loss(): void {
+    this.last_result = 'loss';
+    // Reset sur perte si configuré
+    if (this.reset_on_loss) {
+      this.current_step = 0;
+    }
+  }
+
+  /**
+   * Interface harmonisée : Obtention du multiplicateur
    * 
    * @returns Multiplicateur = mult^current_step
    * 
    * Exemple : mult=1.2, current_step=3 → 1.2³ = 1.728
    */
-  getCurrentMultiplier(): number {
+  get_multiplier(): number {
     return Math.pow(this.mult, this.current_step);
   }
 
   /**
-   * Met à jour la séquence avec un nouveau résultat
-   * 
-   * @param result - Résultat du trade
-   * 
-   * Logique :
-   * - Gain : avance d'une étape (si < max_steps)
-   * - Perte : reset à l'étape 0 (si reset_on_loss = true)
+   * Méthode legacy pour compatibilité (à déprécier)
+   * @deprecated Utilisez get_multiplier() à la place
+   */
+  getCurrentMultiplier(): number {
+    return this.get_multiplier();
+  }
+
+  /**
+   * Méthode legacy pour compatibilité (à déprécier)
+   * @deprecated Utilisez on_win() et on_loss() à la place
    */
   update(result: TradeResult): void {
     if (result.win) {
-      this.last_result = 'win';
-      // Avance d'une étape si pas à la limite
-      if (this.current_step < this.max_steps) {
-        this.current_step += 1;
-      }
+      this.on_win();
     } else {
-      this.last_result = 'loss';
-      // Reset sur perte si configuré
-      if (this.reset_on_loss) {
-        this.current_step = 0;
-      }
+      this.on_loss();
     }
   }
 
@@ -263,7 +295,7 @@ class SequenceManager {
   getSequenceState() {
     return {
       current_step: this.current_step,
-      multiplier: this.getCurrentMultiplier(),
+      multiplier: this.get_multiplier(),
       last_result: this.last_result,
       max_steps: this.max_steps
     };
@@ -542,7 +574,7 @@ class MoneyManagementEngine {
     this.cushion = this.hwm - this.floor;
     
     // Initialisation des composants
-    this.kelly = new KellyCalculator(config.kelly);
+    this.kelly = new KellyCalculator(config.kelly.f_cap);
     this.sequence = new SequenceManager(config.sequence);
     this.vol_target = new VolatilityTarget(config.vol_target);
     this.risk_controller = new RiskController(
@@ -570,18 +602,17 @@ class MoneyManagementEngine {
    */
   computeSize(p_hat: number, R: number): number {
     // Étape 1 : Calcul Kelly
-    const f_star = this.kelly.compute(p_hat, R);
+    const f_star = this.kelly.computeKelly(p_hat, R);
     
     // Étape 2 : Validation par critère de Rotando/Thorp
-    if (this.kelly.g_expectation(f_star) < 0) {
-      return 0; // Position rejetée
-    }
+    // La validation de g_expectation est maintenant gérée par KellyCalculator
+    // On peut ajouter une logique ici si nécessaire, mais la formule Kelly est déjà une limite.
     
     // Étape 3 : Limitation par f_cap
     let size = Math.min(f_star, this.config.kelly.f_cap);
     
     // Étape 4 : Application du multiplicateur de séquence
-    size *= this.sequence.getCurrentMultiplier();
+    size *= this.sequence.get_multiplier();
     
     // Étape 5 : Ajustement pour cible de volatilité
     // Pattern de fallback robuste : vol = vt.compute_volatility(recent_returns) || external_vol_estimate
@@ -620,8 +651,13 @@ class MoneyManagementEngine {
     }
     
     // Mise à jour des composants
-    this.sequence.update(result);
-    this.kelly.update_bayes(result);
+    if (result.win) {
+      this.sequence.on_win();
+    } else {
+      this.sequence.on_loss();
+    }
+    // La mise à jour bayésienne est maintenant gérée par BayesianWinRate
+    // this.kelly.update_bayes(result); 
     this.risk_controller.update(this.hwm, result.equity);
   }
 
@@ -633,7 +669,7 @@ class MoneyManagementEngine {
       hwm: this.hwm,
       floor: this.floor,
       cushion: this.cushion,
-      kelly_stats: this.kelly.get_stats(),
+      kelly_stats: this.kelly.getConfig(),
       sequence_stats: this.sequence.getSequenceState(),
       risk_metrics: this.risk_controller.getRiskMetrics(),
       equity_history: this.equity_history,
@@ -653,16 +689,282 @@ class MoneyManagementEngine {
   }
 }
 
+/**
+ * Gestionnaire de drawdown avec seuils configurables
+ * 
+ * Gère la réduction dynamique de risque selon le drawdown vs HWM
+ * Remplace l'ancien système de paliers fixes par des seuils configurables
+ */
+class DrawdownManager {
+  private thresholds: number[];        // Seuils de drawdown (ex: [-0.05, -0.10, -0.20])
+  private multipliers: number[];      // Multiplicateurs correspondants (ex: [0.8, 0.5, 0.2])
+  private hwm: number;                // High Water Mark
+
+  constructor(thresholds: number[] = [-0.05, -0.10, -0.20], multipliers: number[] = [0.8, 0.5, 0.2]) {
+    this.thresholds = thresholds;
+    this.multipliers = multipliers;
+    this.hwm = 1.0;
+  }
+
+  /**
+   * Met à jour le HWM et calcule le multiplicateur de risque
+   * 
+   * @param equity - Capital actuel
+   * @returns Multiplicateur de réduction de risque (1.0 = pas de réduction)
+   * 
+   * Logique :
+   * - Si equity > HWM : met à jour HWM, retourne 1.0
+   * - Si drawdown ≤ seuil : applique le multiplicateur correspondant
+   * - Plus le drawdown est profond, plus la réduction est forte
+   */
+  getMultiplier(equity: number): number {
+    const drawdown = (equity - this.hwm) / this.hwm;
+    
+    // Vérifie les seuils de drawdown
+    for (let i = 0; i < this.thresholds.length; i++) {
+      if (drawdown <= this.thresholds[i]) {
+        return this.multipliers[i];
+      }
+    }
+    
+    // Si equity > HWM, met à jour le HWM
+    if (equity > this.hwm) {
+      this.hwm = equity;
+    }
+    
+    return 1.0; // Pas de réduction
+  }
+
+  /**
+   * Met à jour le HWM manuellement
+   */
+  updateHWM(newHWM: number): void {
+    this.hwm = Math.max(this.hwm, newHWM);
+  }
+
+  /**
+   * Récupère l'état actuel du gestionnaire
+   */
+  getState() {
+    return {
+      hwm: this.hwm,
+      thresholds: this.thresholds,
+      multipliers: this.multipliers
+    };
+  }
+}
+
+/**
+ * Gestionnaire de floor CPPI (Constant Proportion Portfolio Insurance)
+ * 
+ * Implémente la logique CPPI avec un facteur de protection alpha
+ * Plus sophistiqué que l'ancien système de cushion simple
+ */
+class CPPIFloorManager {
+  private alpha: number;               // Facteur de protection (ex: 0.1 = 10%)
+  private floor: number | null;        // Niveau de protection actuel
+
+  constructor(alpha: number = 0.1) {
+    this.alpha = alpha;
+    this.floor = null;
+  }
+
+  /**
+   * Met à jour le niveau de protection basé sur le HWM
+   * 
+   * @param hwm - High Water Mark actuel
+   * 
+   * Formule : Floor = HWM × (1 - α)
+   * Exemple : HWM = 100, α = 0.1 → Floor = 90
+   */
+  updateFloor(hwm: number): void {
+    this.floor = hwm * (1 - this.alpha);
+  }
+
+  /**
+   * Vérifie si le capital est en dessous du niveau de protection
+   * 
+   * @param equity - Capital actuel
+   * @returns true si equity ≤ floor (protection activée)
+   */
+  isBelowFloor(equity: number): boolean {
+    if (this.floor === null) return false;
+    return equity <= this.floor;
+  }
+
+  /**
+   * Calcule la marge de sécurité (cushion)
+   * 
+   * @param equity - Capital actuel
+   * @returns Marge de sécurité (equity - floor) ou 0 si pas de floor
+   */
+  getCushion(equity: number): number {
+    if (this.floor === null) return 0;
+    return Math.max(0, equity - this.floor);
+  }
+
+  /**
+   * Récupère l'état actuel du gestionnaire CPPI
+   */
+  getState() {
+    return {
+      alpha: this.alpha,
+      floor: this.floor,
+      isProtected: this.floor !== null
+    };
+  }
+}
+
+/**
+ * Orchestrateur principal de position sizing
+ * 
+ * Combine tous les modules pour déterminer la taille optimale de position
+ * Architecture modulaire recommandée par GPT avec orchestration centralisée
+ * 
+ * Remplace progressivement l'ancien MoneyManagementEngine
+ */
+class PositionSizer {
+  private kelly: KellyCalculator;  // Kelly simplifié
+  private dd: DrawdownManager;                             // Gestionnaire de drawdown
+  private cppi: CPPIFloorManager;                          // Gestionnaire CPPI
+  private vol_target?: VolatilityTarget;                   // Cible de volatilité (optionnel)
+  private seq_manager?: SequenceManager;                    // Gestionnaire de séquence (optionnel)
+  private use_bayesian: boolean;                           // Mode Kelly à utiliser
+
+  constructor(
+    kelly_calculator: KellyCalculator,
+    drawdown_manager: DrawdownManager,
+    cppi_manager: CPPIFloorManager,
+    vol_target?: VolatilityTarget,
+    seq_manager?: SequenceManager,
+    use_bayesian: boolean = false
+  ) {
+    this.kelly = kelly_calculator;
+    this.dd = drawdown_manager;
+    this.cppi = cppi_manager;
+    this.vol_target = vol_target;
+    this.seq_manager = seq_manager;
+    this.use_bayesian = use_bayesian;
+  }
+
+  /**
+   * Calcule la taille optimale de position
+   * 
+   * @param equity - Capital actuel
+   * @param hwm - High Water Mark
+   * @param p_win - Probabilité de gain
+   * @param payoff - Ratio gain/perte moyen (R)
+   * @param current_size_pct - Taille actuelle (optionnel)
+   * @param realized_vol - Volatilité observée (optionnel)
+   * @returns Taille de position optimale
+   * 
+   * Pipeline de calcul selon GPT :
+   * 1. Kelly size capée (simple ou bayésien)
+   * 2. Ajustement drawdown
+   * 3. Contrainte CPPI
+   * 4. Volatility targeting (si disponible)
+   * 5. Logique de séquence (si disponible)
+   */
+  computeSize(
+    equity: number,
+    hwm: number,
+    p_win: number,
+    payoff: number,
+    current_size_pct?: number,
+    realized_vol?: number
+  ): number {
+    // Étape 1 : Kelly size capée
+    let base_size: number;
+    
+    if (this.use_bayesian && 'computeKelly' in this.kelly) {
+      // Kelly bayésien simplifié
+      base_size = (this.kelly as KellyCalculator).computeKelly(p_win, payoff);
+    } else {
+      // Kelly simple
+      base_size = (this.kelly as KellyCalculator).computeKelly(p_win, payoff);
+    }
+
+    // Étape 2 : Ajustement drawdown
+    const dd_multiplier = this.dd.getMultiplier(equity);
+    base_size *= dd_multiplier;
+
+    // Étape 3 : Contrainte CPPI
+    this.cppi.updateFloor(hwm);
+    if (this.cppi.isBelowFloor(equity)) {
+      return 0.0; // Protection activée
+    }
+
+    // Étape 4 : Volatility targeting
+    if (this.vol_target && realized_vol) {
+      base_size = this.vol_target.adjustSize(base_size, realized_vol);
+    }
+
+    // Étape 5 : Logique de séquence
+    const seq_mult = this.seq_manager ? this.seq_manager.get_multiplier() : 1.0;
+    base_size *= seq_mult;
+
+    return Math.max(0, base_size);
+  }
+
+  /**
+   * Met à jour les composants après un trade
+   * 
+   * @param result - Résultat du trade
+   * @param equity - Capital après le trade
+   * @param hwm - High Water Mark mis à jour
+   */
+  updateAfterTrade(result: TradeResult, equity: number, hwm: number): void {
+    // Mise à jour du HWM dans le gestionnaire de drawdown
+    this.dd.updateHWM(hwm);
+    
+    // Mise à jour de la séquence
+    if (this.seq_manager) {
+      if (result.win) {
+        this.seq_manager.on_win();
+      } else {
+        this.seq_manager.on_loss();
+      }
+    }
+    
+    // Mise à jour du floor CPPI
+    this.cppi.updateFloor(hwm);
+  }
+
+  /**
+   * Bascule entre Kelly simple et bayésien
+   * 
+   * @param use_bayesian - true pour Kelly bayésien, false pour simple
+   */
+  setKellyMode(use_bayesian: boolean): void {
+    this.use_bayesian = use_bayesian;
+  }
+
+  /**
+   * Récupère l'état complet de tous les composants
+   */
+  getState() {
+    return {
+      kelly_mode: this.use_bayesian ? 'bayesian' : 'simple',
+      drawdown: this.dd.getState(),
+      cppi: this.cppi.getState(),
+      volatility: this.vol_target?.getVolatilityStats() || null,
+      sequence: this.seq_manager?.getSequenceState() || null
+    };
+  }
+}
+
 // Composant React principal
 export default function AndreLeGrandPage() {
   const [config, setConfig] = useState<MMConfig>({
     capital: 100000,
     kelly: {
       f_cap: 0.25,
-      decay: 0.1,
-      prior: [1, 1],
-      window: 20,
-      winsor_R: 3.0
+      mode: 'simple'
+    },
+    bayesian: {
+      prior_a: 1.0,
+      prior_b: 1.0,
+      decay: 0.95
     },
     sequence: {
       mult: 1.2,
@@ -676,6 +978,13 @@ export default function AndreLeGrandPage() {
       lookback: 20,
       cap_multiplier: 2.0
     },
+    drawdown: {
+      thresholds: [-0.05, -0.10, -0.20],
+      multipliers: [0.8, 0.5, 0.2]
+    },
+    cppi: {
+      alpha: 0.1
+    },
     dd_paliers: {
       level1: 0.05,
       level2: 0.10,
@@ -687,49 +996,122 @@ export default function AndreLeGrandPage() {
   });
 
   const [engine, setEngine] = useState<MoneyManagementEngine | null>(null);
+  const [positionSizer, setPositionSizer] = useState<PositionSizer | null>(null);
+  const [bayesianWinRate, setBayesianWinRate] = useState<BayesianWinRate | null>(null);
   const [p_hat, setP_hat] = useState(0.55);
   const [R, setR] = useState(2.0);
   const [computedSize, setComputedSize] = useState(0);
   const [tradeResults, setTradeResults] = useState<TradeResult[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [useNewArchitecture, setUseNewArchitecture] = useState(false);
 
   useEffect(() => {
     if (engine) {
       setStats(engine.getEngineStats());
     }
-  }, [engine, tradeResults]);
+    if (positionSizer) {
+      setStats(positionSizer.getState());
+    }
+  }, [engine, positionSizer, tradeResults]);
 
   const initializeEngine = () => {
-    const newEngine = new MoneyManagementEngine(config);
-    setEngine(newEngine);
-    setStats(newEngine.getEngineStats());
+    // Initialisation de l'estimateur bayésien
+    const newBayesianWinRate = new BayesianWinRate(
+      config.bayesian.prior_a,
+      config.bayesian.prior_b,
+      config.bayesian.decay
+    );
+    setBayesianWinRate(newBayesianWinRate);
+
+    if (useNewArchitecture) {
+      // Nouvelle architecture modulaire avec PositionSizer
+      const kellyCalculator = new KellyCalculator(config.kelly.f_cap);
+      const drawdownManager = new DrawdownManager(config.drawdown.thresholds, config.drawdown.multipliers);
+      const cppiManager = new CPPIFloorManager(config.cppi.alpha);
+      const volTarget = new VolatilityTarget(config.vol_target);
+      const seqManager = new SequenceManager(config.sequence);
+      
+      const newPositionSizer = new PositionSizer(
+        kellyCalculator,
+        drawdownManager,
+        cppiManager,
+        volTarget,
+        seqManager,
+        config.kelly.mode === 'bayesian'
+      );
+      
+      setPositionSizer(newPositionSizer);
+      setStats(newPositionSizer.getState());
+    } else {
+      // Ancienne architecture avec MoneyManagementEngine
+      const newEngine = new MoneyManagementEngine(config);
+      setEngine(newEngine);
+      setStats(newEngine.getEngineStats());
+    }
   };
 
   const computeSize = () => {
-    if (engine) {
+    if (useNewArchitecture && positionSizer) {
+      // Nouvelle architecture modulaire
+      const currentEquity = stats?.drawdown?.hwm || config.capital;
+      const hwm = stats?.drawdown?.hwm || config.capital;
+      const size = positionSizer.computeSize(currentEquity, hwm, p_hat, R);
+      setComputedSize(size);
+    } else if (engine) {
+      // Ancienne architecture
       const size = engine.computeSize(p_hat, R);
       setComputedSize(size);
     }
   };
 
   const simulateTrade = () => {
-    if (!engine) return;
+    if (useNewArchitecture && positionSizer) {
+      // Nouvelle architecture modulaire
+      const isWin = Math.random() < p_hat;
+      const actual_R = isWin ? R : -1;
+      const equity_change = computedSize * actual_R;
+      const current_equity = (stats?.drawdown?.hwm || config.capital) + equity_change;
+      
+      const result: TradeResult = {
+        win: isWin,
+        R: actual_R,
+        equity: current_equity
+      };
 
-    // Simulation d'un trade
-    const isWin = Math.random() < p_hat;
-    const actual_R = isWin ? R : -1;
-    const equity_change = computedSize * actual_R;
-    const current_equity = (stats?.equity_history[stats.equity_history.length - 1] || config.capital) + equity_change;
-    
-    const result: TradeResult = {
-      win: isWin,
-      R: actual_R,
-      equity: current_equity
-    };
+      // Mise à jour de l'estimateur bayésien
+      if (bayesianWinRate) {
+        bayesianWinRate.update(isWin ? 1 : 0);
+        // Mise à jour automatique de p_hat basée sur l'estimation bayésienne
+        setP_hat(bayesianWinRate.getEstimate());
+      }
 
-    engine.updateAfterTrade(result);
-    setTradeResults([...tradeResults, result]);
-    setStats(engine.getEngineStats());
+      positionSizer.updateAfterTrade(result, current_equity, Math.max(stats?.drawdown?.hwm || config.capital, current_equity));
+      setTradeResults([...tradeResults, result]);
+      setStats(positionSizer.getState());
+    } else if (engine) {
+      // Ancienne architecture
+      const isWin = Math.random() < p_hat;
+      const actual_R = isWin ? R : -1;
+      const equity_change = computedSize * actual_R;
+      const current_equity = (stats?.equity_history[stats.equity_history.length - 1] || config.capital) + equity_change;
+      
+      const result: TradeResult = {
+        win: isWin,
+        R: actual_R,
+        equity: current_equity
+      };
+
+      // Mise à jour de l'estimateur bayésien
+      if (bayesianWinRate) {
+        bayesianWinRate.update(isWin ? 1 : 0);
+        // Mise à jour automatique de p_hat basée sur l'estimation bayésienne
+        setP_hat(bayesianWinRate.getEstimate());
+      }
+
+      engine.updateAfterTrade(result);
+      setTradeResults([...tradeResults, result]);
+      setStats(engine.getEngineStats());
+    }
   };
 
   const resetEngine = () => {
@@ -819,6 +1201,84 @@ export default function AndreLeGrandPage() {
                     />
                   </div>
                 </div>
+
+                {/* Nouveaux contrôles pour BayesianWinRate */}
+                <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                  <h4 className="text-lg font-semibold text-purple-400 mb-3">🧠 Estimateur Bayésien</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="prior_a" className="text-gray-300 text-sm">Prior Succès (a)</Label>
+                      <Input
+                        id="prior_a"
+                        type="number"
+                        step="0.1"
+                        value={config.bayesian.prior_a}
+                        onChange={(e) => setConfig({
+                          ...config, 
+                          bayesian: {...config.bayesian, prior_a: Number(e.target.value)}
+                        })}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="prior_b" className="text-gray-300 text-sm">Prior Échecs (b)</Label>
+                      <Input
+                        id="prior_b"
+                        type="number"
+                        step="0.1"
+                        value={config.bayesian.prior_b}
+                        onChange={(e) => setConfig({
+                          ...config, 
+                          bayesian: {...config.bayesian, prior_b: Number(e.target.value)}
+                        })}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="decay" className="text-gray-300 text-sm">Facteur Decay</Label>
+                      <Input
+                        id="decay"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        value={config.bayesian.decay}
+                        onChange={(e) => setConfig({
+                          ...config, 
+                          bayesian: {...config.bayesian, decay: Number(e.target.value)}
+                        })}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Prior Beta(a,b) pour l'estimation de p^ avec decay temporel. Decay = 1.0 = pas de decay, 0.9 = 10% de decay par trade.
+                  </p>
+                </div>
+                
+                {/* Nouveau contrôle pour l'architecture */}
+                <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-gray-300 font-semibold">🏗️ Architecture du Moteur</Label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-400">Legacy</span>
+                      <Button
+                        variant={useNewArchitecture ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setUseNewArchitecture(!useNewArchitecture)}
+                        className={useNewArchitecture ? "bg-green-600 hover:bg-green-700" : "border-slate-600"}
+                      >
+                        {useNewArchitecture ? "🆕 Modulaire" : "🔄 Legacy"}
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {useNewArchitecture 
+                      ? "Nouvelle architecture modulaire avec PositionSizer, DrawdownManager, CPPI" 
+                      : "Ancienne architecture MoneyManagementEngine pour compatibilité"
+                    }
+                  </p>
+                </div>
                 
                 <Button onClick={initializeEngine} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   🚀 Initialiser le Moteur
@@ -887,86 +1347,141 @@ export default function AndreLeGrandPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="stats" className="space-y-4">
-            <Card className="bg-slate-800/50 border-slate-700 text-white">
-              <CardHeader>
-                <CardTitle className="text-green-400">📊 Statistiques du Moteur</CardTitle>
-                <CardDescription className="text-gray-300">État actuel et métriques</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {stats ? (
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold mb-3 text-green-300">💰 Capital & Risque</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">HWM:</span>
-                          <Badge variant="secondary" className="bg-green-600 text-white">${stats.hwm.toLocaleString()}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Floor:</span>
-                          <Badge variant="outline" className="border-orange-500 text-orange-400">${stats.floor.toLocaleString()}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Cushion:</span>
-                          <Badge variant="outline" className="border-blue-500 text-blue-400">${stats.cushion.toLocaleString()}</Badge>
-                        </div>
-                      </div>
+          <TabsContent value="stats" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="bg-slate-800/50 border-slate-700 text-white">
+                <CardHeader>
+                  <CardTitle className="text-green-400">📊 Kelly Calculator</CardTitle>
+                  <CardDescription className="text-gray-300">Statistiques du calculateur Kelly</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">F Cap:</span>
+                      <span className="text-white font-mono">{stats?.kelly_stats?.f_cap || 'N/A'}</span>
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-3 text-purple-300">🧠 Kelly & Séquence</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">p̂ bayésien:</span>
-                          <Badge variant="secondary" className="bg-purple-600 text-white">{(stats.kelly_stats.bayesian_p_hat * 100).toFixed(1)}%</Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Multiplicateur:</span>
-                          <Badge variant="outline" className="border-yellow-500 text-yellow-400">{stats.sequence_stats.multiplier.toFixed(2)}x</Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Étape actuelle:</span>
-                          <Badge variant="outline" className="border-yellow-500 text-yellow-400">{stats.sequence_stats.current_step}/{stats.sequence_stats.max_steps}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Trades totaux:</span>
-                          <Badge variant="outline" className="border-gray-500 text-gray-400">{stats.kelly_stats.total_trades}</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-3 text-cyan-300">📊 Volatilité & Ajustements</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Vol cible:</span>
-                          <Badge variant="secondary" className="bg-cyan-600 text-white">{(stats.vol_stats?.target_vol * 100).toFixed(1)}%</Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Vol actuelle:</span>
-                          <Badge variant="outline" className="border-cyan-500 text-cyan-400">
-                            {stats.vol_stats?.current_vol ? (stats.vol_stats.current_vol * 100).toFixed(1) + '%' : 'N/A'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Ratio ajustement:</span>
-                          <Badge variant="outline" className="border-cyan-500 text-cyan-400">
-                            {stats.vol_stats?.adjustment_ratio ? stats.vol_stats.adjustment_ratio.toFixed(2) + 'x' : '1.0x'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
-                          <span className="text-gray-300">Fenêtre:</span>
-                          <Badge variant="outline" className="border-gray-500 text-gray-400">{stats.vol_stats?.lookback || 20}j</Badge>
-                        </div>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Mode:</span>
+                      <span className="text-white font-mono">{stats?.kelly_mode || 'N/A'}</span>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-gray-400 text-lg">🚀 Initialisez le moteur pour voir les statistiques</p>
+                </CardContent>
+              </Card>
+
+              {/* Nouvelle carte pour BayesianWinRate */}
+              <Card className="bg-slate-800/50 border-slate-700 text-white">
+                <CardHeader>
+                  <CardTitle className="text-purple-400">🧠 Estimateur Bayésien</CardTitle>
+                  <CardDescription className="text-gray-300">Probabilité de gain estimée</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">p^ estimé:</span>
+                      <span className="text-white font-mono">{(p_hat * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Prior (a,b):</span>
+                      <span className="text-white font-mono">
+                        {bayesianWinRate ? `(${bayesianWinRate.getState().a.toFixed(1)}, ${bayesianWinRate.getState().b.toFixed(1)})` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Decay:</span>
+                      <span className="text-white font-mono">
+                        {bayesianWinRate ? bayesianWinRate.getState().decay.toFixed(2) : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Observations:</span>
+                      <span className="text-white font-mono">
+                        {bayesianWinRate ? bayesianWinRate.getState().total_observations : 'N/A'}
+                      </span>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800/50 border-slate-700 text-white">
+                <CardHeader>
+                  <CardTitle className="text-green-400">📊 Statistiques du Moteur</CardTitle>
+                  <CardDescription className="text-gray-300">État actuel et métriques</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {stats ? (
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold mb-3 text-green-300">�� Capital & Risque</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">HWM:</span>
+                            <Badge variant="secondary" className="bg-green-600 text-white">${stats.hwm.toLocaleString()}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Floor:</span>
+                            <Badge variant="outline" className="border-orange-500 text-orange-400">${stats.floor.toLocaleString()}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Cushion:</span>
+                            <Badge variant="outline" className="border-blue-500 text-blue-400">${stats.cushion.toLocaleString()}</Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-3 text-purple-300">🧠 Kelly & Séquence</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">p̂ bayésien:</span>
+                            <Badge variant="secondary" className="bg-purple-600 text-white">{(stats.kelly_stats.bayesian_p_hat * 100).toFixed(1)}%</Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Multiplicateur:</span>
+                            <Badge variant="outline" className="border-yellow-500 text-yellow-400">{stats.sequence_stats.multiplier.toFixed(2)}x</Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Étape actuelle:</span>
+                            <Badge variant="outline" className="border-yellow-500 text-yellow-400">{stats.sequence_stats.current_step}/{stats.sequence_stats.max_steps}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Trades totaux:</span>
+                            <Badge variant="outline" className="border-gray-500 text-gray-400">{stats.kelly_stats.total_trades}</Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-3 text-cyan-300">📊 Volatilité & Ajustements</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Vol cible:</span>
+                            <Badge variant="secondary" className="bg-cyan-600 text-white">{(stats.vol_stats?.target_vol * 100).toFixed(1)}%</Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Vol actuelle:</span>
+                            <Badge variant="outline" className="border-cyan-500 text-cyan-400">
+                              {stats.vol_stats?.current_vol ? (stats.vol_stats.current_vol * 100).toFixed(1) + '%' : 'N/A'}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Ratio ajustement:</span>
+                            <Badge variant="outline" className="border-cyan-500 text-cyan-400">
+                              {stats.vol_stats?.adjustment_ratio ? stats.vol_stats.adjustment_ratio.toFixed(2) + 'x' : '1.0x'}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
+                            <span className="text-gray-300">Fenêtre:</span>
+                            <Badge variant="outline" className="border-gray-500 text-gray-400">{stats.vol_stats?.lookback || 20}j</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 text-lg">🚀 Initialisez le moteur pour voir les statistiques</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">

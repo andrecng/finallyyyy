@@ -14,7 +14,8 @@ import {
   X,
   TrendingUp,
   Target,
-  Zap
+  Zap,
+  Brain
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,12 @@ const navItems = [
     title: 'Laboratoire',
     description: 'Simulations Monte Carlo avancées',
     icon: Calculator
+  },
+  {
+    href: '/andre-le-grand',
+    title: 'André le Grand',
+    description: 'Moteur de Money Management',
+    icon: Brain
   },
   {
     href: '/live',
