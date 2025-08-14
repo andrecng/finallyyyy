@@ -24,7 +24,7 @@ export default function Home() {
               onClick={() => window.location.href = '/andre-le-grand'} 
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 text-lg font-semibold"
             >
-              🧠 André le Grand
+              🧠 ANDRE'S BRAIN
             </Button>
             <Button 
               onClick={() => window.location.href = '/lab'} 
@@ -53,9 +53,9 @@ export default function Home() {
         {/* Section principale - André le Grand */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-4">
-            🧠 André le Grand - Moteur de Money Management
+            🧠 ANDRE'S BRAIN - Moteur de Money Management
           </h2>
-          <p className="text-lg text-gray-300 mb-6">Système avancé de gestion des risques et position sizing</p>
+          <p className="text-lg text-gray-300 mb-6">Système avancé de gestion des risques et position sizing pour 2048 Asset Management</p>
           <Card className="bg-slate-800/50 border-slate-700 text-white hover:border-purple-500/30 transition-all duration-300 max-w-2xl mx-auto">
             <CardContent className="p-8">
               <div className="text-6xl mb-4">🧠</div>

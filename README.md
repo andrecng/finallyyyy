@@ -1,14 +1,14 @@
-# 🧠 André le Grand - Moteur de Money Management Modulaire
+# 🧠 ANDRE'S BRAIN - Moteur de Money Management Modulaire
 
 ## 🎯 **MOTEUR DE GESTION DE RISQUE ET DE POSITION SIZING AVANCÉ**
 
-**Système modulaire de Money Management avec Kelly Criterion, CPPI, Volatility Targeting et gestion de drawdown**
+**Système modulaire de Money Management avec Kelly Criterion, CPPI, Volatility Targeting et gestion de drawdown pour 2048 Asset Management**
 
 ---
 
 ## 🌟 **ORIGINE DU PROJET :**
 
-Ce projet implémente un moteur de Money Management complet et modulaire, conçu pour optimiser la gestion de risque et le position sizing dans le trading.
+Ce projet implémente un moteur de Money Management complet et modulaire, conçu pour optimiser la gestion de risque et le position sizing dans le trading pour 2048 Asset Management.
 
 **Philosophie :** *"La gestion du risque est l'art de survivre pour pouvoir gagner."*
 
@@ -79,12 +79,13 @@ Ce projet implémente un moteur de Money Management complet et modulaire, conçu
 
 ## 💪 **ÉQUIPE :**
 
-**André le Grand** - Conception et développement du moteur MM
+**2048 Asset Management** - Fond d'investissement et vision stratégique
+**André le Grand** - Conception et développement du moteur MM (ANDRE'S BRAIN)
 **GPT Assistant** - Optimisation et implémentation des modules
 
 ---
 
 ## 📝 **LICENCE :**
 
-Projet de Money Management modulaire
+Projet de Money Management modulaire pour 2048 Asset Management
 Développé pour l'optimisation des stratégies de trading
