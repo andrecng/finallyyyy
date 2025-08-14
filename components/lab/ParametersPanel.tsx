@@ -161,7 +161,7 @@ export default function ParametersPanel() {
               onChange={(e) => updateConfig({
                 edge: { ...config.edge, win_rate: Number(e.target.value) }
               })}
-              className="input-modern h-12 bg-surface border-2 border-border hover:border-success/40 focus:border-success"
+              className="input-modern h-12 bg-card border-2 border-border hover:border-success/40 focus:border-success"
             />
             <div className="flex items-center gap-3">
               <Badge className="badge-success text-xs px-3 py-1">
@@ -188,7 +188,7 @@ export default function ParametersPanel() {
               onChange={(e) => updateConfig({
                 edge: { ...config.edge, r_win: Number(e.target.value) }
               })}
-              className="input-modern h-12 bg-surface border-2 border-border hover:border-success/40 focus:border-success"
+              className="input-modern h-12 bg-card border-2 border-border hover:border-success/40 focus:border-success"
             />
             <div className="flex items-center gap-3">
               <Badge className="badge-success text-xs px-3 py-1">
@@ -230,7 +230,7 @@ export default function ParametersPanel() {
               placeholder="Ex: Stratégie Conservative"
               value={presetForm.name}
               onChange={(e) => setPresetForm({ ...presetForm, name: e.target.value })}
-              className="input-modern h-12 bg-surface border-2 border-border hover:border-warning/40 focus:border-warning"
+              className="input-modern h-12 bg-card border-2 border-border hover:border-warning/40 focus:border-success"
             />
           </div>
           

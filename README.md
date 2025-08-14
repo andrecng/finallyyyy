@@ -1,100 +1,95 @@
-# 2048 Asset Management - Laboratoire de Simulation de Trading
+# 🚀 Trading Integration - 2048 Asset Management
 
-## 🎯 Description
+## 🎯 **PROJET D'INTÉGRATION TRADING AVANCÉ**
 
-**2048 Asset Management** est un laboratoire de simulation de trading avancé développé avec Next.js. Il permet de configurer, tester et analyser des stratégies de trading via des simulations Monte-Carlo avec une interface professionnelle.
-
-## ✨ Fonctionnalités
-
-### 🧪 Laboratoire de Simulation
-- **Interface 3-panels** : Paramètres, Graphiques, KPIs
-- **Configuration avancée** : Capital, Edge, Kelly, Bayes, etc.
-- **Simulation Monte-Carlo** avec données mock
-- **Gestion des presets** et export de configuration
-
-### 📊 Visualisations
-- **Graphiques interactifs** avec Recharts
-- **Courbe d'equity** et drawdown
-- **Distribution R/Trade**
-- **Métriques de performance** en temps réel
-
-### 🎨 Interface Utilisateur
-- **Thème Binance** sombre et professionnel
-- **Composants UI** modernes avec shadcn/ui
-- **Responsive design** et navigation intuitive
-- **Séparateurs de milliers** pour une meilleure lisibilité
-
-## 🚀 Technologies
-
-- **Frontend** : Next.js 13.5.1 + TypeScript
-- **Styling** : Tailwind CSS + shadcn/ui
-- **État** : Zustand
-- **Graphiques** : Recharts
-- **Architecture** : App Router + Composants modulaires
-
-## 📁 Structure du Projet
-
-```
-finallyyyy-1/
-├── app/                    # Pages Next.js
-│   ├── lab/              # Laboratoire principal
-│   ├── backtest/         # Backtest historique
-│   ├── ftmo/             # Mode FTMO
-│   └── ...               # Autres pages
-├── components/            # Composants React
-│   ├── lab/              # Composants du laboratoire
-│   └── ui/               # Composants UI génériques
-├── stores/               # Gestion d'état Zustand
-├── lib/                  # Types et utilitaires
-└── docs/                 # Documentation
-```
-
-## 🛠️ Installation
-
-```bash
-# Cloner le projet
-git clone https://github.com/andrecng/finallyyyy.git
-cd finallyyyy-1
-
-# Installer les dépendances
-npm install
-
-# Lancer en mode développement
-npm run dev
-```
-
-## 📖 Documentation
-
-- **[CHANGELOG.md](CHANGELOG.md)** - Historique des versions et changements
-- **[AVANCEE_SESSION.md](AVANCEE_SESSION.md)** - Journal des sessions de développement
-- **Types TypeScript** - Documentation complète des interfaces
-
-## 🎯 Roadmap
-
-### Phase 1: Frontend ✅ COMPLET
-- [x] Interface utilisateur complète
-- [x] Configuration des paramètres
-- [x] Graphiques et visualisations
-- [x] Gestion des presets
-
-### Phase 2: Backend 🚧 EN COURS
-- [ ] API FastAPI pour simulations réelles
-- [ ] Base de données des résultats
-- [ ] Export fonctionnel (CSV, PNG, PDF)
-
-### Phase 3: Production 🎯
-- [ ] Tests automatisés
-- [ ] Déploiement
-- [ ] Monitoring et analytics
-
-## 🤝 Contribution
-
-Ce projet est en développement actif. Les contributions sont les bienvenues !
-
-## 📄 Licence
-
-Projet privé - Tous droits réservés
+**Intégration des meilleures stratégies et indicateurs de trading pour 2048 Asset Management**
 
 ---
 
-**Développé avec ❤️ par 2048 Asset Management**
+## 🌟 **ORIGINE DU PROJET :**
+
+Ce projet intègre les éléments clés du repository [Brieuc-Leysour-work](https://github.com/andrecng/Brieuc-Leysour-work.git) avec des améliorations et adaptations pour 2048 Asset Management.
+
+**Citation originale :** *"J'offre ce Dédale à ceux qui osent s'aventurer dans le chaos des marchés."*
+
+---
+
+## 📊 **COMPOSANTS INTÉGRÉS :**
+
+### **🐍 PYTHON (98.3%) :**
+- **🎲 Monte Carlo** - Simulations avancées
+- **📊 Backtesting MT5** - Tests sur données historiques
+- **📈 Alpha Decay** - Analyse de la décroissance alpha
+- **🔗 Corrélations** - Analyse des relations entre actifs
+- **🏗️ Edge Structurel** - Avantage informationnel vs structurel
+- **🌍 Macro Score** - Vue d'ensemble macroéconomique
+- **📊 Ornstein-Uhlenbeck** - Modèles stochastiques
+- **🥇 Multi-Assets** - Gold, BTC, Forex
+
+### **⚡ METATRADER5 (1.7%) :**
+- **🎯 DédaleFormation** - Stratégie principale
+- **📊 BollingerBands** - Indicateur de volatilité
+- **🚀 DailyBreakout** - Breakout journalier
+- **🌍 LondonBreakout** - Breakout London
+- **🤖 GridBotRSI** - Bot automatisé avec RSI
+- **📈 MAcroisement** - Croisement de moyennes
+- **🛡️ PropFirmProtector** - Protection compte prop
+- **⚖️ FVG** - Fair Value Gap
+- **📁 Export CSV** - Export historique des trades
+
+---
+
+## 🚀 **OBJECTIFS D'INTÉGRATION :**
+
+1. **📊 Dashboard Unifié** - Interface unique pour toutes les stratégies
+2. **🎲 Simulations Monte Carlo** - Intégration avec votre système existant
+3. **🤖 Trading Automatisé** - Bots et algorithmes avancés
+4. **📈 Multi-Assets** - Support Gold, BTC, Forex
+5. **🔄 Backtesting Avancé** - Tests sur données historiques
+6. **📊 Analytics Avancés** - Corrélations, edge structurel
+
+---
+
+## 🛠️ **TECHNOLOGIES UTILISÉES :**
+
+- **🐍 Python** - Analyse de données et backtesting
+- **⚡ MQL5** - Stratégies MetaTrader5
+- **📊 Jupyter Notebooks** - Analyse interactive
+- **🎲 Monte Carlo** - Simulations probabilistes
+- **📈 Pandas/NumPy** - Manipulation de données
+- **📊 Matplotlib/Plotly** - Visualisations
+
+---
+
+## 🔄 **WORKFLOW D'INTÉGRATION :**
+
+1. **📖 Analyse** des composants existants
+2. **🎯 Sélection** des éléments prioritaires
+3. **🔄 Adaptation** au système 2048 Asset Management
+4. **🧪 Tests** et validation
+5. **📊 Intégration** dans le dashboard principal
+
+---
+
+## 🎯 **PROCHAINES ÉTAPES :**
+
+- [ ] **Analyse approfondie** des notebooks Python
+- [ ] **Étude des stratégies** MT5
+- [ ] **Plan d'intégration** détaillé
+- [ ] **Développement** des composants
+- [ ] **Tests et validation**
+- [ ] **Déploiement** dans le système principal
+
+---
+
+## 💪 **ÉQUIPE :**
+
+**2048 Asset Management** - Intégration et développement
+**Brieuc-Leysour** - Stratégies et indicateurs originaux
+
+---
+
+## 📝 **LICENCE :**
+
+Projet d'intégration pour 2048 Asset Management
+Basé sur les travaux de Brieuc-Leysour

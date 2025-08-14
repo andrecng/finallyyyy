@@ -52,6 +52,13 @@
     --chart-3: 0 100% 60%;
     --chart-4: 210 100% 60%;
     --chart-5: 220 9% 94%;
+    
+    /* Variables pour les graphiques */
+    --border: 220 14% 12%;
+    --text-secondary: 220 13% 60%;
+    --bg-secondary: 220 14% 8%;
+    --green: 156 100% 40%;
+    --red: 0 100% 60%;
   }
 
   .light {
@@ -86,6 +93,13 @@
     --chart-3: 0 100% 60%;
     --chart-4: 210 100% 60%;
     --chart-5: 220 14% 10%;
+    
+    /* Variables pour les graphiques (mode clair) */
+    --border: 220 13% 91%;
+    --text-secondary: 220 13% 46%;
+    --bg-secondary: 220 14% 96%;
+    --green: 156 100% 40%;
+    --red: 0 100% 60%;
   }
 
   * {
@@ -153,6 +167,64 @@
   /* Badges style Binance */
   .badge-modern {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  }
+
+  /* Composants Binance spécifiques */
+  .binance-panel {
+    @apply bg-card border border-border/50 rounded-lg shadow-sm;
+  }
+
+  .binance-input {
+    @apply rounded-lg border-2 border-border bg-card px-3 py-2 text-sm transition-all duration-200;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+    @apply hover:border-primary/40;
+    @apply text-foreground placeholder:text-muted-foreground;
+  }
+
+  .binance-button {
+    @apply bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg;
+    @apply hover:from-primary/90 hover:to-primary/70 hover:shadow-xl;
+    @apply transition-all duration-200 ease-out;
+    @apply font-medium rounded-lg;
+  }
+
+  .binance-button-outline {
+    @apply border-2 border-primary/30 text-primary bg-transparent;
+    @apply hover:bg-primary/10 hover:border-primary/50;
+    @apply transition-all duration-200 ease-out;
+    @apply font-medium rounded-lg;
+  }
+
+  /* Classes utilitaires pour les KPIs */
+  .bg-tertiary {
+    @apply bg-muted/50;
+  }
+
+  .profit {
+    @apply text-success;
+  }
+
+  .loss {
+    @apply text-warning;
+  }
+
+  /* Scrollbar personnalisée */
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted));
+    border-radius: 3px;
   }
 
   .badge-primary {
@@ -235,7 +307,7 @@
     box-shadow: 0 4px 20px rgba(240, 185, 11, 0.15);
   }
 
-  .shadow-surface {
+  .shadow-lg {
     box-shadow: 0 4px 20px rgba(30, 32, 38, 0.3);
   }
 }

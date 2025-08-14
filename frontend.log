@@ -1,0 +1,335 @@
+
+> nextjs@0.1.0 dev
+> next dev
+
+  ▲ Next.js 13.5.1
+  - Local:        http://localhost:3000
+
+ ✓ Ready in 1264ms
+ ✓ Compiled /backtest/page in 1565ms (484 modules)
+ ✓ Compiled in 142ms (252 modules)
+ ✓ Compiled /lab/page in 718ms (1610 modules)
+ X Module not found: SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: Bad escaped character in JSON at position 215 (line 7 column 28)
+ X Module not found: SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: Bad escaped character in JSON at position 215 (line 7 column 28)
+ X Module not found: SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: Bad escaped character in JSON at position 215 (line 7 column 28)
+ X Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async pipe.req.req (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1723:30)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+ X Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: Bad escaped character in JSON at position 215 (line 7 column 28)
+<w> while resolving '/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/compiled' in /Users/andre.cng/Desktop/finallyyyy-1 to a directory
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async pipe.req.req (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1723:30)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+ X Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async pipe.req.req (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1723:30)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+ X Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+ ○ compiling /_error ...
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async pipe.req.req (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1723:30)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+ X Module not found: SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: /Users/andre.cng/Desktop/finallyyyy-1/package.json (directory description file): SyntaxError: Bad escaped character in JSON at position 215 (line 7 column 28)
+ X Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25)
+    at async DevServer.handleCatchallRenderRequest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/next-server.js:572:17)
+    at async DevServer.handleRequestImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:722:17) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+    at readFileSync (node:fs:441:20)
+    at loadManifest (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-manifest.js:30:54)
+    at loadManifestWithRetries (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-components.js:34:51)
+    at async loadDefaultErrorComponentsImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/load-default-error-components.js:30:24)
+    at async DevServer.getFallbackErrorComponents (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/dev/next-dev-server.js:565:20)
+    at async DevServer.renderErrorToResponseImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1866:40)
+    at async pipe.req.req (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:1723:30)
+    at async DevServer.pipeImpl (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/base-server.js:820:25) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/andre.cng/Desktop/finallyyyy-1/.next/fallback-build-manifest.json'
+}
+TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+ X uncaughtException: TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+ X uncaughtException: TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+ X uncaughtException: TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+ X uncaughtException: TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+[?25h
+TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+ X uncaughtException: TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+ X uncaughtException: TypeError [ERR_INVALID_ARG_TYPE]: The "code" argument must be of type number. Received type string ('SIGTERM')
+    at process.set [as exitCode] (node:internal/bootstrap/node:122:9)
+    at process.exit (node:internal/process/per_thread:189:24)
+    at process.cleanup (/Users/andre.cng/Desktop/finallyyyy-1/node_modules/next/dist/server/lib/start-server.js:208:29)
+    at process.emit (node:events:530:35)
+    at Signal.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
