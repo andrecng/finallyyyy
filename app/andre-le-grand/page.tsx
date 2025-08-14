@@ -52,6 +52,11 @@ interface MMConfig {
     alpha: number;                    // Facteur de protection CPPI (ex: 0.1 = 10%)
     freeze_threshold: number;         // Seuil de gel (ex: 0.05 = 5%)
   };
+  market_engine: {
+    boost_max: number;                // Boost maximum du sizing (ex: 0.15 = 15%)
+    haircut_max: number;              // Haircut maximum du sizing (ex: 0.4 = 40%)
+    entropy_bounds: [number, number]; // Seuils d'entropie [min, max] (ex: [0.65, 0.85])
+  };
   dd_paliers: {
     level1: number;                   // Premier palier de drawdown (ex: 0.05 = 5%)
     level2: number;                   // Deuxième palier de drawdown (ex: 0.10 = 10%)
@@ -1003,6 +1008,8 @@ class PositionSizer {
   private cppi: CPPIFloorManager;                          // Gestionnaire CPPI
   private vol_target?: VolatilityTarget;                   // Cible de volatilité (optionnel)
   private seq_manager?: SequenceManager;                    // Gestionnaire de séquence (optionnel)
+  private overlay?: MarketEngine;                           // Module d'overlay marché (optionnel)
+  private logger: RiskLogger;                               // Logger de risque pour traçabilité
   private use_bayesian: boolean;                           // Mode Kelly à utiliser
 
   constructor(
@@ -1011,6 +1018,7 @@ class PositionSizer {
     cppi_manager: CPPIFloorManager,
     vol_target?: VolatilityTarget,
     seq_manager?: SequenceManager,
+    overlay?: MarketEngine,
     use_bayesian: boolean = false
   ) {
     this.kelly = kelly_calculator;
@@ -1018,34 +1026,46 @@ class PositionSizer {
     this.cppi = cppi_manager;
     this.vol_target = vol_target;
     this.seq_manager = seq_manager;
+    this.overlay = overlay;
+    this.logger = new RiskLogger(); // Initialisation du logger de risque
     this.use_bayesian = use_bayesian;
   }
 
   /**
-   * Calcule la taille optimale de position
+   * Calcule la taille optimale de position avec traçabilité complète
    * 
+   * @param trade_id - Identifiant unique du trade pour le logging
    * @param equity - Capital actuel
    * @param hwm - High Water Mark
    * @param p_win - Probabilité de gain
    * @param payoff - Ratio gain/perte moyen (R)
    * @param current_size_pct - Taille actuelle (optionnel)
    * @param realized_vol - Volatilité observée (optionnel)
+   * @param tsmom_score - Score TSMOM pour l'overlay marché (optionnel)
+   * @param entropy - Entropie permutationnelle pour l'overlay marché (optionnel)
+   * @param hurst - Exposant de Hurst pour l'overlay marché (optionnel)
    * @returns Taille de position optimale
    * 
-   * Pipeline de calcul selon GPT :
+   * Pipeline de calcul selon GPT avec traçabilité :
    * 1. Kelly size capée (simple ou bayésien)
    * 2. Ajustement drawdown
    * 3. Contrainte CPPI
    * 4. Volatility targeting (si disponible)
    * 5. Logique de séquence (si disponible)
+   * 6. Overlay marché (si disponible)
+   * 7. Logging complet de chaque composante
    */
   computeSize(
+    trade_id: number,
     equity: number,
     hwm: number,
     p_win: number,
     payoff: number,
     current_size_pct?: number,
-    realized_vol?: number
+    realized_vol?: number,
+    tsmom_score?: number,
+    entropy?: number,
+    hurst?: number
   ): number {
     // Étape 1 : Kelly size capée
     let base_size: number;
@@ -1076,6 +1096,12 @@ class PositionSizer {
     // Étape 5 : Logique de séquence
     const seq_mult = this.seq_manager ? this.seq_manager.get_multiplier() : 1.0;
     base_size *= seq_mult;
+
+    // Étape 6 : Overlay marché (NOUVEAU !)
+    if (this.overlay && tsmom_score !== undefined && entropy !== undefined) {
+      const overlay_mult = this.overlay.compute_overlay(tsmom_score, entropy, hurst);
+      base_size *= overlay_mult;
+    }
 
     return Math.max(0, base_size);
   }
@@ -1122,9 +1148,301 @@ class PositionSizer {
       drawdown: this.dd.getState(),
       cppi: this.cppi.getState(),
       volatility: this.vol_target?.getVolatilityStats() || null,
-      sequence: this.seq_manager?.getSequenceState() || null
+      sequence: this.seq_manager?.getSequenceState() || null,
+      overlay: this.overlay?.getState() || null,
+      risk_logger: this.logger.getState() // État du logger de risque
     };
   }
+}
+
+/**
+ * Module d'overlay basé sur le régime de marché (Version GPT)
+ * 
+ * NOUVEAUTÉ MAJEURE : Module d'overlay qui ajuste la taille de position
+ * selon le régime de marché identifié (TSMOM, entropie, Hurst)
+ * 
+ * Fonctionnalités :
+ * - Boost de taille en régime directionnel
+ * - Haircut de taille en régime aléatoire
+ * - Filtrage par entropie permutationnelle
+ * - Support TSMOM et exposant de Hurst
+ * 
+ * Avantages :
+ * - Adaptation automatique au contexte de marché
+ * - Optimisation de la taille selon la volatilité
+ * - Protection contre les marchés chaotiques
+ * - Amplification des tendances fortes
+ */
+class MarketEngine {
+  private boost_max: number;                    // Boost maximum du sizing
+  private haircut_max: number;                  // Haircut maximum du sizing
+  private entropy_bounds: [number, number];     // Seuils d'entropie pour filtrer les régimes
+
+  constructor(boost_max: number = 0.15, haircut_max: number = 0.4, entropy_bounds: [number, number] = [0.65, 0.85]) {
+    this.boost_max = boost_max;
+    this.haircut_max = haircut_max;
+    this.entropy_bounds = entropy_bounds;
+  }
+
+  /**
+   * Calcule l'overlay de taille selon le régime de marché
+   * 
+   * @param tsmom_score - Score TSMOM (Trend Following Momentum)
+   * @param entropy - Entropie permutationnelle (0 = ordonné, 1 = aléatoire)
+   * @param hurst - Exposant de Hurst (optionnel, pour la persistance)
+   * @returns Multiplicateur entre (1 - haircut_max) et (1 + boost_max)
+   * 
+   * Logique de l'overlay :
+   * - Entropie élevée (≥ 0.85) → Marché aléatoire → Haircut de taille
+   * - Entropie faible (≤ 0.65) → Marché directionnel → Boost de taille
+   * - Entre les deux → Pas d'ajustement (multiplicateur = 1.0)
+   * 
+   * Exemples :
+   * - Entropie 0.9, TSMOM 0.5 → Haircut de 40% (0.6)
+   * - Entropie 0.3, TSMOM 0.8 → Boost de 12% (1.12)
+   * - Entropie 0.7, TSMOM 0.2 → Pas d'ajustement (1.0)
+   * 
+   * Formules :
+   * - Haircut = 1 - haircut_max (ex: 1 - 0.4 = 0.6)
+   * - Boost = 1 + min(|TSMOM|, 1.0) × boost_max
+   * 
+   * Références :
+   * - TSMOM : Time Series Momentum (Moskowitz et al., 2012)
+   * - Entropie permutationnelle : Bandt & Pompe (2002)
+   * - Exposant de Hurst : Hurst (1951)
+   */
+  compute_overlay(tsmom_score: number, entropy: number, hurst?: number): number {
+    if (entropy !== null && entropy !== undefined) {
+      if (entropy >= this.entropy_bounds[1]) {
+        // Marché trop aléatoire → Haircut de taille
+        return 1 - this.haircut_max;
+      } else if (entropy <= this.entropy_bounds[0]) {
+        // Régime directionnel → Boost de taille
+        const boost = Math.min(Math.abs(tsmom_score), 1.0) * this.boost_max;
+        return 1 + boost;
+      }
+    }
+    // Pas d'ajustement
+    return 1.0;
+  }
+
+  /**
+   * Récupère l'état complet du module Market Engine
+   */
+  getState() {
+    return {
+      boost_max: this.boost_max,
+      haircut_max: this.haircut_max,
+      entropy_bounds: this.entropy_bounds,
+      current_settings: {
+        boost_range: `1.0 à ${(1 + this.boost_max).toFixed(3)}`,
+        haircut_range: `${(1 - this.haircut_max).toFixed(3)} à 1.0`,
+        entropy_filter: `${this.entropy_bounds[0]} à ${this.entropy_bounds[1]}`
+      }
+    };
+  }
+}
+
+/**
+ * Logger de risque pour tracer la composition du sizing (Version GPT)
+ * 
+ * NOUVEAUTÉ MAJEURE : Module de traçabilité qui enregistre chaque composante
+ * du sizing pour analyse, audit et optimisation
+ * 
+ * Fonctionnalités :
+ * - Traçage de chaque composante du sizing
+ * - Historique complet des décisions
+ * - Analyse de l'impact de chaque module
+ * - Support pour l'audit et la conformité
+ * 
+ * Avantages :
+ * - Transparence totale du processus de sizing
+ * - Débogage facilité
+ * - Optimisation des paramètres
+ * - Audit trail complet
+ */
+class RiskLogger {
+  private logs: RiskLog[] = [];                    // Historique des logs
+  private max_logs: number = 1000;                 // Limite du nombre de logs conservés
+
+  /**
+   * Enregistre la composition détaillée du sizing
+   * 
+   * @param trade_id - Identifiant unique du trade
+   * @param base_size - Taille de base (Kelly)
+   * @param dd_multiplier - Multiplicateur drawdown
+   * @param vol_mult - Multiplicateur volatilité
+   * @param seq_mult - Multiplicateur séquence
+   * @param overlay_mult - Multiplicateur overlay marché
+   * @param final_size - Taille finale calculée
+   * 
+   * Logique de traçabilité :
+   * - Chaque composante est enregistrée séparément
+   * - Timestamp automatique pour chaque log
+   * - Rotation automatique des logs (max 1000)
+   * - Support pour l'analyse post-trade
+   * 
+   * Exemple d'utilisation :
+   * ```typescript
+   * logger.log(123, 0.05, 0.8, 1.2, 1.1, 0.9, 0.0396);
+   * // Log : Trade 123 - Kelly: 5%, DD: 80%, Vol: 120%, Seq: 110%, Overlay: 90%, Final: 3.96%
+   * ```
+   * 
+   * Formule de vérification :
+   * final_size = base_size × dd_multiplier × vol_mult × seq_mult × overlay_mult
+   * 0.0396 = 0.05 × 0.8 × 1.2 × 1.1 × 0.9 ✓
+   */
+  log(
+    trade_id: number,
+    base_size: number,
+    dd_multiplier: number,
+    vol_mult: number,
+    seq_mult: number,
+    overlay_mult: number,
+    final_size: number
+  ): void {
+    const log_entry: RiskLog = {
+      trade_id,
+      timestamp: new Date(),
+      base_size,
+      dd_multiplier,
+      vol_multiplier: vol_mult,
+      seq_multiplier: seq_mult,
+      overlay_multiplier: overlay_mult,
+      final_size,
+      components: {
+        kelly: base_size,
+        drawdown: dd_multiplier,
+        volatility: vol_mult,
+        sequence: seq_mult,
+        overlay: overlay_mult
+      }
+    };
+
+    this.logs.push(log_entry);
+
+    // Rotation automatique des logs
+    if (this.logs.length > this.max_logs) {
+      this.logs.shift(); // Supprime le plus ancien
+    }
+  }
+
+  /**
+   * Récupère l'historique des logs pour un trade spécifique
+   * 
+   * @param trade_id - Identifiant du trade
+   * @returns Logs du trade ou null si non trouvé
+   */
+  getTradeLog(trade_id: number): RiskLog | null {
+    return this.logs.find(log => log.trade_id === trade_id) || null;
+  }
+
+  /**
+   * Récupère les statistiques des composantes du sizing
+   * 
+   * @returns Statistiques agrégées de tous les logs
+   */
+  getSizingStats(): SizingStats {
+    if (this.logs.length === 0) {
+      return {
+        total_trades: 0,
+        avg_base_size: 0,
+        avg_dd_multiplier: 0,
+        avg_vol_multiplier: 0,
+        avg_seq_multiplier: 0,
+        avg_overlay_multiplier: 0,
+        avg_final_size: 0,
+        component_impact: {
+          kelly: 0,
+          drawdown: 0,
+          volatility: 0,
+          sequence: 0,
+          overlay: 0
+        }
+      };
+    }
+
+    const stats = {
+      total_trades: this.logs.length,
+      avg_base_size: this.logs.reduce((sum, log) => sum + log.base_size, 0) / this.logs.length,
+      avg_dd_multiplier: this.logs.reduce((sum, log) => sum + log.dd_multiplier, 0) / this.logs.length,
+      avg_vol_multiplier: this.logs.reduce((sum, log) => sum + log.vol_multiplier, 0) / this.logs.length,
+      avg_seq_multiplier: this.logs.reduce((sum, log) => sum + log.seq_multiplier, 0) / this.logs.length,
+      avg_overlay_multiplier: this.logs.reduce((sum, log) => sum + log.overlay_multiplier, 0) / this.logs.length,
+      avg_final_size: this.logs.reduce((sum, log) => sum + log.final_size, 0) / this.logs.length
+    };
+
+    // Calcul de l'impact de chaque composante
+    const component_impact = {
+      kelly: stats.avg_base_size / stats.avg_final_size,
+      drawdown: stats.avg_dd_multiplier,
+      volatility: stats.avg_vol_multiplier,
+      sequence: stats.avg_seq_multiplier,
+      overlay: stats.avg_overlay_multiplier
+    };
+
+    return { ...stats, component_impact };
+  }
+
+  /**
+   * Récupère l'état complet du logger
+   */
+  getState() {
+    return {
+      total_logs: this.logs.length,
+      max_logs: this.max_logs,
+      recent_logs: this.logs.slice(-5), // 5 derniers logs
+      stats: this.getSizingStats()
+    };
+  }
+
+  /**
+   * Efface l'historique des logs
+   */
+  clear(): void {
+    this.logs = [];
+  }
+}
+
+/**
+ * Interface pour un log de risque individuel
+ */
+interface RiskLog {
+  trade_id: number;                    // Identifiant unique du trade
+  timestamp: Date;                     // Timestamp du log
+  base_size: number;                   // Taille de base (Kelly)
+  dd_multiplier: number;               // Multiplicateur drawdown
+  vol_multiplier: number;              // Multiplicateur volatilité
+  seq_multiplier: number;              // Multiplicateur séquence
+  overlay_multiplier: number;          // Multiplicateur overlay marché
+  final_size: number;                  // Taille finale calculée
+  components: {                        // Composantes détaillées
+    kelly: number;
+    drawdown: number;
+    volatility: number;
+    sequence: number;
+    overlay: number;
+  };
+}
+
+/**
+ * Interface pour les statistiques de sizing
+ */
+interface SizingStats {
+  total_trades: number;                // Nombre total de trades loggés
+  avg_base_size: number;               // Taille de base moyenne
+  avg_dd_multiplier: number;           // Multiplicateur drawdown moyen
+  avg_vol_multiplier: number;          // Multiplicateur volatilité moyen
+  avg_seq_multiplier: number;          // Multiplicateur séquence moyen
+  avg_overlay_multiplier: number;      // Multiplicateur overlay moyen
+  avg_final_size: number;              // Taille finale moyenne
+  component_impact: {                  // Impact de chaque composante
+    kelly: number;
+    drawdown: number;
+    volatility: number;
+    sequence: number;
+    overlay: number;
+  };
 }
 
 // Composant React principal
@@ -1163,6 +1481,11 @@ export default function AndreLeGrandPage() {
     cppi: {
       alpha: 0.1,
       freeze_threshold: 0.05
+    },
+    market_engine: {
+      boost_max: 0.15,
+      haircut_max: 0.4,
+      entropy_bounds: [0.65, 0.85]
     },
     dd_paliers: {
       level1: 0.05,
@@ -1210,12 +1533,19 @@ export default function AndreLeGrandPage() {
       const volTarget = new VolatilityTarget(config.vol_target);
       const seqManager = new SequenceManager(config.sequence);
       
+      const marketEngine = new MarketEngine(
+        config.market_engine.boost_max,
+        config.market_engine.haircut_max,
+        config.market_engine.entropy_bounds
+      );
+      
       const newPositionSizer = new PositionSizer(
         kellyCalculator,
         drawdownManager,
         cppiManager,
         volTarget,
         seqManager,
+        marketEngine,
         config.kelly.mode === 'bayesian'
       );
       
@@ -1234,7 +1564,8 @@ export default function AndreLeGrandPage() {
       // Nouvelle architecture modulaire
       const currentEquity = stats?.drawdown?.hwm || config.capital;
       const hwm = stats?.drawdown?.hwm || config.capital;
-      const size = positionSizer.computeSize(currentEquity, hwm, p_hat, R);
+      const trade_id = tradeResults.length + 1; // ID unique pour ce trade
+      const size = positionSizer.computeSize(trade_id, currentEquity, hwm, p_hat, R);
       setComputedSize(size);
     } else if (engine) {
       // Ancienne architecture

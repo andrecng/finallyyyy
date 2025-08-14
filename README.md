@@ -6,9 +6,18 @@
 
 ---
 
+## 🏷️ **IDENTIFICATION DU PROJET :**
+
+- **📁 Nom GitHub** : `FondForex`
+- **🧠 Titre du Moteur** : `ANDRE'S BRAIN`
+- **🏢 Fond d'Investissement** : `2048 Asset Management`
+- **🎯 Type** : Moteur de Money Management Modulaire
+
+---
+
 ## 🌟 **ORIGINE DU PROJET :**
 
-Ce projet implémente un moteur de Money Management complet et modulaire, conçu pour optimiser la gestion de risque et le position sizing dans le trading pour 2048 Asset Management.
+**FondForex** implémente un moteur de Money Management complet et modulaire, conçu pour optimiser la gestion de risque et le position sizing dans le trading pour 2048 Asset Management.
 
 **Philosophie :** *"La gestion du risque est l'art de survivre pour pouvoir gagner."*
 

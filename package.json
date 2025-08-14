@@ -1,7 +1,7 @@
 {
-  "name": "andre-le-grand-mm-engine",
+  "name": "FondForex",
   "version": "1.0.0",
-  "description": "Moteur de Money Management modulaire 'André le Grand' - Système avancé de gestion de risque et de position sizing",
+  "description": "Moteur de Money Management modulaire 'ANDRE'S BRAIN' - Système avancé de gestion de risque et de position sizing pour 2048 Asset Management",
   "private": true,
   "scripts": {
     "dev": "next dev",
