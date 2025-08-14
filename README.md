@@ -1,95 +1,90 @@
-# 🚀 Trading Integration - 2048 Asset Management
+# 🧠 André le Grand - Moteur de Money Management Modulaire
 
-## 🎯 **PROJET D'INTÉGRATION TRADING AVANCÉ**
+## 🎯 **MOTEUR DE GESTION DE RISQUE ET DE POSITION SIZING AVANCÉ**
 
-**Intégration des meilleures stratégies et indicateurs de trading pour 2048 Asset Management**
+**Système modulaire de Money Management avec Kelly Criterion, CPPI, Volatility Targeting et gestion de drawdown**
 
 ---
 
 ## 🌟 **ORIGINE DU PROJET :**
 
-Ce projet intègre les éléments clés du repository [Brieuc-Leysour-work](https://github.com/andrecng/Brieuc-Leysour-work.git) avec des améliorations et adaptations pour 2048 Asset Management.
+Ce projet implémente un moteur de Money Management complet et modulaire, conçu pour optimiser la gestion de risque et le position sizing dans le trading.
 
-**Citation originale :** *"J'offre ce Dédale à ceux qui osent s'aventurer dans le chaos des marchés."*
-
----
-
-## 📊 **COMPOSANTS INTÉGRÉS :**
-
-### **🐍 PYTHON (98.3%) :**
-- **🎲 Monte Carlo** - Simulations avancées
-- **📊 Backtesting MT5** - Tests sur données historiques
-- **📈 Alpha Decay** - Analyse de la décroissance alpha
-- **🔗 Corrélations** - Analyse des relations entre actifs
-- **🏗️ Edge Structurel** - Avantage informationnel vs structurel
-- **🌍 Macro Score** - Vue d'ensemble macroéconomique
-- **📊 Ornstein-Uhlenbeck** - Modèles stochastiques
-- **🥇 Multi-Assets** - Gold, BTC, Forex
-
-### **⚡ METATRADER5 (1.7%) :**
-- **🎯 DédaleFormation** - Stratégie principale
-- **📊 BollingerBands** - Indicateur de volatilité
-- **🚀 DailyBreakout** - Breakout journalier
-- **🌍 LondonBreakout** - Breakout London
-- **🤖 GridBotRSI** - Bot automatisé avec RSI
-- **📈 MAcroisement** - Croisement de moyennes
-- **🛡️ PropFirmProtector** - Protection compte prop
-- **⚖️ FVG** - Fair Value Gap
-- **📁 Export CSV** - Export historique des trades
+**Philosophie :** *"La gestion du risque est l'art de survivre pour pouvoir gagner."*
 
 ---
 
-## 🚀 **OBJECTIFS D'INTÉGRATION :**
+## 📊 **COMPOSANTS PRINCIPAUX :**
 
-1. **📊 Dashboard Unifié** - Interface unique pour toutes les stratégies
-2. **🎲 Simulations Monte Carlo** - Intégration avec votre système existant
-3. **🤖 Trading Automatisé** - Bots et algorithmes avancés
-4. **📈 Multi-Assets** - Support Gold, BTC, Forex
-5. **🔄 Backtesting Avancé** - Tests sur données historiques
-6. **📊 Analytics Avancés** - Corrélations, edge structurel
+### **🧮 MOTEUR DE BASE :**
+- **🎯 Kelly Calculator** - Formule de Kelly fractionnée avec cap
+- **📊 Bayesian Win Rate** - Estimation bayésienne de la probabilité de gain
+- **🔄 Sequence Manager** - Gestion des séquences anti-martingale
+- **📈 Volatility Target** - Ajustement automatique selon la volatilité
+
+### **🛡️ GESTION DU RISQUE :**
+- **📉 Drawdown Manager** - Réduction progressive du risque selon le drawdown
+- **🛡️ CPPI Floor Manager** - Protection du capital avec plancher dynamique
+- **❄️ CPPI Freeze** - Gel automatique en cas de danger
+- **🛡️ Soft Barrier Drawdown** - Barrières de protection douces
+
+### **🎛️ ORCHESTRATION :**
+- **🎯 Position Sizer** - Orchestrateur principal combinant tous les modules
+- **⚙️ Money Management Engine** - Moteur principal avec architecture modulaire
+- **📊 Risk Controller** - Contrôleur centralisé du risque
+
+---
+
+## 🚀 **FONCTIONNALITÉS CLÉS :**
+
+1. **🎯 Position Sizing Optimal** - Calcul automatique de la taille de position
+2. **🛡️ Protection du Capital** - Multiples niveaux de protection
+3. **📊 Gestion de la Volatilité** - Ajustement automatique selon les conditions de marché
+4. **🔄 Séquences de Trading** - Gestion des séries gagnantes/perdantes
+5. **🧮 Estimation Bayésienne** - Mise à jour continue des probabilités
+6. **🎛️ Interface Modulaire** - Activation/désactivation des composants
 
 ---
 
 ## 🛠️ **TECHNOLOGIES UTILISÉES :**
 
-- **🐍 Python** - Analyse de données et backtesting
-- **⚡ MQL5** - Stratégies MetaTrader5
-- **📊 Jupyter Notebooks** - Analyse interactive
-- **🎲 Monte Carlo** - Simulations probabilistes
-- **📈 Pandas/NumPy** - Manipulation de données
-- **📊 Matplotlib/Plotly** - Visualisations
+- **⚛️ React/Next.js** - Interface utilisateur moderne
+- **🔷 TypeScript** - Code typé et robuste
+- **🎨 Tailwind CSS** - Design responsive et élégant
+- **📊 Recharts** - Visualisations et graphiques
+- **🎯 Shadcn/ui** - Composants UI réutilisables
 
 ---
 
-## 🔄 **WORKFLOW D'INTÉGRATION :**
+## 🔄 **ARCHITECTURE MODULAIRE :**
 
-1. **📖 Analyse** des composants existants
-2. **🎯 Sélection** des éléments prioritaires
-3. **🔄 Adaptation** au système 2048 Asset Management
-4. **🧪 Tests** et validation
-5. **📊 Intégration** dans le dashboard principal
+1. **📦 Modules Indépendants** - Chaque composant peut être utilisé séparément
+2. **🔗 Orchestration Flexible** - Combinaison personnalisable des modules
+3. **📊 Comparaison Côte à Côte** - Test des différentes approches
+4. **🎛️ Configuration Dynamique** - Paramètres ajustables en temps réel
+5. **🧪 Tests et Validation** - Interface de test intégrée
 
 ---
 
 ## 🎯 **PROCHAINES ÉTAPES :**
 
-- [ ] **Analyse approfondie** des notebooks Python
-- [ ] **Étude des stratégies** MT5
-- [ ] **Plan d'intégration** détaillé
-- [ ] **Développement** des composants
-- [ ] **Tests et validation**
-- [ ] **Déploiement** dans le système principal
+- [x] **Moteur de base** - Kelly, Bayesian, Sequence, Volatility
+- [x] **Gestion du risque** - Drawdown, CPPI, Soft Barriers
+- [x] **Interface utilisateur** - Contrôles et visualisations
+- [ ] **Connexion API** - Intégration avec les brokers
+- [ ] **Backtesting** - Tests sur données historiques
+- [ ] **Optimisation** - Ajustement des paramètres
 
 ---
 
 ## 💪 **ÉQUIPE :**
 
-**2048 Asset Management** - Intégration et développement
-**Brieuc-Leysour** - Stratégies et indicateurs originaux
+**André le Grand** - Conception et développement du moteur MM
+**GPT Assistant** - Optimisation et implémentation des modules
 
 ---
 
 ## 📝 **LICENCE :**
 
-Projet d'intégration pour 2048 Asset Management
-Basé sur les travaux de Brieuc-Leysour
+Projet de Money Management modulaire
+Développé pour l'optimisation des stratégies de trading

@@ -1,7 +1,7 @@
 {
-  "name": "trading-lab-2048",
+  "name": "andre-le-grand-mm-engine",
   "version": "1.0.0",
-  "description": "Laboratoire de simulation trading avancée pour 2048 Asset Management",
+  "description": "Moteur de Money Management modulaire 'André le Grand' - Système avancé de gestion de risque et de position sizing",
   "private": true,
   "scripts": {
     "dev": "next dev",

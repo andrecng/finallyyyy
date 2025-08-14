@@ -11,9 +11,9 @@ export default function Home() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="text-center">
           <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-4">
-            🚀 Trading Lab
+            🧠 André le Grand MM Engine
           </h1>
-          <p className="text-2xl text-gray-300 mb-8">Plateforme de simulation et d'analyse trading avancée</p>
+          <p className="text-2xl text-gray-300 mb-8">Moteur de Money Management modulaire et avancé</p>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-500 mx-auto rounded-full"></div>
         </div>
 
