@@ -1411,19 +1411,25 @@ export default function AndreLeGrandPage() {
                   {stats ? (
                     <div className="grid grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-3 text-green-300">�� Capital & Risque</h4>
+                        <h4 className="font-semibold mb-3 text-green-300">💰 Capital & Risque</h4>
                         <div className="space-y-3">
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">HWM:</span>
-                            <Badge variant="secondary" className="bg-green-600 text-white">${stats.hwm.toLocaleString()}</Badge>
+                            <Badge variant="secondary" className="bg-green-600 text-white">
+                              ${stats?.hwm ? stats.hwm.toLocaleString() : config.capital.toLocaleString()}
+                            </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Floor:</span>
-                            <Badge variant="outline" className="border-orange-500 text-orange-400">${stats.floor.toLocaleString()}</Badge>
+                            <Badge variant="outline" className="border-orange-500 text-orange-400">
+                              ${stats?.floor ? stats.floor.toLocaleString() : (config.capital * (1 - config.cushion_floor.alpha)).toLocaleString()}
+                            </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Cushion:</span>
-                            <Badge variant="outline" className="border-blue-500 text-blue-400">${stats.cushion.toLocaleString()}</Badge>
+                            <Badge variant="outline" className="border-blue-500 text-blue-400">
+                              ${stats?.cushion ? stats.cushion.toLocaleString() : (config.capital * config.cushion_floor.alpha).toLocaleString()}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -1432,19 +1438,27 @@ export default function AndreLeGrandPage() {
                         <div className="space-y-3">
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">p̂ bayésien:</span>
-                            <Badge variant="secondary" className="bg-purple-600 text-white">{(stats.kelly_stats.bayesian_p_hat * 100).toFixed(1)}%</Badge>
+                            <Badge variant="secondary" className="bg-purple-600 text-white">
+                              {stats?.kelly_stats?.bayesian_p_hat ? (stats.kelly_stats.bayesian_p_hat * 100).toFixed(1) : 'N/A'}%
+                            </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Multiplicateur:</span>
-                            <Badge variant="outline" className="border-yellow-500 text-yellow-400">{stats.sequence_stats.multiplier.toFixed(2)}x</Badge>
+                            <Badge variant="outline" className="border-yellow-500 text-yellow-400">
+                              {stats?.sequence_stats?.multiplier ? stats.sequence_stats.multiplier.toFixed(2) : 'N/A'}x
+                            </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Étape actuelle:</span>
-                            <Badge variant="outline" className="border-yellow-500 text-yellow-400">{stats.sequence_stats.current_step}/{stats.sequence_stats.max_steps}</Badge>
+                            <Badge variant="outline" className="border-yellow-500 text-yellow-400">
+                              {stats?.sequence_stats?.current_step ? `${stats.sequence_stats.current_step}/${stats.sequence_stats.max_steps || 'N/A'}` : 'N/A'}
+                            </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Trades totaux:</span>
-                            <Badge variant="outline" className="border-gray-500 text-gray-400">{stats.kelly_stats.total_trades}</Badge>
+                            <Badge variant="outline" className="border-gray-500 text-gray-400">
+                              {stats?.kelly_stats?.total_trades || 'N/A'}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -1453,23 +1467,27 @@ export default function AndreLeGrandPage() {
                         <div className="space-y-3">
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Vol cible:</span>
-                            <Badge variant="secondary" className="bg-cyan-600 text-white">{(stats.vol_stats?.target_vol * 100).toFixed(1)}%</Badge>
+                            <Badge variant="secondary" className="bg-cyan-600 text-white">
+                              {stats?.vol_stats?.target_vol ? (stats.vol_stats.target_vol * 100).toFixed(1) : 'N/A'}%
+                            </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Vol actuelle:</span>
                             <Badge variant="outline" className="border-cyan-500 text-cyan-400">
-                              {stats.vol_stats?.current_vol ? (stats.vol_stats.current_vol * 100).toFixed(1) + '%' : 'N/A'}
+                              {stats?.vol_stats?.current_vol ? (stats.vol_stats.current_vol * 100).toFixed(1) + '%' : 'N/A'}
                             </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Ratio ajustement:</span>
                             <Badge variant="outline" className="border-cyan-500 text-cyan-400">
-                              {stats.vol_stats?.adjustment_ratio ? stats.vol_stats.adjustment_ratio.toFixed(2) + 'x' : '1.0x'}
+                              {stats?.vol_stats?.adjustment_ratio ? stats.vol_stats.adjustment_ratio.toFixed(2) + 'x' : '1.0x'}
                             </Badge>
                           </div>
                           <div className="flex justify-between items-center p-2 bg-slate-700/50 rounded">
                             <span className="text-gray-300">Fenêtre:</span>
-                            <Badge variant="outline" className="border-gray-500 text-gray-400">{stats.vol_stats?.lookback || 20}j</Badge>
+                            <Badge variant="outline" className="border-gray-500 text-gray-400">
+                              {stats?.vol_stats?.lookback || 20}j
+                            </Badge>
                           </div>
                         </div>
                       </div>
