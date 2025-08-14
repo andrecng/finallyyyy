@@ -43,9 +43,14 @@ interface MMConfig {
   drawdown: {
     thresholds: number[];             // Seuils de drawdown (ex: [-0.05, -0.10, -0.20])
     multipliers: number[];            // Multiplicateurs correspondants (ex: [0.8, 0.5, 0.2])
+    soft_barrier: {
+      paliers: number[];              // Seuils de drawdown pour barrières douces
+      ratios: number[];               // Ratios associés à chaque palier
+    };
   };
   cppi: {
     alpha: number;                    // Facteur de protection CPPI (ex: 0.1 = 10%)
+    freeze_threshold: number;         // Seuil de gel (ex: 0.05 = 5%)
   };
   dd_paliers: {
     level1: number;                   // Premier palier de drawdown (ex: 0.05 = 5%)
@@ -816,6 +821,175 @@ class CPPIFloorManager {
 }
 
 /**
+ * Gestionnaire de drawdown avec barrières douces (Version GPT)
+ * 
+ * VERSION OPTIMISÉE selon GPT : Interface plus claire et logique simplifiée
+ * Coexiste avec DrawdownManager pour comparaison et modularité
+ * 
+ * Différences avec DrawdownManager :
+ * - Interface : compute_multiplier(current_dd) vs getMultiplier(equity)
+ * - Logique : Drawdown direct vs calcul HWM
+ * - Paramètres : paliers/ratios vs thresholds/multipliers
+ */
+class SoftBarrierDrawdownPalier {
+  private paliers: number[];              // Seuils de drawdown (négatifs)
+  private ratios: number[];               // Multiplicateurs associés à chaque palier
+
+  constructor(paliers: number[] = [-0.1, -0.2, -0.3], ratios: number[] = [0.6, 0.4, 0.2]) {
+    this.paliers = paliers;
+    this.ratios = ratios;
+  }
+
+  /**
+   * Calcule le multiplicateur de risque selon le drawdown courant
+   * 
+   * @param current_dd - Drawdown courant (ex: -0.15 pour -15%)
+   * @returns Multiplicateur de risque (1.0 = pas de réduction)
+   * 
+   * Logique optimisée GPT :
+   * - Si drawdown ≤ seuil → applique le ratio correspondant
+   * - Plus le drawdown est profond, plus la réduction est forte
+   * - Si drawdown > tous les seuils → retourne 1.0 (pas de réduction)
+   * 
+   * Exemple :
+   * - Seuils : [-0.1, -0.2, -0.3]
+   * - Ratios : [0.6, 0.4, 0.2]
+   * - Drawdown -15% → ratio 0.4 (réduction de 60%)
+   * 
+   * Avantages vs DrawdownManager :
+   * - Interface plus claire : drawdown direct vs equity
+   * - Logique simplifiée : pas de calcul HWM
+   * - Paramètres intuitifs : paliers/ratios
+   */
+  compute_multiplier(current_dd: number): number {
+    for (let i = 0; i < this.paliers.length; i++) {
+      if (current_dd <= this.paliers[i]) {
+        return this.ratios[i];
+      }
+    }
+    return 1.0; // Pas de réduction si drawdown > tous les seuils
+  }
+
+  /**
+   * Récupère l'état actuel du gestionnaire
+   */
+  getState() {
+    return {
+      paliers: this.paliers,
+      ratios: this.ratios
+    };
+  }
+}
+
+/**
+ * Gestionnaire CPPI avec seuil de gel automatique (Version GPT)
+ * 
+ * VERSION ÉTENDUE selon GPT : Plus sophistiquée que CPPIFloorManager
+ * Coexiste avec CPPIFloorManager pour comparaison et modularité
+ * 
+ * Différences avec CPPIFloorManager :
+ * - Méthode : should_freeze(equity) vs isBelowFloor(equity)
+ * - Logique : Gel automatique vs simple protection
+ * - Paramètres : freeze_threshold en plus de alpha
+ * 
+ * Avantages vs CPPIFloorManager :
+   * - Protection renforcée du capital
+   * - Gel automatique en cas de danger
+   * - Seuil configurable pour la sensibilité
+ */
+class CPPIFreeze {
+  private alpha: number;                   // Facteur de protection CPPI
+  private freeze_threshold: number;        // Seuil de gel (ex: 0.05 = 5%)
+  private floor: number | null;            // Niveau de protection actuel
+
+  constructor(alpha: number = 0.1, freeze_threshold: number = 0.05) {
+    this.alpha = alpha;
+    this.freeze_threshold = freeze_threshold;
+    this.floor = null;
+  }
+
+  /**
+   * Met à jour le niveau de protection basé sur le HWM
+   * 
+   * @param hwm - High Water Mark actuel
+   * 
+   * Formule : Floor = HWM × (1 - α)
+   * Exemple : HWM = 100, α = 0.1 → Floor = 90
+   */
+  update_floor(hwm: number): void {
+    this.floor = hwm * (1 - this.alpha);
+  }
+
+  /**
+   * Détermine si le risque doit être gelé
+   * 
+   * @param equity - Capital actuel
+   * @returns true si freeze activé, false sinon
+   * 
+   * Logique de gel avancée GPT :
+   * - Calcule le cushion = equity - floor
+   * - Si cushion/equity < freeze_threshold → gel activé
+   * - Protection renforcée quand le capital est en danger
+   * 
+   * Exemple :
+   * - Floor = 90, Equity = 92, Freeze threshold = 5%
+   * - Cushion = 2, Ratio = 2/92 = 2.2%
+   * - 2.2% < 5% → Freeze activé
+   * 
+   * Différence avec CPPIFloorManager :
+   * - isBelowFloor : protection basique (equity ≤ floor)
+   * - should_freeze : protection avancée (cushion trop faible)
+   */
+  should_freeze(equity: number): boolean {
+    if (this.floor === null || equity <= 0) return true;
+    
+    const cushion = equity - this.floor;
+    const cushion_ratio = cushion / equity;
+    
+    return cushion_ratio < this.freeze_threshold;
+  }
+
+  /**
+   * Vérifie si le capital est en dessous du niveau de protection
+   * 
+   * @param equity - Capital actuel
+   * @returns true si equity ≤ floor (protection CPPI activée)
+   * 
+   * Compatibilité avec CPPIFloorManager :
+   * - Même logique que isBelowFloor
+   * - Permet la migration progressive
+   */
+  isBelowFloor(equity: number): boolean {
+    if (this.floor === null) return false;
+    return equity <= this.floor;
+  }
+
+  /**
+   * Calcule la marge de sécurité (cushion)
+   * 
+   * @param equity - Capital actuel
+   * @returns Marge de sécurité (equity - floor) ou 0 si pas de floor
+   */
+  getCushion(equity: number): number {
+    if (this.floor === null) return 0;
+    return Math.max(0, equity - this.floor);
+  }
+
+  /**
+   * Récupère l'état complet du gestionnaire CPPI
+   */
+  getState() {
+    return {
+      alpha: this.alpha,
+      freeze_threshold: this.freeze_threshold,
+      floor: this.floor,
+      isProtected: this.floor !== null,
+      shouldFreeze: this.floor !== null ? this.should_freeze(this.floor + 1) : false
+    };
+  }
+}
+
+/**
  * Orchestrateur principal de position sizing
  * 
  * Combine tous les modules pour déterminer la taille optimale de position
@@ -980,10 +1154,15 @@ export default function AndreLeGrandPage() {
     },
     drawdown: {
       thresholds: [-0.05, -0.10, -0.20],
-      multipliers: [0.8, 0.5, 0.2]
+      multipliers: [0.8, 0.5, 0.2],
+      soft_barrier: {
+        paliers: [-0.1, -0.2, -0.3],
+        ratios: [0.6, 0.4, 0.2]
+      }
     },
     cppi: {
-      alpha: 0.1
+      alpha: 0.1,
+      freeze_threshold: 0.05
     },
     dd_paliers: {
       level1: 0.05,
@@ -1255,7 +1434,163 @@ export default function AndreLeGrandPage() {
                     Prior Beta(a,b) pour l'estimation de p^ avec decay temporel. Decay = 1.0 = pas de decay, 0.9 = 10% de decay par trade.
                   </p>
                 </div>
-                
+
+                {/* Nouveaux contrôles pour CPPIFreeze */}
+                <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                  <h4 className="text-lg font-semibold text-red-400 mb-3">❄️ CPPI avec Gel Automatique</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="cppi_alpha" className="text-gray-300 text-sm">Facteur de Protection (α)</Label>
+                      <Input
+                        id="cppi_alpha"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        value={config.cppi.alpha}
+                        onChange={(e) => setConfig({
+                          ...config, 
+                          cppi: {...config.cppi, alpha: Number(e.target.value)}
+                        })}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="freeze_threshold" className="text-gray-300 text-sm">Seuil de Gel (%)</Label>
+                      <Input
+                        id="freeze_threshold"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        value={config.cppi.freeze_threshold}
+                        onChange={(e) => setConfig({
+                          ...config, 
+                          cppi: {...config.cppi, freeze_threshold: Number(e.target.value)}
+                        })}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    CPPI avec gel automatique. α = facteur de protection, Seuil de gel = pourcentage du cushion pour activer le gel.
+                  </p>
+                </div>
+
+                {/* Nouveaux contrôles pour SoftBarrierDrawdownPalier */}
+                <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                  <h4 className="text-lg font-semibold text-orange-400 mb-3">🛡️ Barrières de Drawdown Douces (Version GPT)</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="soft_paliers" className="text-gray-300 text-sm">Seuils (ex: -0.1,-0.2,-0.3)</Label>
+                      <Input
+                        id="soft_paliers"
+                        type="text"
+                        value={config.drawdown.soft_barrier.paliers.join(',')}
+                        onChange={(e) => {
+                          const values = e.target.value.split(',').map(v => Number(v.trim()));
+                          if (values.every(v => !isNaN(v))) {
+                            setConfig({
+                              ...config, 
+                              drawdown: {
+                                ...config.drawdown,
+                                soft_barrier: {
+                                  ...config.drawdown.soft_barrier,
+                                  paliers: values
+                                }
+                              }
+                            });
+                          }
+                        }}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                        placeholder="-0.1,-0.2,-0.3"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="soft_ratios" className="text-gray-300 text-sm">Ratios (ex: 0.6,0.4,0.2)</Label>
+                      <Input
+                        id="soft_ratios"
+                        type="text"
+                        value={config.drawdown.soft_barrier.ratios.join(',')}
+                        onChange={(e) => {
+                          const values = e.target.value.split(',').map(v => Number(v.trim()));
+                          if (values.every(v => !isNaN(v))) {
+                            setConfig({
+                              ...config, 
+                              drawdown: {
+                                ...config.drawdown,
+                                soft_barrier: {
+                                  ...config.drawdown.soft_barrier,
+                                  ratios: values
+                                }
+                              }
+                            });
+                          }
+                        }}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                        placeholder="0.6,0.4,0.2"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Version GPT optimisée : Seuils de drawdown et ratios associés pour la réduction douce du risque. Format: seuils séparés par des virgules.
+                  </p>
+                </div>
+
+                {/* Contrôles existants pour comparaison */}
+                <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                  <h4 className="text-lg font-semibold text-blue-400 mb-3">🔄 Modules Existants (Pour Comparaison)</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="dd_thresholds" className="text-gray-300 text-sm">Seuils Drawdown (Legacy)</Label>
+                      <Input
+                        id="dd_thresholds"
+                        type="text"
+                        value={config.drawdown.thresholds.join(',')}
+                        onChange={(e) => {
+                          const values = e.target.value.split(',').map(v => Number(v.trim()));
+                          if (values.every(v => !isNaN(v))) {
+                            setConfig({
+                              ...config, 
+                              drawdown: {
+                                ...config.drawdown,
+                                thresholds: values
+                              }
+                            });
+                          }
+                        }}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                        placeholder="-0.05,-0.10,-0.20"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dd_multipliers" className="text-gray-300 text-sm">Multiplicateurs (Legacy)</Label>
+                      <Input
+                        id="dd_multipliers"
+                        type="text"
+                        value={config.drawdown.multipliers.join(',')}
+                        onChange={(e) => {
+                          const values = e.target.value.split(',').map(v => Number(v.trim()));
+                          if (values.every(v => !isNaN(v))) {
+                            setConfig({
+                              ...config, 
+                              drawdown: {
+                                ...config.drawdown,
+                                multipliers: values
+                              }
+                            });
+                          }
+                        }}
+                        className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
+                        placeholder="0.8,0.5,0.2"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Modules existants pour comparaison avec les nouvelles versions GPT. Permet de tester les deux approches.
+                  </p>
+                </div>
+
                 {/* Nouveau contrôle pour l'architecture */}
                 <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
                   <div className="flex items-center justify-between mb-3">
