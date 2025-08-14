@@ -59,6 +59,11 @@ interface MMConfig {
     boost_cap: number;                // Limite de boost autorisée (+15%)
     haircut_cap: number;              // Limite de haircut autorisée (-40%)
   };
+  regime_filter: {
+    mom_window_short: number;         // Fenêtre courte pour momentum (périodes)
+    mom_window_long: number;          // Fenêtre longue pour momentum (périodes)
+    entropy_thresholds: [number, number]; // Seuils d'entropie [bas, haut]
+  };
   dd_paliers: {
     level1: number;                   // Premier palier de drawdown (ex: 0.05 = 5%)
     level2: number;                   // Deuxième palier de drawdown (ex: 0.10 = 10%)
@@ -1018,6 +1023,8 @@ class PositionSizer {
   private seq_manager?: SequenceManager;                    // Gestionnaire de séquence (optionnel)
   private overlay?: MarketEngine;                           // Module d'overlay marché (optionnel)
   private logger: RiskLogger;                               // Logger de risque pour traçabilité
+  private analyzer: TradeHistoryAnalyzer;                   // Analyseur des performances (NOUVEAU !)
+  private regime_filter?: RegimeFilter;                      // Filtre de régime de marché (NOUVEAU !)
   private use_bayesian: boolean;                           // Mode Kelly à utiliser
 
   constructor(
@@ -1027,6 +1034,7 @@ class PositionSizer {
     vol_target?: VolatilityTarget,
     seq_manager?: SequenceManager,
     overlay?: MarketEngine,
+    regime_filter?: RegimeFilter,
     use_bayesian: boolean = false
   ) {
     this.kelly = kelly_calculator;
@@ -1035,7 +1043,9 @@ class PositionSizer {
     this.vol_target = vol_target;
     this.seq_manager = seq_manager;
     this.overlay = overlay;
+    this.regime_filter = regime_filter;
     this.logger = new RiskLogger(); // Initialisation du logger de risque
+    this.analyzer = new TradeHistoryAnalyzer(); // Initialisation de l'analyseur de performances
     this.use_bayesian = use_bayesian;
   }
 
@@ -1156,6 +1166,12 @@ class PositionSizer {
     
     // Mise à jour du floor CPPI
     this.cppi.updateFloor(hwm);
+
+    // NOUVEAU : Enregistrement dans l'analyseur de performances
+    const result_value = result.win ? 1 : 0;
+    const size_pct = this.logger.getState().recent_logs.length > 0 ? 
+      this.logger.getState().recent_logs[this.logger.getState().recent_logs.length - 1].final_size_pct : 0;
+    this.analyzer.record_trade(result_value, size_pct, result.R, equity);
   }
 
   /**
@@ -1178,7 +1194,9 @@ class PositionSizer {
       volatility: this.vol_target?.getVolatilityStats() || null,
       sequence: this.seq_manager?.getSequenceState() || null,
       overlay: this.overlay?.getState() || null,
-      risk_logger: this.logger.getState() // État du logger de risque
+      risk_logger: this.logger.getState(), // État du logger de risque
+      performance_analyzer: this.analyzer.getState(), // NOUVEAU : État de l'analyseur de performances
+      regime_filter: this.regime_filter?.getState() || null // NOUVEAU : État du filtre de régime
     };
   }
 }
@@ -1561,6 +1579,323 @@ interface SizingStats {
   };
 }
 
+/**
+ * Analyseur des performances passées et caractéristiques de la stratégie
+ * 
+ * NOUVEAU MODULE selon GPT : Analyse des performances pour adapter
+ * dynamiquement les modules (drawdown, séquences, etc.)
+ * 
+ * Fonctionnalités :
+ * - Enregistrement des trades avec métriques complètes
+ * - Calcul du win rate et payoff moyen
+ * - Espérance de gain par trade
+ * - Courbe de capital cumulée
+ * - Adaptation dynamique des paramètres
+ * 
+ * Avantages :
+ * - Optimisation automatique des modules
+ * - Adaptation aux conditions de marché
+ * - Validation des stratégies
+ * - Reporting de performance
+ */
+class TradeHistoryAnalyzer {
+  private trades: Array<{
+    result: number;           // 1=gain, 0=perte
+    size_pct: number;         // Taille du trade en % du capital
+    R: number;                // Gain ou perte en R
+    equity_before: number;    // Capital avant le trade
+  }> = [];
+
+  /**
+   * Ajoute un trade à l'historique
+   * 
+   * @param result - 1=gain, 0=perte
+   * @param size_pct - Taille du trade en % du capital
+   * @param R_multiple - Gain ou perte en R
+   * @param equity_before - Capital avant le trade
+   * 
+   * Interface cohérente avec la version Python pour la compatibilité
+   */
+  record_trade(result: number, size_pct: number, R_multiple: number, equity_before: number): void {
+    this.trades.push({
+      result,
+      size_pct,
+      R: R_multiple,
+      equity_before
+    });
+  }
+
+  /**
+   * Retourne le win rate global
+   * 
+   * @returns Win rate entre 0 et 1, ou null si pas de trades
+   * 
+   * Formule : Nombre de gains / Nombre total de trades
+   * Exemple : 7 gains sur 10 trades → 0.7 (70%)
+   */
+  get_win_rate(): number | null {
+    if (this.trades.length === 0) return null;
+    return this.trades.reduce((sum, trade) => sum + trade.result, 0) / this.trades.length;
+  }
+
+  /**
+   * Retourne le payoff moyen
+   * 
+   * @returns Ratio gain/perte moyen, ou null si pas assez de données
+   * 
+   * Formule : Somme des gains / Somme des pertes
+   * Exemple : Gains totaux = 15R, Pertes totales = 5R → Payoff = 3.0
+   * 
+   * Interprétation :
+   * - Payoff > 1 : Stratégie profitable
+   * - Payoff < 1 : Stratégie perdante
+   * - Payoff = 1 : Équilibre gains/pertes
+   */
+  get_avg_payoff(): number | null {
+    const wins = this.trades.filter(t => t.result === 1).map(t => t.R);
+    const losses = this.trades.filter(t => t.result === 0).map(t => Math.abs(t.R));
+    
+    if (wins.length === 0 || losses.length === 0) return null;
+    
+    const total_wins = wins.reduce((sum, win) => sum + win, 0);
+    const total_losses = losses.reduce((sum, loss) => sum + loss, 0);
+    
+    return total_wins / total_losses;
+  }
+
+  /**
+   * Retourne l'espérance de gain d'un trade
+   * 
+   * @returns Espérance de gain, ou null si pas assez de données
+   * 
+   * Formule : E = (Win Rate × Payoff) - (1 - Win Rate)
+   * 
+   * Interprétation :
+   * - E > 0 : Stratégie profitable
+   * - E < 0 : Stratégie perdante
+   * - E = 0 : Équilibre
+   * 
+   * Exemple :
+   * - Win Rate = 60%, Payoff = 2.0
+   * - E = (0.6 × 2.0) - (1 - 0.6) = 1.2 - 0.4 = 0.8
+   * - Espérance positive = stratégie profitable
+   */
+  get_expectancy(): number | null {
+    const wr = this.get_win_rate();
+    const pf = this.get_avg_payoff();
+    
+    if (wr === null || pf === null) return null;
+    
+    return wr * pf - (1 - wr);
+  }
+
+  /**
+   * Retourne la courbe de capital (cumulée)
+   * 
+   * @returns Array des valeurs de capital après chaque trade
+   * 
+   * Calcul :
+   * 1. Capital initial = 1.0 (100%)
+   * 2. Pour chaque trade : Capital += Capital × (Taille × R)
+   * 3. Stockage de chaque valeur dans la courbe
+   * 
+   * Exemple :
+   * - Trade 1 : Taille 2%, R = 1.5 → Capital = 1.0 + 1.0 × (0.02 × 1.5) = 1.03
+   * - Trade 2 : Taille 2%, R = -1.0 → Capital = 1.03 + 1.03 × (0.02 × -1.0) = 1.0094
+   * 
+   * Utilisation :
+   * - Visualisation de la performance
+   * - Calcul du drawdown maximum
+   * - Analyse de la volatilité du capital
+   */
+  get_cumulative_equity(): number[] {
+    let equity = 1.0;
+    const equity_curve: number[] = [];
+    
+    for (const trade of this.trades) {
+      const delta = trade.size_pct * trade.R;
+      equity += equity * delta;
+      equity_curve.push(equity);
+    }
+    
+    return equity_curve;
+  }
+
+  /**
+   * Récupère l'état complet de l'analyseur
+   */
+  getState() {
+    return {
+      total_trades: this.trades.length,
+      win_rate: this.get_win_rate(),
+      avg_payoff: this.get_avg_payoff(),
+      expectancy: this.get_expectancy(),
+      equity_curve: this.get_cumulative_equity(),
+      recent_trades: this.trades.slice(-10) // 10 derniers trades
+    };
+  }
+
+  /**
+   * Efface l'historique des trades
+   */
+  clear(): void {
+    this.trades = [];
+  }
+}
+
+/**
+ * Filtre les régimes de marché pour activer ou désactiver les entrées
+ * 
+ * NOUVEAU MODULE selon GPT : Évalue le régime de marché en combinant
+ * TSMOM et entropie pour déterminer si le trading est favorable
+ * 
+ * Fonctionnalités :
+ * - Calcul du momentum sur fenêtres courtes et longues
+ * - Évaluation de l'entropie des rendements
+ * - Filtrage automatique des conditions de marché
+ * - Activation/désactivation intelligente des entrées
+ * 
+ * Avantages :
+ * - Évite les marchés défavorables
+ * - Optimise les entrées selon le contexte
+ * - Protection contre la volatilité excessive
+ * - Amélioration du ratio risque/récompense
+ */
+class RegimeFilter {
+  private mom_window_short: number;           // Fenêtre courte pour momentum
+  private mom_window_long: number;            // Fenêtre longue pour momentum
+  private entropy_thresholds: [number, number]; // Seuils d'entropie (bas, haut)
+
+  constructor(
+    mom_window_short: number = 5,
+    mom_window_long: number = 20,
+    entropy_thresholds: [number, number] = [0.65, 0.85]
+  ) {
+    this.mom_window_short = mom_window_short;
+    this.mom_window_long = mom_window_long;
+    this.entropy_thresholds = entropy_thresholds;
+  }
+
+  /**
+   * Calcule le TSMOM 1-3-12 comme proxy
+   * 
+   * @param prices - Série de prix
+   * @returns Score de momentum (différence prix récent vs court terme)
+   * 
+   * Formule : TSMOM = Prix[-1] - Prix[-window_short]
+   * 
+   * Interprétation :
+   * - TSMOM > 0 : Momentum haussier
+   * - TSMOM < 0 : Momentum baissier
+   * - |TSMOM| faible : Marché stagnant
+   * 
+   * Exemple :
+   * - Prix récent = 100, Prix il y a 5 périodes = 98
+   * - TSMOM = 100 - 98 = 2 (momentum haussier)
+   */
+  compute_momentum(prices: number[]): number {
+    if (prices.length < Math.max(this.mom_window_short, this.mom_window_long)) {
+      return 0;
+    }
+    return prices[prices.length - 1] - prices[prices.length - this.mom_window_short];
+  }
+
+  /**
+   * Calcule une entropie simple basée sur la distribution des rendements
+   * 
+   * @param series - Série de rendements
+   * @returns Entropie de Shannon (mesure de désordre)
+   * 
+   * Formule : H = -Σ(p_i × log(p_i))
+   * 
+   * Interprétation :
+   * - Entropie faible : Marché ordonné, prévisible
+   * - Entropie élevée : Marché chaotique, imprévisible
+   * - Seuils optimaux : 0.65 (ordonné) à 0.85 (chaotique)
+   * 
+   * Exemple :
+   * - Rendements uniformes → Entropie élevée
+   * - Rendements concentrés → Entropie faible
+   */
+  compute_entropy(series: number[]): number {
+    if (series.length === 0) return 0;
+
+    // Arrondir les rendements à 2 décimales pour créer des bins
+    const bins = series.map(x => Math.round(x * 100) / 100);
+    
+    // Compter les occurrences de chaque bin
+    const counter = new Map<number, number>();
+    for (const bin of bins) {
+      counter.set(bin, (counter.get(bin) || 0) + 1);
+    }
+    
+    // Calculer les probabilités et l'entropie
+    let entropy = 0;
+    counter.forEach((count) => {
+      const prob = count / series.length;
+      if (prob > 0) {
+        entropy -= prob * Math.log(prob);
+      }
+    });
+    
+    return entropy;
+  }
+
+  /**
+   * Détermine si le régime est favorable au trading
+   * 
+   * @param prices - Série de prix
+   * @param returns - Série de rendements
+   * @returns True si le régime permet de trader
+   * 
+   * Logique de filtrage GPT :
+   * 1. Momentum suffisant (|TSMOM| ≥ 0.01)
+   * 2. Entropie dans la zone favorable (≤ 0.65 ou ≥ 0.85)
+   * 
+   * Conditions optimales :
+   * - Momentum fort + Entropie faible = Marché directionnel
+   * - Momentum fort + Entropie élevée = Marché volatile mais exploitable
+   * - Momentum faible + Entropie moyenne = Marché stagnant (à éviter)
+   * 
+   * Exemple :
+   * - TSMOM = 0.02, Entropie = 0.3 → Marché favorable (directionnel)
+   * - TSMOM = 0.005, Entropie = 0.7 → Marché défavorable (stagnant)
+   * - TSMOM = 0.03, Entropie = 0.9 → Marché favorable (volatile)
+   */
+  is_tradable(prices: number[], returns: number[]): boolean {
+    const mom = this.compute_momentum(prices);
+    const entropy = this.compute_entropy(returns);
+
+    // Condition 1 : Momentum suffisant
+    if (Math.abs(mom) < 0.01) {
+      return false;
+    }
+
+    // Condition 2 : Entropie dans la zone favorable
+    if (this.entropy_thresholds[0] < entropy && entropy < this.entropy_thresholds[1]) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Récupère l'état complet du filtre de régime
+   */
+  getState() {
+    return {
+      mom_window_short: this.mom_window_short,
+      mom_window_long: this.mom_window_long,
+      entropy_thresholds: this.entropy_thresholds,
+      current_settings: {
+        momentum_filter: `≥ ${0.01}`,
+        entropy_filter: `≤ ${this.entropy_thresholds[0]} ou ≥ ${this.entropy_thresholds[1]}`,
+        windows: `${this.mom_window_short}/${this.mom_window_long} périodes`
+      }
+    };
+  }
+}
+
 // Composant React principal
 export default function AndreLeGrandPage() {
   const [config, setConfig] = useState<MMConfig>({
@@ -1604,6 +1939,11 @@ export default function AndreLeGrandPage() {
       hurst_epoch: 0.6,
       boost_cap: 0.15,
       haircut_cap: 0.40
+    },
+    regime_filter: {
+      mom_window_short: 5,
+      mom_window_long: 20,
+      entropy_thresholds: [0.65, 0.85]
     },
     dd_paliers: {
       level1: 0.05,
@@ -1659,6 +1999,12 @@ export default function AndreLeGrandPage() {
         config.market_engine.haircut_cap || 0.40
       );
       
+      const regimeFilter = new RegimeFilter(
+        config.regime_filter?.mom_window_short || 5,
+        config.regime_filter?.mom_window_long || 20,
+        config.regime_filter?.entropy_thresholds || [0.65, 0.85]
+      );
+
       const newPositionSizer = new PositionSizer(
         kellyCalculator,
         drawdownManager,
@@ -1666,6 +2012,7 @@ export default function AndreLeGrandPage() {
         volTarget,
         seqManager,
         marketEngine,
+        regimeFilter,
         config.kelly.mode === 'bayesian'
       );
       
