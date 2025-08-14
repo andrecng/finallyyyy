@@ -1089,8 +1089,11 @@ class PositionSizer {
     }
 
     // Étape 4 : Volatility targeting
+    let vol_mult = 1.0;
     if (this.vol_target && realized_vol) {
-      base_size = this.vol_target.adjustSize(base_size, realized_vol);
+      const adjusted_size = this.vol_target.adjustSize(base_size, realized_vol);
+      vol_mult = base_size > 0 ? adjusted_size / base_size : 1.0;
+      base_size = adjusted_size;
     }
 
     // Étape 5 : Logique de séquence
@@ -1098,12 +1101,31 @@ class PositionSizer {
     base_size *= seq_mult;
 
     // Étape 6 : Overlay marché (NOUVEAU !)
+    let overlay_mult = 1.0;
     if (this.overlay && tsmom_score !== undefined && entropy !== undefined) {
-      const overlay_mult = this.overlay.compute_overlay(tsmom_score, entropy, hurst);
+      overlay_mult = this.overlay.compute_overlay(tsmom_score, entropy, hurst);
       base_size *= overlay_mult;
     }
 
-    return Math.max(0, base_size);
+    // Taille finale
+    const final_size = Math.max(0, base_size);
+
+    // Logging complet avec le format GPT standardisé
+    this.logger.log(
+      trade_id,
+      this.kelly.computeKelly(p_win, payoff), // Kelly de base (avant ajustements)
+      dd_multiplier,
+      vol_mult,
+      seq_mult,
+      overlay_mult,
+      final_size,
+      equity,
+      hwm,
+      p_win,
+      payoff
+    );
+
+    return final_size;
   }
 
   /**
@@ -1266,57 +1288,68 @@ class RiskLogger {
   private max_logs: number = 1000;                 // Limite du nombre de logs conservés
 
   /**
-   * Enregistre la composition détaillée du sizing
+   * Enregistre la composition détaillée du sizing (Format GPT standardisé)
    * 
    * @param trade_id - Identifiant unique du trade
-   * @param base_size - Taille de base (Kelly)
+   * @param kelly_base_size - Taille de base Kelly
    * @param dd_multiplier - Multiplicateur drawdown
    * @param vol_mult - Multiplicateur volatilité
    * @param seq_mult - Multiplicateur séquence
    * @param overlay_mult - Multiplicateur overlay marché
-   * @param final_size - Taille finale calculée
+   * @param final_size_pct - Taille finale en pourcentage
+   * @param equity - Capital actuel
+   * @param hwm - High Water Mark
+   * @param p_win_estimate - Estimation de la probabilité de gain
+   * @param payoff_estimate - Estimation du ratio gain/perte
    * 
-   * Logique de traçabilité :
-   * - Chaque composante est enregistrée séparément
-   * - Timestamp automatique pour chaque log
-   * - Rotation automatique des logs (max 1000)
-   * - Support pour l'analyse post-trade
+   * Logique de traçabilité GPT :
+   * - Format standardisé pour compatibilité
+   * - Calcul automatique du capital risqué
+   * - Flags de sécurité pour l'audit
+   * - Timestamp ISO pour l'export
    * 
    * Exemple d'utilisation :
    * ```typescript
-   * logger.log(123, 0.05, 0.8, 1.2, 1.1, 0.9, 0.0396);
-   * // Log : Trade 123 - Kelly: 5%, DD: 80%, Vol: 120%, Seq: 110%, Overlay: 90%, Final: 3.96%
+   * logger.log(123, 0.045, 0.6, 0.85, 1.1, 0.95, 0.024, 10000, 11000, 0.58, 2.1);
+   * // Log : Trade 123 - Kelly: 4.5%, DD: 60%, Vol: 85%, Seq: 110%, Overlay: 95%, Final: 2.4%
    * ```
    * 
    * Formule de vérification :
-   * final_size = base_size × dd_multiplier × vol_mult × seq_mult × overlay_mult
-   * 0.0396 = 0.05 × 0.8 × 1.2 × 1.1 × 0.9 ✓
+   * final_size_pct = kelly_base_size × dd_multiplier × vol_mult × seq_mult × overlay_mult
+   * 0.024 = 0.045 × 0.6 × 0.85 × 1.1 × 0.95 ✓
    */
   log(
     trade_id: number,
-    base_size: number,
+    kelly_base_size: number,
     dd_multiplier: number,
     vol_mult: number,
     seq_mult: number,
     overlay_mult: number,
-    final_size: number
+    final_size_pct: number,
+    equity: number,
+    hwm: number,
+    p_win_estimate: number,
+    payoff_estimate: number
   ): void {
     const log_entry: RiskLog = {
       trade_id,
-      timestamp: new Date(),
-      base_size,
-      dd_multiplier,
-      vol_multiplier: vol_mult,
-      seq_multiplier: seq_mult,
+      kelly_base_size,
+      drawdown_multiplier: dd_multiplier,
+      volatility_multiplier: vol_mult,
+      sequence_multiplier: seq_mult,
       overlay_multiplier: overlay_mult,
-      final_size,
-      components: {
-        kelly: base_size,
-        drawdown: dd_multiplier,
-        volatility: vol_mult,
-        sequence: seq_mult,
-        overlay: overlay_mult
-      }
+      final_size_pct,
+      capital_risked: final_size_pct * equity, // Calcul automatique du capital risqué
+      equity,
+      hwm,
+      p_win_estimate,
+      payoff_estimate,
+      flags: {
+        frozen: false, // À implémenter avec CPPI Freeze
+        below_floor: false, // À implémenter avec CPPI Floor
+        kill_switch: false // À implémenter avec protection extrême
+      },
+      timestamp: new Date().toISOString() // Format ISO standard
     };
 
     this.logs.push(log_entry);
@@ -1364,12 +1397,12 @@ class RiskLogger {
 
     const stats = {
       total_trades: this.logs.length,
-      avg_base_size: this.logs.reduce((sum, log) => sum + log.base_size, 0) / this.logs.length,
-      avg_dd_multiplier: this.logs.reduce((sum, log) => sum + log.dd_multiplier, 0) / this.logs.length,
-      avg_vol_multiplier: this.logs.reduce((sum, log) => sum + log.vol_multiplier, 0) / this.logs.length,
-      avg_seq_multiplier: this.logs.reduce((sum, log) => sum + log.seq_multiplier, 0) / this.logs.length,
+      avg_base_size: this.logs.reduce((sum, log) => sum + log.kelly_base_size, 0) / this.logs.length,
+      avg_dd_multiplier: this.logs.reduce((sum, log) => sum + log.drawdown_multiplier, 0) / this.logs.length,
+      avg_vol_multiplier: this.logs.reduce((sum, log) => sum + log.volatility_multiplier, 0) / this.logs.length,
+      avg_seq_multiplier: this.logs.reduce((sum, log) => sum + log.sequence_multiplier, 0) / this.logs.length,
       avg_overlay_multiplier: this.logs.reduce((sum, log) => sum + log.overlay_multiplier, 0) / this.logs.length,
-      avg_final_size: this.logs.reduce((sum, log) => sum + log.final_size, 0) / this.logs.length
+      avg_final_size: this.logs.reduce((sum, log) => sum + log.final_size_pct, 0) / this.logs.length
     };
 
     // Calcul de l'impact de chaque composante
@@ -1405,24 +1438,27 @@ class RiskLogger {
 }
 
 /**
- * Interface pour un log de risque individuel
+ * Interface pour un log de risque individuel (Format GPT standardisé)
  */
 interface RiskLog {
   trade_id: number;                    // Identifiant unique du trade
-  timestamp: Date;                     // Timestamp du log
-  base_size: number;                   // Taille de base (Kelly)
-  dd_multiplier: number;               // Multiplicateur drawdown
-  vol_multiplier: number;              // Multiplicateur volatilité
-  seq_multiplier: number;              // Multiplicateur séquence
-  overlay_multiplier: number;          // Multiplicateur overlay marché
-  final_size: number;                  // Taille finale calculée
-  components: {                        // Composantes détaillées
-    kelly: number;
-    drawdown: number;
-    volatility: number;
-    sequence: number;
-    overlay: number;
+  kelly_base_size: number;             // Taille de base Kelly (ex: 0.045 = 4.5%)
+  drawdown_multiplier: number;         // Multiplicateur drawdown (ex: 0.6 = 60%)
+  volatility_multiplier: number;       // Multiplicateur volatilité (ex: 0.85 = 85%)
+  sequence_multiplier: number;         // Multiplicateur séquence (ex: 1.1 = 110%)
+  overlay_multiplier: number;          // Multiplicateur overlay marché (ex: 0.95 = 95%)
+  final_size_pct: number;              // Taille finale en pourcentage (ex: 0.024 = 2.4%)
+  capital_risked: number;              // Capital risqué en dollars (ex: 240.0 pour 10K)
+  equity: number;                      // Capital actuel
+  hwm: number;                         // High Water Mark
+  p_win_estimate: number;              // Estimation de la probabilité de gain
+  payoff_estimate: number;             // Estimation du ratio gain/perte
+  flags: {                             // Flags de sécurité et d'état
+    frozen: boolean;                   // CPPI Freeze activé
+    below_floor: boolean;              // En dessous du plancher CPPI
+    kill_switch: boolean;              // Kill switch activé (protection extrême)
   };
+  timestamp: string;                   // Timestamp ISO pour compatibilité
 }
 
 /**
