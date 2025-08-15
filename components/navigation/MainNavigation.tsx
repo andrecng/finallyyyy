@@ -32,6 +32,12 @@ const navItems = [
     icon: Brain
   },
   {
+    href: '/simulateur-multi',
+    title: 'Simulateur Multi',
+    description: 'Simulation multi-actifs avancée',
+    icon: BarChart3
+  },
+  {
     href: '/live',
     title: 'Live Trading',
     description: 'Suivi en temps réel',

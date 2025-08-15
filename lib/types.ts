@@ -1,4 +1,11 @@
 // Types principaux pour l'application
+
+// À inspecter en début de fichier
+interface SimpleCapitalConfig {
+  amount: number;
+  currency: string;
+}
+
 export interface CapitalConfig {
   initial: number;
   basis: 'balance' | 'equity' | 'risk_capital';
@@ -168,4 +175,31 @@ export interface Preset {
   config: SimulationConfig;
   created_at: string;
   updated_at: string;
+}
+
+export interface SimResult {
+  cagr: number;
+  maxDrawdown: number;
+  sortino: number;
+  winRate: number;
+  equitySeries: Array<{ t: number; value: number }>;
+  trades: any[];
+  riskLogs: any[];
+}
+
+export interface Trade {
+  id: string;
+  symbol: string;
+  side: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  timestamp: Date;
+  pnl?: number;
+}
+
+export interface SimpleSimulationConfig {
+  capital: number;
+  volatilityTarget: number;
+  nbSimulations: number;
+  timeframe: 'daily' | 'weekly' | 'monthly';
 }
