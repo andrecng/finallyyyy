@@ -1,82 +1,33 @@
-// 🔧 modules/overlay/market-engine.ts
-// 🌍 Moteur de marché pour ajustement selon le régime
+// 📍 modules/overlay/market-engine.ts
 
-import { RiskModule } from '../../lib/registry/module-registry';
-
-export interface MarketEngineInput {
-  regimeScore: number;
-}
-
-export interface MarketConfig {
-  boost: number;
-  haircut: number;
-  neutralThreshold?: number;
-}
+import { RiskModule } from "@/lib/registry/module-registry";
 
 export class MarketEngine implements RiskModule {
+  id = "market_engine";
+  name = "Market Engine Overlay";
+  version = "1.0.0";
+  isEnabled = true;
+  priority = 5; // ordre relatif dans l'orchestration
+
   private boost: number;
   private haircut: number;
   private neutralThreshold: number;
 
-  constructor(boost: number, haircut: number, neutralThreshold: number = 0.2) {
-    this.boost = Math.max(0, Math.min(0.5, boost));
-    this.haircut = Math.max(0, Math.min(0.5, haircut));
-    this.neutralThreshold = Math.max(0.1, Math.min(0.5, neutralThreshold));
+  constructor(boost = 0.15, haircut = 0.30, neutralThreshold = 0.05) {
+    this.boost = boost;
+    this.haircut = haircut;
+    this.neutralThreshold = neutralThreshold;
   }
 
-  adjust({ regimeScore }: MarketEngineInput): number {
-    // Régime haussier : boost
-    if (regimeScore > this.neutralThreshold) {
-      return 1 + this.boost;
+  apply(risk: number, regime: "bull" | "bear" | "neutral"): number {
+    if (!this.isEnabled) return risk;
+
+    if (regime === "bull") {
+      return Math.min(risk * (1 + this.boost), risk * 2);
+    } else if (regime === "bear") {
+      return risk * (1 - this.haircut);
+    } else {
+      return risk;
     }
-    
-    // Régime baissier : haircut
-    if (regimeScore < -this.neutralThreshold) {
-      return 1 - this.haircut;
-    }
-    
-    // Régime neutre : pas d'ajustement
-    return 1;
-  }
-
-  // Configuration dynamique
-  setBoost(boost: number): void {
-    this.boost = Math.max(0, Math.min(0.5, boost));
-  }
-
-  setHaircut(haircut: number): void {
-    this.haircut = Math.max(0, Math.min(0.5, haircut));
-  }
-
-  setNeutralThreshold(threshold: number): void {
-    this.neutralThreshold = Math.max(0.1, Math.min(0.5, threshold));
-  }
-
-  // Récupération de la configuration
-  getConfig(): MarketConfig {
-    return {
-      boost: this.boost,
-      haircut: this.haircut,
-      neutralThreshold: this.neutralThreshold
-    };
-  }
-
-  // Analyse du régime de marché
-  getRegimeType(regimeScore: number): 'bullish' | 'bearish' | 'neutral' {
-    if (regimeScore > this.neutralThreshold) return 'bullish';
-    if (regimeScore < -this.neutralThreshold) return 'bearish';
-    return 'neutral';
-  }
-
-  // Calcul de l'ajustement en pourcentage
-  getAdjustmentPercentage(regimeScore: number): number {
-    const adjustment = this.adjust({ regimeScore });
-    return ((adjustment - 1) * 100);
-  }
-
-  // Vérification si l'ajustement est significatif
-  isSignificantAdjustment(regimeScore: number): boolean {
-    const adjustment = this.adjust({ regimeScore });
-    return Math.abs(adjustment - 1) > 0.05; // 5% de seuil
   }
 }
