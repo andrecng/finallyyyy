@@ -1,7 +1,7 @@
 // 🔧 modules/simulation/engine.ts
 // 🚀 Moteur de simulation avec position sizing
 
-import { PositionSizer } from '../../risk-control/position-sizer';
+import { PositionSizer } from '../risk-control/position-sizer';
 
 export interface Trade {
   id: string;
@@ -14,18 +14,18 @@ export interface Trade {
   instrumentExposure: number;
 }
 
-export interface SimulationResult {
+export interface EngineResult {
   id: string;
   originalSize: number;
   adjustedSize: number;
-  riskLevel: number;
+  riskLevel: 'low' | 'medium' | 'high';
   timestamp: string;
 }
 
 export class SimulationEngine {
   constructor(private sizer: PositionSizer) {}
 
-  run(trades: Trade[]): SimulationResult[] {
+  run(trades: Trade[]): EngineResult[] {
     return trades.map(trade => {
       const size = this.sizer.compute({
         capital: trade.capital,
@@ -56,7 +56,7 @@ export class SimulationEngine {
 
   // Simulation avec métriques
   runWithMetrics(trades: Trade[]): {
-    results: SimulationResult[];
+    results: EngineResult[];
     metrics: {
       averageSize: number;
       totalRisk: number;
@@ -84,7 +84,7 @@ export class SimulationEngine {
   }
 
   // Simulation par batch
-  runBatch(trades: Trade[], batchSize: number = 100): SimulationResult[][] {
+  runBatch(trades: Trade[], batchSize: number = 100): EngineResult[][] {
     const batches: Trade[][] = [];
     
     for (let i = 0; i < trades.length; i += batchSize) {

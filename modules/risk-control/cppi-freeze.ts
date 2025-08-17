@@ -9,6 +9,12 @@ export interface CPPIInput {
 }
 
 export class CPPIManager implements RiskModule {
+  id = "cppi_manager";
+  name = "CPPI Freeze Manager";
+  version = "1.0.0";
+  isEnabled = true;
+  priority = 3; // Priorité élevée pour la protection du capital
+
   private floorRatio: number;
   private freezeThreshold: number;
 

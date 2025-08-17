@@ -15,6 +15,12 @@ export interface CapsConfig {
 }
 
 export class PortfolioCaps implements RiskModule {
+  id = "portfolio_caps";
+  name = "Portfolio Caps Manager";
+  version = "1.0.0";
+  isEnabled = true;
+  priority = 2; // Priorité élevée pour la gestion des caps
+
   private caps: CapsConfig;
 
   constructor(caps: CapsConfig) {

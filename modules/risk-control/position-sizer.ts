@@ -13,12 +13,18 @@ export interface PositionSizerInput {
   instrumentExposure: number;
 }
 
-export interface RiskModule {
+export interface PositionSizerModule {
   adjust(inputs: PositionSizerInput): number;
 }
 
 export class PositionSizer implements RiskModule {
-  constructor(private modules: RiskModule[]) {}
+  id = "position_sizer";
+  name = "Position Sizer Orchestrator";
+  version = "1.0.0";
+  isEnabled = true;
+  priority = 1; // Priorité la plus élevée - orchestrateur principal
+
+  constructor(private modules: PositionSizerModule[]) {}
 
   compute(inputs: PositionSizerInput): number {
     let size = 1.0;
@@ -38,7 +44,7 @@ export class PositionSizer implements RiskModule {
   }
 
   // Ajout/suppression dynamique de modules
-  addModule(module: RiskModule): void {
+  addModule(module: PositionSizerModule): void {
     this.modules.push(module);
   }
 
@@ -49,7 +55,7 @@ export class PositionSizer implements RiskModule {
   }
 
   // Récupération des modules actifs
-  getModules(): RiskModule[] {
+  getModules(): PositionSizerModule[] {
     return [...this.modules];
   }
 }
