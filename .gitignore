@@ -35,15 +35,24 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Logs
-*.log
+# Logs & OS
 logs/
+*.log
+.DS_Store
+
+# Node/Next
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
 
 # Env
 .env
 .env.local
 .env.*.local
-
-# Logs
-logs/
-*.log
