@@ -1,8 +1,8 @@
-from orchestrator import PositionSizer
-from modules.vol_target import VolTarget
-from modules.cppi import CPPI
-from modules.drawdown_manager import DrawdownManager
-from modules.bayes import Bayes
+from backend.orchestrator import PositionSizer
+from backend.modules.vol_target import VolTarget
+from backend.modules.cppi import CPPI
+from backend.modules.drawdown_manager import DrawdownManager
+from backend.modules.bayes import Bayes
 
 BASE_MODULES = [
     VolTarget({"target_vol": 0.1, "vol_est": 0.1, "scale": 0.1, "max_risk": 0.02}),

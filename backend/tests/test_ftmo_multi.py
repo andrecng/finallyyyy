@@ -1,4 +1,4 @@
-from ftmo import estimate_multi
+from backend.ftmo import estimate_multi
 
 BASE_PRESET = {
     "capital_initial": 100000.0,

@@ -1,12 +1,12 @@
 import math
 import os
 import glob
-from orchestrator import PositionSizer
-from modules.cppi import CPPI
-from modules.drawdown_manager import DrawdownManager
-from modules.vol_target import VolTarget
-from modules.bayes import Bayes
-from logging_jsonl import JsonlLogger
+from backend.orchestrator import PositionSizer
+from backend.modules.cppi import CPPI
+from backend.modules.drawdown_manager import DrawdownManager
+from backend.modules.vol_target import VolTarget
+from backend.modules.bayes import Bayes
+from backend.logging_jsonl import JsonlLogger
 
 def mk_engine():
     preset = {

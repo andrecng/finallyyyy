@@ -1,8 +1,8 @@
-from orchestrator import PositionSizer
-from modules.vol_target import VolTarget
-from modules.drawdown_manager import DrawdownManager
-from modules.cppi import CPPI
-from modules.bayes import Bayes
+from backend.orchestrator import PositionSizer
+from backend.modules.vol_target import VolTarget
+from backend.modules.drawdown_manager import DrawdownManager
+from backend.modules.cppi import CPPI
+from backend.modules.bayes import Bayes
 
 BASE_PRESET = {
     "capital_initial": 100000.0,
