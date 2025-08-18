@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  eslint: {
-    ignoreDuringBuilds: true,
+  async redirects() {
+    return [
+      { source: "/", destination: "/strategy-tester", permanent: false },
+      { source: "/strategy-t", destination: "/strategy-tester", permanent: false },
+    ];
   },
-  images: { unoptimized: true },
 };
-
 module.exports = nextConfig;
