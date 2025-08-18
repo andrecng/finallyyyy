@@ -76,7 +76,7 @@ export default function StrategyTesterPage() {
       {result && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* KPIs */}
-          <div className="p-4 rounded-2xl shadow border">
+          <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02]">
             <h2 className="font-medium mb-2">KPIs</h2>
             <ul className="text-sm space-y-1">
               <li>CAGR: {result.kpis?.CAGR.toFixed?.(4)}</li>
@@ -88,7 +88,7 @@ export default function StrategyTesterPage() {
           </div>
 
           {/* Equity chart */}
-          <div className="p-4 rounded-2xl shadow border md:col-span-2">
+          <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02] md:col-span-2">
             <h2 className="font-medium mb-2">Equity Curve</h2>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -103,7 +103,7 @@ export default function StrategyTesterPage() {
           </div>
 
           {/* Risk chart */}
-          <div className="p-4 rounded-2xl shadow border">
+          <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02]">
             <h2 className="font-medium mb-2">Risk Effectif</h2>
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
@@ -118,7 +118,7 @@ export default function StrategyTesterPage() {
           </div>
 
           {/* Sizing chart */}
-          <div className="p-4 rounded-2xl shadow border">
+          <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02]">
             <h2 className="font-medium mb-2">Sizing</h2>
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
@@ -133,7 +133,7 @@ export default function StrategyTesterPage() {
           </div>
 
           {/* Violations */}
-          <div className="p-4 rounded-2xl shadow border md:col-span-3">
+          <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02] md:col-span-3">
             <h2 className="font-medium mb-2">Compliance Violations</h2>
             {result?.compliance?.violations?.length ? (
               <div className="overflow-x-auto">
@@ -162,7 +162,7 @@ export default function StrategyTesterPage() {
           </div>
 
           {/* Logs (aperçu court) */}
-          <div className="p-4 rounded-2xl shadow border md:col-span-3">
+          <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02] md:col-span-3">
             <h2 className="font-medium mb-2">Logs (aperçu)</h2>
             <pre className="text-xs whitespace-pre-wrap max-h-64 overflow-auto">
               {JSON.stringify(result.logs?.slice?.(0, 50) ?? [], null, 2)}
