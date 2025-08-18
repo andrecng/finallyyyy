@@ -1,4 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.requests import Request
 from pydantic import BaseModel
 from typing import Any, Dict, List, Optional
 import os
@@ -15,6 +19,15 @@ from backend.ftmo import estimate_multi
 
 app = FastAPI(title="MM Engine API")
 API_PORT = int(os.getenv("API_PORT", "8001"))
+
+# CORS (front en dev)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # restreins en prod si besoin
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --------- MODELS
 
@@ -140,3 +153,20 @@ def ftmo_multi(req: FtmoRequest):
 @app.get("/health")
 def health():
     return {"ok": True}
+
+# --------- ERROR HANDLERS
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "validation_error", "detail": exc.errors()},
+    )
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # évite de crasher en dev; loggue côté serveur
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_error", "message": str(exc.__class__.__name__)},
+    )
