@@ -1,1 +1,99 @@
-{ "$schema":"https://json-schema.org/draft/2020-12/schema","title":"presets_api","type":"object","required":["capital_initial","modules","gating","risk_limits"],"properties":{"capital_initial":{"type":"number","minimum":0},"modules":{"type":"array","items":{"type":"object","required":["id","enabled","params"],"properties":{"id":{"type":"string"},"enabled":{"type":"boolean"},"params":{"type":"object","additionalProperties":true}},"additionalProperties":false}},"gating":{"type":"object","properties":{"fees_bps":{"type":"number","minimum":0},"sessions":{"type":"array","items":{"type":"string"}},"news_blackouts":{"type":"array","items":{"type":"string"}},"regime":{"type":"string"}},"additionalProperties":false},"risk_limits":{"type":"object","required":["max_dd","daily_dd","freeze_cushion_pct"],"properties":{"max_dd":{"type":"number","minimum":0},"daily_dd":{"type":"number","minimum":0},"freeze_cushion_pct":{"type":"number","minimum":0,"maximum":100}},"additionalProperties":false}},"additionalProperties":false }
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Preset API Schema",
+  "type": "object",
+  "required": ["capital_initial", "modules", "risk_limits"],
+  "properties": {
+    "capital_initial": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Capital initial en USD"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "enabled"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": ["vol_target", "cppi", "drawdown_manager", "bayes"]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "params": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "gating": {
+      "type": "object",
+      "properties": {
+        "fees_bps": { "type": "number", "minimum": 0 },
+        "sessions": { "type": "array", "items": { "type": "string" } },
+        "news_blackouts": { "type": "array", "items": { "type": "string" } },
+        "regime": { "type": "string" },
+        "risk_cap": { "type": "number", "minimum": 0 },
+        "session_mask": {
+          "type": "object",
+          "required": ["day_len", "allow"],
+          "properties": {
+            "day_len": { "type": "integer", "minimum": 1 },
+            "allow": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  { "type": "integer" },
+                  { "type": "integer" }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "news_blackouts_steps": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              { "type": "integer" },
+              { "type": "integer" }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "risk_limits": {
+      "type": "object",
+      "required": ["max_dd"],
+      "properties": {
+        "max_dd": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Drawdown maximum autorisé en %"
+        },
+        "daily_dd": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Drawdown quotidien maximum en %"
+        },
+        "freeze_cushion_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Seuil de cushion pour freeze CPPI en %"
+        }
+      }
+    }
+  }
+}

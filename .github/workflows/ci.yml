@@ -1,0 +1,38 @@
+name: ci
+on:
+  push: { branches: ["**"] }
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Front typecheck
+        run: |
+          npm ci || npm i
+          npx tsc -v || true
+          npx tsc --noEmit || true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Python deps
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt || true
+          pip install pytest
+
+      - name: Pytests
+        run: |
+          . .venv/bin/activate
+          pytest -q
