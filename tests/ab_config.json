@@ -1,0 +1,6 @@
+{
+  "ftmo": { "max_total_dd": 0.10, "max_daily_dd": 0.05, "profit_target": 0.10, "horizon_days": 30 },
+  "baseline": { "alpha1": 0.10, "tau1": 0.05, "lambda": 0.50, "fmax": 0.30 },
+  "nested": { "alpha1": 0.10, "tau1": 0.05, "alpha2": [0.3, 0.5, 0.7], "tau2": [0.05, 0.10, 0.20], "lambda": [0.25, 0.5, 0.75], "fmax": 0.30 },
+  "mc": { "runs": 1000, "seed": 42, "win_rate": 0.55, "payoff": 1.0 }
+}
