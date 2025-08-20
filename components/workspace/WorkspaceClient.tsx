@@ -11,6 +11,8 @@ import KPICards from "@/components/KPICards";
 import Sparkline from "@/components/Sparkline";
 import RiskSummary from "@/components/RiskSummary";
 import ResultsPanel from "@/components/workspace/ResultsPanel";
+import Field from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
 
 export default function WorkspaceClient() {
   const sp = useSearchParams();
@@ -114,9 +116,35 @@ export default function WorkspaceClient() {
       <section className="grid gap-4">
         {step === "configure" && (
           <div className="rounded-2xl border border-base p-4 bg-card">
-            <h2 className="text-lg font-medium mb-4">Configurer</h2>
-            <InputForm state={state} onChange={setState} />
-            <div className="mt-4 text-center">
+            <h2 className="text-lg font-medium mb-2">Configurer</h2>
+            <p className="text-muted mb-4">
+              Sélectionne un preset, ajuste les paramètres de base, puis passe à <button onClick={() => setStep("modules")} className="underline">Modules</button>.
+            </p>
+
+            <div className="grid gap-5">
+              <Field
+                label="Plancher CPPI (α)"
+                subtitle="floor = HWM·(1−α)"
+                htmlFor="cppi-alpha"
+              >
+                <Input id="cppi-alpha" type="number" placeholder="ex: 0.20" variant="light" />
+              </Field>
+
+              <Field
+                label="Horizon (jours)"
+                subtitle="Fenêtre de simulation / rebalancement"
+                htmlFor="horizon-days"
+              >
+                <Input
+                  id="horizon-days"
+                  type="number"
+                  placeholder="20"
+                  variant="light"
+                />
+              </Field>
+            </div>
+            
+            <div className="mt-6 text-center">
               <button 
                 onClick={() => setStep("modules")} 
                 className="btn-accent hover:opacity-90 px-4 py-2 rounded-lg"
@@ -129,9 +157,59 @@ export default function WorkspaceClient() {
 
         {step === "modules" && (
           <div className="rounded-2xl border border-base p-4 bg-card">
-            <h2 className="text-lg font-medium mb-4">Modules & Paramètres</h2>
-            <InputForm state={state} onChange={setState} />
-            <div className="mt-4 flex gap-2">
+            <h2 className="text-lg font-medium mb-4">Modules & paramètres</h2>
+
+            <div className="grid gap-5">
+              <Field
+                label="Vol cible (ann.)"
+                subtitle="Ex: 0.10 = 10% de volatilité annualisée"
+                htmlFor="vol-target"
+              >
+                <Input id="vol-target" type="number" placeholder="ex: 0.10" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — Daily max loss"
+                subtitle="Budget journalier avant total (daily‑first)"
+                htmlFor="ftmo-daily"
+              >
+                <Input id="ftmo-daily" type="number" placeholder="ex: 0.005 = 0.5%" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — Total max loss"
+                subtitle="Arrêt si drawdown total atteint"
+                htmlFor="ftmo-total"
+              >
+                <Input id="ftmo-total" type="number" placeholder="ex: 0.10 = 10%" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — Spend rate"
+                subtitle="Pacing intraday: fraction du budget jour par heure"
+                htmlFor="ftmo-spend"
+              >
+                <Input id="ftmo-spend" type="number" placeholder="ex: 0.20 = 20%" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — lmax (vol‑aware)"
+                subtitle="Plafond réduit si vol > vol de référence"
+                htmlFor="ftmo-lmax"
+              >
+                <Input id="ftmo-lmax" type="number" placeholder="ex: 1.00" variant="light" />
+              </Field>
+
+              <Field
+                label="Vol de référence"
+                subtitle="Calibration de lmax (ex: 0.10 = 10%)"
+                htmlFor="ftmo-refvol"
+              >
+                <Input id="ftmo-refvol" type="number" placeholder="ex: 0.10" variant="light" />
+              </Field>
+            </div>
+            
+            <div className="mt-6 flex gap-2">
               <button 
                 onClick={() => setStep("configure")} 
                 className="border border-base px-4 py-2 rounded-lg hover:bg-elev"
