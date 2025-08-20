@@ -37,10 +37,10 @@ Le **Moteur Alpha** est un système de gestion de risque adaptatif qui maximise 
 ### **Installation Backend**
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# ou .venv\Scripts\activate  # Windows
-pip install -r requirements.txt
+python -m venv ../infra/.venv
+source ../infra/.venv/bin/activate  # Linux/Mac
+# ou ../infra/.venv\Scripts\activate  # Windows
+pip install -r ../config/requirements.txt
 ```
 
 ### **Installation Frontend**
@@ -119,28 +119,24 @@ python3 tests/sim_soft_propamp_mc.py
 ## 📁 Structure du Projet
 
 ```
-├── backend/                 # API FastAPI
-│   ├── app.py              # Endpoints principaux
-│   ├── modules/            # Logique métier
-│   └── requirements.txt    # Dépendances Python
-├── engine/                  # Moteur de risque
-│   └── prop_amplifier.py  # Amplificateur proportionnel
-├── tests/                   # Suite de tests
-│   ├── test_freeze_modes.py
-│   ├── sim_soft_propamp_mc.py
-│   └── specs/              # Spécifications des tests
-├── scripts/                 # Automatisation
-│   ├── run_freeze_tests.sh
-│   └── run_amplifier_tests.sh
-├── docs/                    # Documentation
-│   ├── README_ALPHA.md     # Vue d'ensemble Alpha
-│   ├── ARCHITECTURE_ALPHA.md
-│   └── alpha_philosophie.md
-├── pages/                   # Frontend Next.js
-│   ├── _app.tsx           # Layout principal
-│   ├── index.tsx          # Page d'accueil
-│   └── strategy-t.tsx     # Testeur de stratégie
-└── README.md               # Ce fichier
+/ (racine)
+├── package.json, tsconfig.json, next.config.js, tailwind.config.ts
+├── README.md, CHANGELOG.md, journal_tests.md
+├── app/                    # Frontend Next.js
+├── components/             # UI et composants
+├── backend/                # API FastAPI
+├── engine/                 # Moteur Python (money management)
+├── tests/                  # Tests Python & JS
+├── docs/                   # Documentation
+├── scripts/                # Scripts utilitaires
+├── config/
+│   ├── requirements.txt    # Dépendances Python
+│   ├── pyproject.toml     # Config Python/Poetry
+│   └── vitest.config.ts   # Config tests front
+└── infra/
+    ├── .venv/             # Environnement virtuel Python
+    ├── logs/              # Logs backend
+    └── .pytest_cache/     # Cache tests Python
 ```
 
 ## 🔧 Configuration
