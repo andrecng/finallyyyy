@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MMEngineRun",
+  "type": "object",
+  "properties": {
+    "profile": { "type": "string", "enum": ["gaussian","student_t","student_t_jumps_ewma"] },
+    "preset": { "type": "string" },
+    "modules": { "type": "array", "items": { "type": "string" } },
+    "params": { "type": "object" },
+    "seed": { "type": "integer" },
+    "horizon_days": { "type": "integer" }
+  },
+  "required": ["profile","preset","modules","params"]
+}

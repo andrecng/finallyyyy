@@ -1,0 +1,26 @@
+{
+  "gaussian": {
+    "sampler": "gaussian",
+    "mu": 0.0002,
+    "sigma": 0.008,
+    "vol_process": "none",
+    "jumps": { "enabled": false }
+  },
+  "student_t": {
+    "sampler": "student_t",
+    "mu": 0.0002,
+    "sigma": 0.009,
+    "nu": 4,
+    "vol_process": "none",
+    "jumps": { "enabled": false }
+  },
+  "student_t_jumps_ewma": {
+    "sampler": "student_t",
+    "mu": 0.00015,
+    "sigma": 0.010,
+    "nu": 4,
+    "vol_process": "ewma",
+    "ewma": { "lambda": 0.94, "sigma0": 0.010, "shock": 0.02 },
+    "jumps": { "enabled": true, "p_jump": 0.01, "jump_sigma": 0.04 }
+  }
+}

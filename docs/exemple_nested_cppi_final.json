@@ -1,0 +1,24 @@
+{
+  "preset": "FTMO-lite",
+  "modules": ["VolatilityTarget","NestedCPPI","KellyCap","SoftBarrier","FTMOGate","SessionNewsGate"],
+  "params": {
+    "vol_target": 0.10,
+    "cap_mult": 2.0,
+    "alpha": 0.10,
+    "freeze_floor_pct": 0.05,
+    "defreeze_pct": 0.08,
+    "nested_ema_beta": 0.85,
+    "nested_cushion_gain": 1.0,
+    "nested_hard_cap": 1.0,
+    "kelly_cap": 0.15,
+    "dd_total_limit": 0.10,
+    "dd_daily_limit": 0.05,
+    "worst_step_loss_guess": 0.02,
+    "safety_buffer": 0.002,
+    "banned_hours": [[22,23],[0,1]],
+    "session_haircut": 0.0,
+    "target": 0.10
+  },
+  "seed": 123,
+  "horizon_days": 20
+}

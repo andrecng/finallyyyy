@@ -1,0 +1,11 @@
+{
+  "title": "MMEngineRunOutput",
+  "type": "object",
+  "properties": {
+    "series": { "type": "object" },
+    "kpis": { "type": "object" },
+    "ftmo": { "type": "object" },
+    "logs": { "type": "array", "items": { "type": "object" } }
+  },
+  "required": ["series","kpis","logs"]
+}

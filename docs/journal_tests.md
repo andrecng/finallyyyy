@@ -1,75 +1,59 @@
-# Journal des Tests - MM Engine
+# Journal des Tests - Monte Carlo Simulation
 
-## Tests Validés ✅
+## 🧪 Test #001 – Interface de base
 
-### #001 – VolTarget Preset
-- **Date** : 2024-08-18
-- **Preset** : VolTarget avec target_vol=0.1, vol_est=0.1, scale=0.1, max_risk=0.02
-- **Modules actifs** : VolTarget, CPPI, DrawdownManager, Bayes
-- **Seeds** : [42]
-- **Horizon** : 100
-- **KPIs clés** : VolTarget respecté, sizing cohérent
-- **Violations** : Aucune
-- **Logs JSONL** : `backend/logs/run-YYYYMMDD-HHMMSS/`
+- **Paramètres testés** : Profil gaussian, modules de base
+- **Résultat** : ✅ Fonctionnel
+- **Date** : 2025-01-20
+- **Commentaires** : Interface complète avec KPIs, binder%, et gestion d'erreur robuste
+- **Modules actifs** : VolatilityTarget, CPPIFreeze, KellyCap, SoftBarrier
+- **Logs** : binder_pct: KellyCap: 100%, dd_daily_max: -0.001, days_to_target: -1
 
-### #002 – Gating Sessions/News
-- **Date** : 2024-08-18
-- **Preset** : Gating avec news_blackouts_steps et session_mask
-- **Modules actifs** : Tous les modules
-- **Seeds** : [42]
-- **Horizon** : 100
-- **KPIs clés** : Blackouts respectés, sessions respectées
-- **Violations** : Aucune
-- **Logs JSONL** : `backend/logs/run-YYYYMMDD-HHMMSS/`
+## 🧪 Test #002 – FTMOGate + SessionNewsGate
 
-### #003 – FTMO Multi-Challenges
-- **Date** : 2024-08-18
-- **Preset** : Configuration FTMO avec profit_target_pct=10
-- **Modules actifs** : Tous les modules
-- **Seeds** : [42]
-- **Horizon** : 100
-- **KPIs clés** : Estimation P(≥1 succès) avec Wilson CI
-- **Violations** : Aucune
-- **Logs JSONL** : `backend/logs/run-YYYYMMDD-HHMMSS/`
+- **Paramètres testés** :
+  - dd_total_limit = 10 %
+  - dd_daily_limit = 5 %
+  - worst_step_loss_guess = 2 %
+  - safety_buffer = 0.2 %
+  - banned_hours = [[22,23],[0,1]]
+  - session_haircut = 0.0
+- **Résultat** : ✅ Fonctionnel
+- **Date** : 2025-01-20
+- **Commentaires** :
+  - FTMOGate active un cap en fin de journée quand headroom faible
+  - SessionNewsGate coupe totalement 22–23h et 0–1h
+- **Modules actifs** :
+  - VolatilityTarget, CPPIFreeze, KellyCap, SoftBarrier, FTMOGate, SessionNewsGate
+- **Logs** :
+  - binder_pct : SessionNewsGate: 16.67%, KellyCap: 83.33%
+  - dd_daily_max : (à reporter)
+  - days_to_target : (à reporter)
 
-## Format Standard des Tests
+## 🧪 Test #003 – NestedCPPI (double airbag)
 
-### Structure Preset
-```json
-{
-  "capital_initial": 100000,
-  "modules": [
-    {
-      "id": "bayes",
-      "enabled": true,
-      "params": {"p": 0.55, "k": 0.1, "cap": 0.02}
-    }
-  ],
-  "gating": {
-    "risk_cap": 0.02,
-    "news_blackouts_steps": [[10, 13], [30, 32]],
-    "session_mask": {"day_len": 24, "allow": [[7, 12], [14, 18]]}
-  },
-  "risk_limits": {
-    "max_dd": 10,
-    "daily_dd": 5,
-    "freeze_cushion_pct": 5
-  }
-}
-```
-
-### Validation des Invariants
-- ✅ `risk_final = min(modules actifs)`
-- ✅ Freeze CPPI si cushion < seuil
-- ✅ No-increase-after-loss
-- ✅ Gating respecté (blackouts, sessions, caps)
-
-### Chemins des Logs
-- **Run principal** : `backend/logs/run-{timestamp}/run.log.jsonl`
-- **Métriques risque** : `backend/logs/run-{timestamp}/risk.log.jsonl`
-- **Violations compliance** : `backend/logs/run-{timestamp}/compliance.log.jsonl`
-- **Modules** : `backend/logs/run-{timestamp}/module.{id}.jsonl`
+- **Paramètres testés** :
+  - alpha = 10 %, freeze_floor_pct = 5 %, defreeze_pct = 8 %
+  - nested_ema_beta = 0.85, nested_cushion_gain = 1.0, nested_hard_cap = 1.0
+- **Résultat** : ✅ Fonctionnel
+- **Date** : 2025-01-20
+- **Commentaires** :
+  - Lissage cushion via EMA → sizing plus stable vs CPPI simple
+  - Freeze actif sous 5 %, dé-freeze > 8 %
+  - Avec kelly_cap=0.15, NestedCPPI devient le module limitant (83.33%)
+- **Modules actifs** :
+  - VolatilityTarget, NestedCPPI, KellyCap, SoftBarrier, FTMOGate, SessionNewsGate
+- **Logs** :
+  - binder_pct : SessionNewsGate: 16.67%, NestedCPPI: 83.33%
+  - dd_daily_max : (à reporter)
+  - days_to_target : (à reporter)
 
 ---
 
-*Dernière mise à jour : 2024-08-18*
+## 📋 Checklist des tests
+
+- [x] Test #001 : Interface de base
+- [x] Test #002 : FTMOGate + SessionNewsGate
+- [x] Test #003 : NestedCPPI (double airbag)
+- [ ] Test #004 : Profils de marché alternatifs
+- [ ] Test #005 : Stress test avec paramètres extrêmes

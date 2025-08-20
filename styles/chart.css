@@ -1,0 +1,22 @@
+/* Empêche le conteneur de s'élargir à cause du canvas */
+.chartPane {
+  position: relative;
+  /* bornes fortes */
+  width: 100%;
+  max-width: 1200px;    /* ajuste si tu veux */
+  height: 420px;        /* fixe une hauteur (ou utilise aspect-ratio) */
+  overflow: hidden;     /* ne pas laisser dépasser */
+  flex: 0 0 auto;       /* ne pas "grandir" à l'infini */
+}
+
+/* Très important si parent = flex/grid */
+.chartParent {
+  min-width: 0;         /* autorise le shrink dans flex/grid */
+  overflow: hidden;     /* évite les scrollbars qui font "pousser" */
+}
+
+.chartPane canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;          /* supprime l'espace inline */
+}
