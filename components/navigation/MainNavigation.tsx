@@ -20,43 +20,43 @@ import {
 
 const navItems = [
   {
-    href: '/lab',
+    href: '/lab' as const,
     title: 'Laboratoire',
     description: 'Simulations Monte Carlo avancées',
     icon: Calculator
   },
   {
-    href: '/andre-le-grand',
+    href: '/andre-le-grand' as const,
     title: 'André le Grand',
     description: 'Moteur de Money Management',
     icon: Brain
   },
   {
-    href: '/simulateur-multi',
+    href: '/simulateur-multi' as const,
     title: 'Simulateur Multi',
     description: 'Simulation multi-actifs avancée',
     icon: BarChart3
   },
   {
-    href: '/live',
+    href: '/live' as const,
     title: 'Live Trading',
     description: 'Suivi en temps réel',
     icon: Play
   },
   {
-    href: '/backtest',
+    href: '/backtest' as const,
     title: 'Backtest',
     description: 'Tests sur données historiques',
     icon: History
   },
   {
-    href: '/ftmo',
+    href: '/ftmo' as const,
     title: 'FTMO',
     description: 'Gestion des comptes FTMO',
     icon: Target
   },
   {
-    href: '/settings',
+    href: '/settings' as const,
     title: 'Paramètres',
     description: 'Configuration et préférences',
     icon: Settings

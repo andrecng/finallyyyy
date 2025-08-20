@@ -5,7 +5,7 @@
 export { UnifiedLayout } from './layout/UnifiedLayout';
 
 // Composants de test et architecture
-export { ArchitectureTest } from './ArchitectureTest';
+// export { ArchitectureTest } from './ArchitectureTest'; // Supprimé - consolidation UI
 
 // Composants UI (si vous en avez d'autres)
 // export { RiskSummary } from './RiskSummary';

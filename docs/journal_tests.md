@@ -1,5 +1,19 @@
 # Journal des Tests - Monte Carlo Simulation
 
+## 🧪 Test #002 – FTMOGate (daily-first + pacing)
+- **Paramètre testé** : `daily_max_loss = 0.5%`, `total_max_loss = 10%`, `spend_rate = 0.2`, `lmax_vol_mult = 1.0`, `ref_vol = 10%`
+- **Résultat** : ⏳ en cours (mock validé UI)
+- **Date** : 2025-08-20
+- **Commentaires** :
+  - Gate priorise le budget **jour** (daily-first).
+  - Pacing actif : limite horaire = `spend_rate × daily_max_loss`.
+  - lmax vol-aware : réduit si vol > ref.
+  - Aggregation = **min**(modules…), freeze si daily cushion <5%.
+- **Modules actifs** :
+  - `VolatilityTarget`, `CPPIFreeze`, `KellyCap`, `SoftBarrier`, **`FTMOGate`**
+- **Logs (exemple)** :
+  - `requested = 1.2%`, `allowed = 0.9%`, `freeze = false`, `reasons = ["clipped"]`
+
 ## 🧪 Test #001 – Interface de base
 
 - **Paramètres testés** : Profil gaussian, modules de base

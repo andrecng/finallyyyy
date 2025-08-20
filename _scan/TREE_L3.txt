@@ -1,0 +1,436 @@
+.
+├── _scan
+│   └── TREE_L3.txt
+├── ~
+│   └── Desktop
+│       └── moteur_mm_docs
+├── app
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── workspace
+│       └── page.tsx
+├── backend
+│   ├── __init__.py
+│   ├── app.py
+│   ├── backend.log
+│   ├── compliance.py
+│   ├── dev_start.sh
+│   ├── ftmo.py
+│   ├── gating.py
+│   ├── logging_jsonl.py
+│   ├── logging_spec.md
+│   ├── logs
+│   │   ├── run-20250818-150133
+│   │   ├── run-20250818-150327
+│   │   ├── run-20250818-150415
+│   │   ├── run-20250818-150628
+│   │   ├── run-20250818-151732
+│   │   ├── run-20250818-161320
+│   │   ├── run-20250818-165248
+│   │   ├── run-20250818-165431
+│   │   ├── run-20250818-165606
+│   │   ├── run-20250818-165856
+│   │   ├── run-20250818-165904
+│   │   ├── run-20250818-165905
+│   │   ├── run-20250818-165906
+│   │   ├── run-20250818-165907
+│   │   ├── run-20250818-165910
+│   │   ├── run-20250818-165927
+│   │   ├── run-20250818-165928
+│   │   ├── run-20250818-165937
+│   │   ├── run-20250818-170702
+│   │   ├── run-20250818-205817
+│   │   ├── run-20250818-205949
+│   │   ├── run-20250818-205950
+│   │   ├── run-20250818-205951
+│   │   ├── run-20250818-205952
+│   │   ├── run-20250818-205953
+│   │   ├── run-20250818-211106
+│   │   ├── run-20250818-212236
+│   │   ├── run-20250818-212517
+│   │   └── run-20250818-213334
+│   ├── main.py
+│   ├── modules
+│   │   ├── __init__.py
+│   │   ├── bayes.py
+│   │   ├── cppi.py
+│   │   ├── drawdown_manager.py
+│   │   └── vol_target.py
+│   ├── orchestrator.py
+│   ├── README.md
+│   ├── start.sh
+│   ├── test_api.py
+│   ├── test_validation.py
+│   ├── tests
+│   │   ├── __init__.py
+│   │   ├── test_ftmo_multi.py
+│   │   ├── test_gating.py
+│   │   ├── test_invariants.py
+│   │   └── test_stress.py
+│   └── utils.py
+├── bin
+│   ├── clean_logs.sh
+│   ├── README.md
+│   ├── start_all.sh
+│   ├── status.sh
+│   └── stop_all.sh
+├── CHANGELOG.md
+├── components
+│   ├── ArchitectureTest.tsx
+│   ├── CapsAdjuster.tsx
+│   ├── ChartPane.tsx
+│   ├── ChartPaneTailwind.tsx
+│   ├── ConfigPanel.tsx
+│   ├── CSVExportButton.tsx
+│   ├── CustomChart.tsx
+│   ├── EquityChart.tsx
+│   ├── EquityCurve.tsx
+│   ├── ExportCSV.tsx
+│   ├── HourRangeInput.tsx
+│   ├── index.ts
+│   ├── InlineAlert.tsx
+│   ├── InputForm.tsx
+│   ├── JsonPresetEditor.tsx
+│   ├── KPICards.tsx
+│   ├── KPIReport.tsx
+│   ├── lab
+│   │   ├── ChartsPanel.tsx
+│   │   ├── KPIPanel.tsx
+│   │   ├── MonteCarloPanel.tsx
+│   │   └── ParametersPanel.tsx
+│   ├── LaunchSimulation.tsx
+│   ├── layout
+│   │   └── UnifiedLayout.tsx
+│   ├── MarketRegimeTag.tsx
+│   ├── MonteCarloSlider.tsx
+│   ├── navigation
+│   │   └── MainNavigation.tsx
+│   ├── PresetsLoader.tsx
+│   ├── ProfileSelect.tsx
+│   ├── ResetStore.tsx
+│   ├── RiskChart.tsx
+│   ├── RiskLoggerTable.tsx
+│   ├── RiskLogViewer.tsx
+│   ├── RiskSummary.tsx
+│   ├── SimToolbar.tsx
+│   ├── SimulateurMulti.tsx
+│   ├── Sparkline.tsx
+│   ├── TailwindTest.tsx
+│   ├── TradeHistoryTable.tsx
+│   ├── TradeTable.tsx
+│   ├── TVChart.tsx
+│   ├── ui
+│   │   ├── accordion.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── alert.tsx
+│   │   ├── aspect-ratio.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
+│   │   ├── breadcrumb.tsx
+│   │   ├── button.tsx
+│   │   ├── calendar.tsx
+│   │   ├── card.tsx
+│   │   ├── carousel.tsx
+│   │   ├── chart.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── command.tsx
+│   │   ├── context-menu.tsx
+│   │   ├── dialog.tsx
+│   │   ├── drawer.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── form.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── input-otp.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── menubar.tsx
+│   │   ├── months-card.tsx
+│   │   ├── navigation-menu.tsx
+│   │   ├── pagination.tsx
+│   │   ├── popover.tsx
+│   │   ├── progress.tsx
+│   │   ├── radio-group.tsx
+│   │   ├── resizable.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── select.tsx
+│   │   ├── separator.tsx
+│   │   ├── sheet.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── sonner.tsx
+│   │   ├── stats-card.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   ├── tabs.tsx
+│   │   ├── textarea.tsx
+│   │   ├── toast.tsx
+│   │   ├── toaster.tsx
+│   │   ├── toggle-group.tsx
+│   │   ├── toggle.tsx
+│   │   └── tooltip.tsx
+│   ├── UniverseSelector.tsx
+│   ├── UniverseTest.tsx
+│   ├── VolatilityTargeter.tsx
+│   └── workspace
+│       └── WorkspaceClient.tsx
+├── components.json
+├── demo_ftmo.py
+├── docs
+│   ├── 01_framework.md
+│   ├── 04_tests.md
+│   ├── alpha_concepts_cles.md
+│   ├── alpha_philosophie.md
+│   ├── alpha_strategy_baseline.md
+│   ├── ARCHITECTURE_ALPHA.md
+│   ├── archive
+│   │   ├── AMELIORATIONS_COMPLETE.md
+│   │   ├── AMPLIFICATEUR_PROPORTIONNEL_COMPLETE.md
+│   │   ├── ANALYSE_AMBITIOUS_PROJET.md
+│   │   ├── ANALYSE_COMPLETE_VISION_REAL.md
+│   │   ├── ANALYSE_HONNETE_40_POURCENT.md
+│   │   ├── AVANCEE_SESSION.md
+│   │   ├── CHART_AMELIORE.md
+│   │   ├── CHART_PERSONNALISE.md
+│   │   ├── COMMIT_FINAL_SESSION3.md
+│   │   ├── CONFLIT_RESOLU_APP_ROUTER.md
+│   │   ├── CORRECTION_DATES_1970.md
+│   │   ├── CORRECTION_ERREUR_APPLIQUEE.md
+│   │   ├── CORRECTION_GRAPHIQUE.md
+│   │   ├── CORRECTIONS_LAYOUT_CHART.md
+│   │   ├── DEMARRAGE_RAPIDE.md
+│   │   ├── FEATURES_COMPLETE.md
+│   │   ├── GUIDE_PROFILS_MC.md
+│   │   ├── INTEGRATION_PLAN.md
+│   │   ├── INTERFACE_AMELIOREE.md
+│   │   ├── INTERFACE_FORMULAIRE_COMPLETE.md
+│   │   ├── INTERFACE_MONTE_CARLO.md
+│   │   ├── LANCEMENT.md
+│   │   ├── MODULES_AVANCES_IMPLANTES.md
+│   │   ├── NOUVELLE_INTERFACE_FORMULAIRE.md
+│   │   ├── NOUVELLES_FONCTIONNALITES.md
+│   │   ├── PATCH_APPLIQUE.md
+│   │   ├── PATCH_AXES_FIGES.md
+│   │   ├── PATCH_COMPLET_APPLIQUE.md
+│   │   ├── RAPPORT_ETAT_PROJET.md
+│   │   ├── RAPPORT_PROJET_COMPLET.md
+│   │   ├── RESET_ZOOM_IMPLEMENTATION.md
+│   │   ├── RESUME_FINAL.md
+│   │   ├── RESUME_PROFILS_MC.md
+│   │   ├── RISKCHART_IMPLEMENTATION.md
+│   │   ├── SESSION_3_COMPLETE.md
+│   │   ├── SESSION_4_READY.md
+│   │   ├── SESSION_ALPHA_COMPLETE.md
+│   │   ├── SESSION_ALPHA_PHILOSOPHIE_COMPLETE.md
+│   │   ├── TEST_GRAPHIQUES.md
+│   │   ├── test_interface.md
+│   │   ├── test_nouvelles_fonctionnalites.md
+│   │   ├── TESTS_FREEZE_COMPLETE.md
+│   │   ├── TESTS_RAPIDES.md
+│   │   └── TVCHART_OPTIMISATIONS.md
+│   ├── exemple_ftmo_news.json
+│   ├── exemple_nested_cppi_final.json
+│   ├── exemple_nested_cppi.json
+│   ├── journal_tests.md
+│   └── README_ALPHA.md
+├── engine
+│   ├── aggregate.py
+│   ├── cppi_nested.py
+│   ├── position_sizer.ts
+│   └── prop_amplifier.py
+├── env.example
+├── hooks
+│   ├── index.ts
+│   ├── use-toast.ts
+│   ├── useBusinessLogic.ts
+│   └── useRiskManagement.ts
+├── journal_tests.md
+├── lib
+│   ├── api.ts
+│   ├── factories
+│   │   └── risk-factory.ts
+│   ├── interfaces
+│   │   ├── risk-management.ts
+│   │   └── simulation.ts
+│   ├── mm
+│   │   └── contracts.ts
+│   ├── modules
+│   │   └── index.ts
+│   ├── policies.ts
+│   ├── registry
+│   │   └── module-registry.ts
+│   ├── simulateReal.ts
+│   ├── simulation
+│   │   └── simulateReal.ts
+│   ├── types.ts
+│   └── utils.ts
+├── logs
+│   ├── ab_baseline_20250818_232044
+│   ├── ab_baseline_20250818_232148
+│   ├── freeze_modes_test_20250818_233621.json
+│   ├── freeze_modes_test_20250818_233734.json
+│   ├── stress_test_freeze_20250818_233704.json
+│   ├── stress_test_freeze_20250818_233734.json
+│   ├── test_001_voltarget_20250818_222820.json
+│   ├── test_001_voltarget_20250818_232139.json
+│   └── test_001_voltarget.json
+├── modules
+│   ├── __tests__
+│   │   ├── drawdown-manager.test.ts
+│   │   ├── kelly-calculator.test.ts
+│   │   └── volatility-target.test.ts
+│   ├── config.ts
+│   ├── drawdown-manager.ts
+│   ├── ftmo_gating.py
+│   ├── kelly-calculator.ts
+│   ├── main_simulation_multi.ts
+│   ├── money-management
+│   │   ├── drawdown-manager.ts
+│   │   ├── index.ts
+│   │   ├── kelly-calculator.ts
+│   │   ├── sequence-manager.ts
+│   │   └── volatility-target.ts
+│   ├── overlay
+│   │   └── market-engine.ts
+│   ├── portfolio_manager.ts
+│   ├── position_sizer.ts
+│   ├── presets
+│   │   ├── fx_major.ts
+│   │   ├── universe_crypto.ts
+│   │   ├── universe_equity.ts
+│   │   ├── universe_fx_major.ts
+│   │   └── universe_indices.ts
+│   ├── README.md
+│   ├── risk-control
+│   │   ├── cppi-freeze.ts
+│   │   ├── portfolio-caps.ts
+│   │   └── position-sizer.ts
+│   ├── risk-logger.ts
+│   ├── session_news_gate.py
+│   ├── simulation
+│   │   ├── engine.ts
+│   │   ├── presets.ts
+│   │   └── validators.ts
+│   ├── soft_barrier.py
+│   └── volatility-target.ts
+├── next-env.d.ts
+├── next.config.js
+├── out
+│   ├── _next
+│   │   ├── 14RNOUGykVH-rZB8iL73r
+│   │   └── static
+│   ├── 404.html
+│   ├── andre-le-grand.html
+│   ├── andre-le-grand.txt
+│   ├── architecture-test.html
+│   ├── architecture-test.txt
+│   ├── backtest.html
+│   ├── backtest.txt
+│   ├── color-test.html
+│   ├── color-test.txt
+│   ├── ftmo.html
+│   ├── ftmo.txt
+│   ├── history.html
+│   ├── history.txt
+│   ├── index.html
+│   ├── index.txt
+│   ├── lab.html
+│   ├── lab.txt
+│   ├── live.html
+│   ├── live.txt
+│   ├── modules.html
+│   ├── modules.txt
+│   ├── settings.html
+│   ├── settings.txt
+│   ├── simulateur-multi.html
+│   ├── simulateur-multi.txt
+│   ├── SimulateurMulti.html
+│   ├── test_gauss.json
+│   ├── test_student_t.json
+│   ├── test-styles.html
+│   ├── test-styles.txt
+│   ├── test-tailwind.html
+│   ├── test-tailwind.txt
+│   ├── test-universes.html
+│   └── test-universes.txt
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── presets
+│   └── profiles.json
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+├── risk
+│   ├── ftmo_report.py
+│   └── ftmo.py
+├── schemas
+│   ├── presets_api.schema.json
+│   ├── run_io.schema.json
+│   ├── run_output.schema.json
+│   ├── simulate.request.schema.json
+│   └── simulate.result.schema.json
+├── scripts
+│   ├── dev.sh
+│   ├── quick_checkpoint.sh
+│   ├── run_amplifier_tests.sh
+│   ├── run_freeze_tests.sh
+│   ├── run_mc_stress.sh
+│   ├── run_test_001.sh
+│   ├── smoke_test_curl.sh
+│   └── test_ui_fix.sh
+├── sim
+│   ├── profile.py
+│   ├── returns.py
+│   ├── run_mc.py
+│   └── vol_process.py
+├── src
+│   └── core
+│       ├── modules
+│       ├── simulate_core.ts
+│       └── types.ts
+├── start_dev.sh
+├── stop_dev.sh
+├── stores
+│   ├── simStore.ts
+│   ├── simulationStore.ts
+│   ├── unifiedStore.ts
+│   └── workspace.ts
+├── styles
+│   ├── chart.css
+│   └── globals.css
+├── tailwind.config.ts
+├── test_final.py
+├── test_optimiste.py
+├── test_ultra_optimiste.py
+├── tests
+│   ├── ab_config.json
+│   ├── metrics_readme.md
+│   ├── monte_carlo_config.py
+│   ├── run_ab_baseline.sh
+│   ├── run_freeze_amp_grid.py
+│   ├── sim_freeze_modes.py
+│   ├── sim_soft_propamp_mc.py
+│   ├── simulate_core.test.ts
+│   ├── specs
+│   │   ├── test_001_voltarget.md
+│   │   ├── test_nested_cppi.py
+│   │   └── test_stress.py
+│   ├── test_bayes.py
+│   ├── test_cppi_nested.py
+│   ├── test_freeze_modes.py
+│   ├── test_freeze_stress.py
+│   ├── test_kellycap.py
+│   ├── test_softbarrier.py
+│   └── test_voltarget.py
+├── tools
+│   └── simulate_cli.py
+├── tsconfig.json
+├── tsconfig.tsbuildinfo
+├── utils
+│   ├── generateFakeMetrics.ts
+│   └── simulateReal.ts
+└── vitest.config.ts
+
+86 directories, 348 files
