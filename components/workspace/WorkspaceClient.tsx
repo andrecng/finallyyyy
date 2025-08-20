@@ -3,58 +3,53 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useWorkspace } from "@/stores/workspace";
-import InputForm from "@/components/InputForm";
-import { POLICIES } from "@/lib/policies";
-import { runSimulation } from "@/lib/api";
-import KPICards from "@/components/KPICards";
-import Sparkline from "@/components/Sparkline";
-import RiskSummary from "@/components/RiskSummary";
+
+import Field from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
 import ResultsPanel from "@/components/workspace/ResultsPanel";
+import EquityChart from "@/components/charts/EquityChart";
+import { runLocalSim } from "@/lib/sim/localRun";
 
 export default function WorkspaceClient() {
   const sp = useSearchParams();
   const initialStep = sp.get("step") ?? "configure";
   const [step, setStep] = useState(initialStep);
-  const { state, setState, loadPolicy } = useWorkspace();
-  const [out, setOut] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+
+  // Params de base
+  const [initialCapital, setInitialCapital] = useState<number | "">(10000);
+  const [horizonDays, setHorizonDays] = useState<number | "">(20);
+  const [volAnn, setVolAnn] = useState<number | "">(0.10);
+  const [dailyMaxLoss, setDailyMaxLoss] = useState<number | "">(0.005);
+  const [totalMaxLoss, setTotalMaxLoss] = useState<number | "">(0.10);
+
+  // Résultats
+  const [chartData, setChartData] = useState<{ day: number; eq: number }[] | null>(null);
+  const [kpis, setKpis] = useState<{ passDaily: boolean; passTotal: boolean; dailyViolations: number; maxDD: number } | null>(null);
 
   const steps = useMemo(
     () => ["configure", "modules", "simulate", "results"] as const,
     []
   );
 
-  async function onRun() {
-    setLoading(true); 
-    setOut(null); 
+  const runSim = () => {
+    if ([initialCapital, horizonDays, volAnn, dailyMaxLoss, totalMaxLoss].some(v => v === "")) return;
+    const out = runLocalSim({
+      initialCapital: Number(initialCapital),
+      horizonDays: Number(horizonDays),
+      volAnn: Number(volAnn),
+      dailyMaxLoss: Number(dailyMaxLoss),
+      totalMaxLoss: Number(totalMaxLoss),
+    });
+    const data = out.equityPct.map((eq, i) => ({ day: i, eq }));
+    setChartData(data);
+    setKpis({
+      passDaily: out.passDaily,
+      passTotal: out.passTotal,
+      dailyViolations: out.dailyViolations,
+      maxDD: out.maxDrawdownPct,
+    });
     setStep("results");
-    try {
-      const payload = {
-        profile: state.profile,
-        preset: "FTMO-lite",
-        modules: state.modules,
-        params: state.params,
-        seed: state.seed,
-        steps_per_day: state.steps_per_day,
-        horizon_days: state.horizon_days,
-        initial_equity: state.initial_equity
-      };
-      const res = await runSimulation(payload);
-      setOut(res);
-    } catch (e:any) {
-      setOut({ error: e.message });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const binderTop = useMemo(()=>{
-    if (!out?.binder_pct) return null;
-    const entries = Object.entries(out.binder_pct as Record<string, number>);
-    if (!entries.length) return null;
-    return entries.sort((a,b)=>b[1]-a[1])[0];
-  }, [out]);
+  };
 
     return (
     <main className="min-h-dvh p-6">
@@ -75,48 +70,38 @@ export default function WorkspaceClient() {
         </nav>
       </header>
 
-      {/* Preset Loader */}
-      <div className="mb-6 p-4 border border-base rounded-lg bg-card">
-        <div className="flex items-center gap-4">
-          <label className="text-sm">Preset FTMO</label>
-          <select
-            className="rounded-md border border-base bg-elev p-2 text-sm"
-            defaultValue="ftmo-daily-first"
-            onChange={(e)=>{
-              const key = e.target.value;
-              const pol = POLICIES[key];
-              if (pol) loadPolicy(pol);
-            }}
-          >
-            {Object.entries(POLICIES).map(([k,p])=>(
-              <option key={k} value={k}>{p.label}</option>
-            ))}
-          </select>
-          <button
-            className="rounded-md border border-base bg-elev px-3 py-2 text-sm hover:bg-card"
-            onClick={()=> loadPolicy(POLICIES["ftmo-daily-first"])}
-          >
-            Charger preset
-          </button>
-
-          {binderTop && (
-            <span
-              className="ml-2 inline-flex items-center gap-2 rounded-full border border-base px-3 py-1 text-xs cursor-pointer bg-elev hover:bg-card"
-              onClick={()=> setStep("modules")}
-              title="Aller régler le module"
-            >
-              Binder dominant: <b>{binderTop[0]}</b> {binderTop[1]}%
-            </span>
-          )}
-        </div>
-      </div>
-
       <section className="grid gap-4">
         {step === "configure" && (
           <div className="rounded-2xl border border-base p-4 bg-card">
-            <h2 className="text-lg font-medium mb-4">Configurer</h2>
-            <InputForm state={state} onChange={setState} />
-            <div className="mt-4 text-center">
+            <h2 className="text-lg font-medium mb-2">Configurer</h2>
+            <p className="text-muted mb-4">
+              Sélectionne un preset, ajuste les paramètres de base, puis passe à <button onClick={() => setStep("modules")} className="underline">Modules</button>.
+            </p>
+
+            <div className="grid gap-5">
+              <Field
+                label="Plancher CPPI (α)"
+                subtitle="floor = HWM·(1−α)"
+                htmlFor="cppi-alpha"
+              >
+                <Input id="cppi-alpha" type="number" placeholder="ex: 0.20" variant="light" />
+              </Field>
+
+              <Field
+                label="Horizon (jours)"
+                subtitle="Fenêtre de simulation / rebalancement"
+                htmlFor="horizon-days"
+              >
+                <Input
+                  id="horizon-days"
+                  type="number"
+                  placeholder="20"
+                  variant="light"
+                />
+              </Field>
+            </div>
+            
+            <div className="mt-6 text-center">
               <button 
                 onClick={() => setStep("modules")} 
                 className="btn-accent hover:opacity-90 px-4 py-2 rounded-lg"
@@ -129,9 +114,59 @@ export default function WorkspaceClient() {
 
         {step === "modules" && (
           <div className="rounded-2xl border border-base p-4 bg-card">
-            <h2 className="text-lg font-medium mb-4">Modules & Paramètres</h2>
-            <InputForm state={state} onChange={setState} />
-            <div className="mt-4 flex gap-2">
+            <h2 className="text-lg font-medium mb-4">Modules & paramètres</h2>
+
+            <div className="grid gap-5">
+              <Field
+                label="Vol cible (ann.)"
+                subtitle="Ex: 0.10 = 10% de volatilité annualisée"
+                htmlFor="vol-target"
+              >
+                <Input id="vol-target" type="number" placeholder="ex: 0.10" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — Daily max loss"
+                subtitle="Budget journalier avant total (daily‑first)"
+                htmlFor="ftmo-daily"
+              >
+                <Input id="ftmo-daily" type="number" placeholder="ex: 0.005 = 0.5%" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — Total max loss"
+                subtitle="Arrêt si drawdown total atteint"
+                htmlFor="ftmo-total"
+              >
+                <Input id="ftmo-total" type="number" placeholder="ex: 0.10 = 10%" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — Spend rate"
+                subtitle="Pacing intraday: fraction du budget jour par heure"
+                htmlFor="ftmo-spend"
+              >
+                <Input id="ftmo-spend" type="number" placeholder="ex: 0.20 = 20%" variant="light" />
+              </Field>
+
+              <Field
+                label="FTMOGate — lmax (vol‑aware)"
+                subtitle="Plafond réduit si vol > vol de référence"
+                htmlFor="ftmo-lmax"
+              >
+                <Input id="ftmo-lmax" type="number" placeholder="ex: 1.00" variant="light" />
+              </Field>
+
+              <Field
+                label="Vol de référence"
+                subtitle="Calibration de lmax (ex: 0.10 = 10%)"
+                htmlFor="ftmo-refvol"
+              >
+                <Input id="ftmo-refvol" type="number" placeholder="ex: 0.10" variant="light" />
+              </Field>
+            </div>
+            
+            <div className="mt-6 flex gap-2">
               <button 
                 onClick={() => setStep("configure")} 
                 className="border border-base px-4 py-2 rounded-lg hover:bg-elev"
@@ -150,35 +185,11 @@ export default function WorkspaceClient() {
 
         {step === "simulate" && (
           <div className="rounded-2xl border border-base p-4 bg-card">
-            <h2 className="text-lg font-medium mb-4">Simuler</h2>
-            <div className="text-center space-y-4">
-              <p className="text-muted">
-                Lancer une simulation Monte Carlo avec les paramètres configurés
-              </p>
-              <button 
-                onClick={onRun} 
-                disabled={loading}
-                className="btn-accent hover:opacity-90 disabled:opacity-50 px-6 py-3 rounded-lg text-lg"
-              >
-                {loading ? "Simulation en cours..." : "🚀 Lancer Simulation"}
-              </button>
-              
-              <div className="border-t border-base pt-4">
-                <p className="text-muted text-sm mb-3">
-                  Test rapide FTMOGate (daily-first + pacing)
-                </p>
-                <button
-                  className="px-4 py-2 rounded-lg border border-base hover:bg-elev text-sm"
-                  onClick={async () => {
-                    // TODO: appeler backend; pour l'instant on simule une réponse
-                    const mock = { requested: 0.012, allowed: 0.009, freeze: false, reasons: ["clipped"] };
-                    alert(`FTMOGate → requested=${mock.requested}, allowed=${mock.allowed}, freeze=${mock.freeze}\n${mock.reasons.join(", ")}`);
-                  }}
-                >
-                  🧪 Lancer FTMOGate (mock)
-                </button>
-              </div>
-            </div>
+            <h2 className="text-lg font-medium mb-2">Simuler</h2>
+            <p className="text-muted">Run local (random walk) pour retrouver les **graphiques** et un **check FTMO** basique.</p>
+            <button className="mt-3 btn-accent hover:opacity-90 px-6 py-3 rounded-lg text-lg" onClick={runSim}>
+              Lancer simulation locale
+            </button>
           </div>
         )}
 
