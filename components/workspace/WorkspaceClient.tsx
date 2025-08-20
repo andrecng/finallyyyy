@@ -161,6 +161,22 @@ export default function WorkspaceClient() {
               >
                 {loading ? "Simulation en cours..." : "🚀 Lancer Simulation"}
               </button>
+              
+              <div className="border-t border-base pt-4">
+                <p className="text-muted text-sm mb-3">
+                  Test rapide FTMOGate (daily-first + pacing)
+                </p>
+                <button
+                  className="px-4 py-2 rounded-lg border border-base hover:bg-elev text-sm"
+                  onClick={async () => {
+                    // TODO: appeler backend; pour l'instant on simule une réponse
+                    const mock = { requested: 0.012, allowed: 0.009, freeze: false, reasons: ["clipped"] };
+                    alert(`FTMOGate → requested=${mock.requested}, allowed=${mock.allowed}, freeze=${mock.freeze}\n${mock.reasons.join(", ")}`);
+                  }}
+                >
+                  🧪 Lancer FTMOGate (mock)
+                </button>
+              </div>
             </div>
           </div>
         )}
