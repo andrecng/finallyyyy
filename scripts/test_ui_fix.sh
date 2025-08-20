@@ -6,7 +6,7 @@ echo
 
 echo "📱 Test 1: Page d'accueil (doit rediriger vers /workspace)"
 FRONTEND=${1:-http://localhost:3003}
-curl -s "$FRONTEND/" | grep -q "Redirection vers le Workspace" && echo "✅ Page d'accueil OK" || echo "❌ Page d'accueil KO"
+curl -s -I "$FRONTEND/" | grep -q "308 Permanent Redirect" && echo "✅ Page d'accueil OK (redirection)" || echo "❌ Page d'accueil KO"
 
 echo
 echo "🔧 Test 2: Page workspace (doit être accessible)"
@@ -14,7 +14,7 @@ curl -s "$FRONTEND/workspace" | grep -q "Workspace" && echo "✅ Page workspace 
 
 echo
 echo "🎨 Test 3: Styles Tailwind (doit avoir des classes CSS)"
-curl -s "$FRONTEND/workspace" | grep -q "max-w-7xl" && echo "✅ Styles Tailwind OK" || echo "❌ Styles Tailwind KO"
+curl -s "$FRONTEND/workspace" | grep -q "bg-card\|border-base\|btn-accent" && echo "✅ Styles Tailwind OK" || echo "❌ Styles Tailwind KO"
 
 echo
 echo "📊 Test 4: Composants interactifs (doit avoir des boutons)"
