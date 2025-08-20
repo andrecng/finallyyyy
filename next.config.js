@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
-    typedRoutes: true,
+    // typedRoutes: true, // Temporairement désactivé pour éviter les erreurs de type
   },
   async redirects() {
     return [

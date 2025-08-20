@@ -43,3 +43,35 @@ html, body {
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* Bouton moderne */
+.btn {
+  @apply inline-flex items-center justify-center font-medium rounded-xl px-4 py-2;
+  background: linear-gradient(135deg, var(--accent), #4f46e5);
+  color: var(--accent-fg);
+  transition: all 0.2s ease-in-out;
+}
+.btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Input numérique / texte */
+.input {
+  @apply w-full px-3 py-2 rounded-lg border;
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--fg);
+}
+.input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

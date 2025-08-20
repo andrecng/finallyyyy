@@ -10,6 +10,7 @@ import { runSimulation } from "@/lib/api";
 import KPICards from "@/components/KPICards";
 import Sparkline from "@/components/Sparkline";
 import RiskSummary from "@/components/RiskSummary";
+import ResultsPanel from "@/components/workspace/ResultsPanel";
 
 export default function WorkspaceClient() {
   const sp = useSearchParams();
@@ -181,37 +182,18 @@ export default function WorkspaceClient() {
           </div>
         )}
 
-        {step === "results" && out && (
-          <div className="rounded-2xl border border-base p-4 space-y-6 bg-card">
-            <h2 className="text-lg font-medium">Résultats</h2>
-            
-            {out.error ? (
-              <div className="text-err p-4 border border-err rounded-lg bg-card">
-                Erreur: {out.error}
-              </div>
-            ) : (
-              <>
-                <KPICards kpis={out.kpis} ftmo={out.ftmo} />
-                
-                {out.series?.equity && (
-                  <div className="border border-base rounded-lg p-4 bg-elev">
-                    <h3 className="text-md font-medium mb-2">Courbe d'Equity</h3>
-                    <Sparkline data={out.series.equity} height={120} />
-                  </div>
-                )}
-                
-                <RiskSummary out={out} />
-                
-                <div className="text-center">
-                  <button 
-                    onClick={() => setStep("simulate")} 
-                    className="btn-accent hover:opacity-90 px-4 py-2 rounded-lg"
-                  >
-                    ← Nouvelle Simulation
-                  </button>
-                </div>
-              </>
-            )}
+        {step === "results" && (
+          <div className="rounded-2xl border border-base p-4 bg-card">
+            <h2 className="text-lg font-medium mb-2">Résultats</h2>
+            <p className="text-muted mb-3">
+              KPIs, séries, logs, binder% par module. Clique "Voir JSON" pour les détails bruts.
+            </p>
+            <div className="mb-4">
+              <ResultsPanel />
+            </div>
+            <button className="mt-3 px-4 py-2 rounded-lg hover:bg-elev border border-base">
+              Voir JSON
+            </button>
           </div>
         )}
       </section>
