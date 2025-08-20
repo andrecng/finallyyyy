@@ -29,7 +29,7 @@ export default function HomePage() {
               VolatilityTarget, FTMOGate, et bien plus encore.
             </p>
             <Link 
-              href="/simulate"
+              href="/workspace"
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
             >
               🧮 Lancer une Simulation

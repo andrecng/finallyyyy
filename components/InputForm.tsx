@@ -1,35 +1,9 @@
-import { useId } from "react";
 import HourRangeInput from "./HourRangeInput";
-
-const MODULES = [
-  ["VolatilityTarget","VolTarget (vol cible)"],
-  ["NestedCPPI","Nested CPPI (double airbag)"],
-  ["KellyCap","Cap Kelly (borne)"],
-  ["SoftBarrier","Paliers DD (SoftBarrier)"],
-  ["FTMOGate","FTMO Gate (total+daily)"],
-  ["SessionNewsGate","Sessions/News Gate"],
-];
-
-const PROFILES = [
-  { key: "gaussian", label: "Marché calme (gaussien)" },
-  { key: "student_t", label: "Queues épaisses (t-Student)" },
-  { key: "student_t_jumps_ewma", label: "Crises (t + sauts + vol en grappes)" },
-];
-
-export type InputState = {
-  profile: string;
-  seed: number;
-  steps_per_day: number;
-  horizon_days: number;
-  initial_equity: number;
-  modules: string[];
-  params: any;
-};
+import { InputState } from "@/stores/workspace";
 
 export default function InputForm({
   state, onChange
 }: { state: InputState; onChange:(s:InputState)=>void }) {
-  const id = (name:string)=> useId() + name;
 
   function set<K extends keyof InputState>(k:K, v:InputState[K]) {
     onChange({ ...state, [k]: v });
@@ -47,19 +21,18 @@ export default function InputForm({
   return (
     <div className="space-y-6">
       {/* Scénario */}
-      <section className="rounded-2xl border p-4 space-y-3">
-        <h3 className="font-semibold">Scénario</h3>
+      <section className="rounded-2xl border p-4 space-y-3" id="configure">
+        <h3 className="font-semibold">Configurer</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium">Profil marché</label>
             <select className="w-full rounded-md border p-2"
               value={state.profile}
-              onChange={e=>set("profile", e.target.value)}>
-              {PROFILES.map(p=> <option key={p.key} value={p.key}>{p.label}</option>)}
+              onChange={e=>set("profile", e.target.value as any)}>
+              <option value="gaussian">Marché calme (gaussien)</option>
+              <option value="student_t">Queues épaisses (t-Student)</option>
+              <option value="student_t_jumps_ewma">Crises (t + sauts + vol en grappes)</option>
             </select>
-            <p className="text-xs text-neutral-500 mt-1">
-              "Crises" = t + sauts + vol en grappes (EWMA).
-            </p>
           </div>
           <div>
             <label className="text-sm font-medium">Drift μ (optionnel)</label>
@@ -67,14 +40,12 @@ export default function InputForm({
               placeholder="ex: 0 (FX sans edge)"
               value={state.params.mu_override ?? ""}
               onChange={e=> setParam("mu_override", e.target.value === "" ? undefined : Number(e.target.value))}/>
-            <p className="text-xs text-neutral-500 mt-1">0 = edge nul ; >0 = biais haussier léger.</p>
           </div>
           <div>
             <label className="text-sm font-medium">Pas / jour</label>
             <input type="number" min={1} className="w-full rounded-md border p-2"
               value={state.steps_per_day}
               onChange={e=>set("steps_per_day", Number(e.target.value))}/>
-            <p className="text-xs text-neutral-500 mt-1">Granularité temporelle.</p>
           </div>
           <div>
             <label className="text-sm font-medium">Horizon (jours)</label>
@@ -97,30 +68,9 @@ export default function InputForm({
         </div>
       </section>
 
-      {/* Modules */}
-      <section className="rounded-2xl border p-4 space-y-3">
-        <h3 className="font-semibold">Modules actifs</h3>
-        <div className="grid md:grid-cols-3 gap-2">
-          {MODULES.map(([k,label]) => {
-            const checked = state.modules.includes(k);
-            return (
-              <label key={k} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={checked}
-                  onChange={e=>{
-                    const on = e.target.checked;
-                    const next = on ? [...state.modules, k] : state.modules.filter(x=>x!==k);
-                    set("modules", next);
-                  }}/>
-                {label}
-              </label>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Paramètres clés */}
-      <section className="rounded-2xl border p-4 space-y-4">
-        <h3 className="font-semibold">Paramètres</h3>
+      {/* Paramètres */}
+      <section className="rounded-2xl border p-4 space-y-4" id="modules">
+        <h3 className="font-semibold">Modules & paramètres</h3>
 
         <div className="grid md:grid-cols-3 gap-4">
           <div>
@@ -185,27 +135,42 @@ export default function InputForm({
           <div>
             <label className="text-sm font-medium">Perte-step plausible (Lmax)</label>
             <input type="number" step="0.001" className="w-full rounded-md border p-2"
-              value={state.params.worst_step_loss_guess}
+              value={state.params.worst_step_loss_guess ?? 0.02}
               onChange={e=>setParam("worst_step_loss_guess", Number(e.target.value))}/>
-            <p className="text-xs text-neutral-500 mt-1">Ex: 0.02 = 2 %</p>
           </div>
           <div>
-            <label className="text-sm font-medium">Marge sécurité (FTMO)</label>
+            <label className="text-sm font-medium">Mode Lmax</label>
+            <select className="w-full rounded-md border p-2"
+              value={state.params.lmax_mode ?? "vol"}
+              onChange={e=>setParam("lmax_mode", e.target.value)}>
+              <option value="vol">Vol-aware (z · σ)</option>
+              <option value="constant">Constante (worst_step_loss_guess)</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium">z (si vol-aware)</label>
+            <input type="number" step="0.1" className="w-full rounded-md border p-2"
+              value={state.params.z_var ?? 2.8}
+              onChange={e=>setParam("z_var", Number(e.target.value))}/>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Spend rate (pacing)</label>
+            <input type="number" step="0.01" min={0} max={1} className="w-full rounded-md border p-2"
+              value={state.params.spend_rate ?? 0.25}
+              onChange={e=>setParam("spend_rate", Number(e.target.value))}/>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Marge sécurité</label>
             <input type="number" step="0.0005" className="w-full rounded-md border p-2"
-              value={state.params.safety_buffer}
+              value={state.params.safety_buffer ?? 0.002}
               onChange={e=>setParam("safety_buffer", Number(e.target.value))}/>
           </div>
           <div>
-            <label className="text-sm font-medium">Perte totale max (FTMO)</label>
-            <input type="number" step="0.01" className="w-full rounded-md border p-2"
-              value={state.params.dd_total_limit}
-              onChange={e=>setParam("dd_total_limit", Number(e.target.value))}/>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Perte journalière max (FTMO)</label>
-            <input type="number" step="0.01" className="w-full rounded-md border p-2"
-              value={state.params.dd_daily_limit}
-              onChange={e=>setParam("dd_daily_limit", Number(e.target.value))}/>
+            <label className="text-sm font-medium">Frais par pas (bps)</label>
+            <input type="number" step="0.5" min={0} className="w-full rounded-md border p-2"
+              value={state.params.gates?.fee_bps_per_step ?? 0}
+              onChange={e=> setGate("fee_bps_per_step", Number(e.target.value))}/>
           </div>
 
           <div className="md:col-span-2">
@@ -219,12 +184,6 @@ export default function InputForm({
             <input type="number" step="0.05" min={0} max={1} className="w-full rounded-md border p-2"
               value={state.params.session_haircut}
               onChange={e=>setParam("session_haircut", Number(e.target.value))}/>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Frais par pas (bps)</label>
-            <input type="number" step="0.5" min={0} className="w-full rounded-md border p-2"
-              value={state.params.gates?.fee_bps_per_step ?? 0}
-              onChange={e=> setGate("fee_bps_per_step", Number(e.target.value))}/>
           </div>
           <div>
             <label className="text-sm font-medium">Objectif profit</label>

@@ -176,7 +176,7 @@ export default function SimulateurMulti() {
             {/* Résultats de simulation */}
             <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 backdrop-blur-sm">
               <h3 className="text-lg font-semibold text-slate-100 mb-4">📊 Résultats</h3>
-              <RiskSummary />
+              <RiskSummary out={{}} />
             </div>
           </div>
         )}

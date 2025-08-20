@@ -35,7 +35,7 @@ export default function HourRangeInput({
         }}
       />
       <p className="text-xs text-neutral-500">
-        Sépare par des virgules. Chaque plage est "début-fin" (inclus). Ex: <code>22-23,0-1</code>
+        Ex : <code>22-23,0-1</code>
       </p>
     </div>
   );
