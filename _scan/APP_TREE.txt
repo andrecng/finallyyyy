@@ -1,0 +1,8 @@
+app
+├── globals.css
+├── layout.tsx
+├── page.tsx
+└── workspace
+    └── page.tsx
+
+2 directories, 4 files

@@ -1,0 +1,48 @@
+4.0K	~
+4.0K	CHANGELOG.md
+4.0K	components.json
+4.0K	env.example
+4.0K	journal_tests.md
+4.0K	next-env.d.ts
+4.0K	next.config.js
+4.0K	package.json
+4.0K	postcss.config.js
+4.0K	presets
+4.0K	pyproject.toml
+4.0K	requirements.txt
+4.0K	start_dev.sh
+4.0K	stop_dev.sh
+4.0K	tailwind.config.ts
+4.0K	test_final.py
+4.0K	test_optimiste.py
+4.0K	test_ultra_optimiste.py
+4.0K	tools
+4.0K	tsconfig.json
+4.0K	vitest.config.ts
+8.0K	demo_ftmo.py
+8.0K	README.md
+8.0K	risk
+8.0K	styles
+8.0K	utils
+ 16K	app
+ 16K	hooks
+ 20K	bin
+ 20K	engine
+ 20K	schemas
+ 20K	stores
+ 24K	__pycache__
+ 28K	sim
+ 32K	scripts
+ 32K	src
+ 40K	_scan
+ 48K	lib
+ 84K	tests
+152K	modules
+180K	tsconfig.tsbuildinfo
+340K	package-lock.json
+368K	docs
+516K	components
+3.0M	out
+3.4M	logs
+172M	backend
+452M	node_modules
