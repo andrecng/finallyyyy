@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Field from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import ResultsPanel from "@/components/workspace/ResultsPanel";
-import Sparkline from "@/components/charts/Sparkline";
+import EquityChart from "@/components/charts/EquityChart";
 import { runLocalSim } from "@/lib/sim/localRun";
 
 export default function WorkspaceClient() {
@@ -23,8 +23,8 @@ export default function WorkspaceClient() {
   const [totalMaxLoss, setTotalMaxLoss] = useState<number | "">(0.10);
 
   // Résultats
-  const [equityPct, setEquityPct] = useState<number[] | null>(null);
-  const [kpis, setKpis] = useState<{passDaily:boolean; passTotal:boolean; dailyViolations:number; maxDD:number} | null>(null);
+  const [chartData, setChartData] = useState<{ day: number; eq: number }[] | null>(null);
+  const [kpis, setKpis] = useState<{ passDaily: boolean; passTotal: boolean; dailyViolations: number; maxDD: number } | null>(null);
 
   const steps = useMemo(
     () => ["configure", "modules", "simulate", "results"] as const,
@@ -32,7 +32,7 @@ export default function WorkspaceClient() {
   );
 
   const runSim = () => {
-    if (initialCapital === "" || horizonDays === "" || volAnn === "" || dailyMaxLoss === "" || totalMaxLoss === "") return;
+    if ([initialCapital, horizonDays, volAnn, dailyMaxLoss, totalMaxLoss].some(v => v === "")) return;
     const out = runLocalSim({
       initialCapital: Number(initialCapital),
       horizonDays: Number(horizonDays),
@@ -40,8 +40,14 @@ export default function WorkspaceClient() {
       dailyMaxLoss: Number(dailyMaxLoss),
       totalMaxLoss: Number(totalMaxLoss),
     });
-    setEquityPct(out.equityPct);
-    setKpis({ passDaily: out.passDaily, passTotal: out.passTotal, dailyViolations: out.dailyViolations, maxDD: out.maxDrawdownPct });
+    const data = out.equityPct.map((eq, i) => ({ day: i, eq }));
+    setChartData(data);
+    setKpis({
+      passDaily: out.passDaily,
+      passTotal: out.passTotal,
+      dailyViolations: out.dailyViolations,
+      maxDD: out.maxDrawdownPct,
+    });
     setStep("results");
   };
 

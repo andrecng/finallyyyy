@@ -17,11 +17,10 @@ export type SimResult = {
 };
 
 function rng(seed: number) {
-  // LCG simple (déterministe)
-  let s = seed >>> 0;
+  let s = (seed >>> 0) || 42;
   return () => {
     s = (1664525 * s + 1013904223) >>> 0;
-    return s / 2**32;
+    return s / 2 ** 32;
   };
 }
 
@@ -47,9 +46,8 @@ export function runLocalSim(p: SimParams): SimResult {
     equityPct.push(nextPct);
     equity.push(nextPct * initialCapital);
 
-    // drawdown
     hwm = Math.max(hwm, nextPct);
-    const dd = (hwm - nextPct) / hwm;
+    const dd = (hwm - nextPct) / Math.max(hwm, 1e-9);
     maxDD = Math.max(maxDD, dd);
 
     // daily violation (simple) : si retour journalier < -dailyMaxLoss
