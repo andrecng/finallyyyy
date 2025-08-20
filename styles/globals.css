@@ -3,10 +3,43 @@
 @tailwind utilities;
 
 /* 📄 @fichier: styles/globals.css */
-html, body { 
-  height: 100%; 
+:root {
+  /* Base (dark par défaut) */
+  --bg: #0b0b0c;
+  --fg: #f3f3f4;
+
+  /* Couleurs sémantiques */
+  --muted: #a3a3ad;         /* textes secondaires */
+  --border: #2a2a31;        /* traits / bordures */
+  --card: #111115;          /* fond de cartes */
+  --elev: #16161b;          /* surfaces élevées */
+
+  --accent: #6d5efc;        /* action / liens */
+  --accent-fg: #0b0b0c;     /* texte sur accent */
+
+  /* États (optionnel) */
+  --ok: #4ade80;
+  --warn: #f59e0b;
+  --err: #f43f5e;
 }
 
-body {
-  @apply bg-zinc-900 text-white;
+html, body { 
+  height: 100%; 
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Utilitaires légers (pour éviter 50 classes partout) */
+.text-muted   { color: var(--muted); }
+.border-base  { border-color: var(--border); }
+.bg-card      { background: var(--card); }
+.bg-elev      { background: var(--elev); }
+.btn-accent   { background: var(--accent); color: var(--accent-fg); }
+.link-accent  { color: var(--accent); }
+
+/* Focus visible accessible */
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
 }
