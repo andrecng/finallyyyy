@@ -41,6 +41,27 @@ export default function WorkspaceClient() {
 
   const series = Array.isArray(data?.series) ? data!.series : [];
 
+  // Calcul de l'échelle Y pour éviter l'effet "courbe plate"
+  const getYDomain = () => {
+    if (series.length < 2) return ['auto', 'auto'];
+    
+    const values = series.map(p => p.eq);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = max - min;
+    
+    if (span < 0.001) {
+      // Si la variation est très faible, force une échelle visible
+      const center = (min + max) / 2;
+      const padding = center * 0.001; // 0.1% de padding
+      return [min - padding, max + padding];
+    }
+    
+    // Échelle automatique avec un petit padding
+    const padding = span * 0.05; // 5% de padding
+    return [min - padding, max + padding];
+  };
+
   return (
     <div className="space-y-4">
       <div className="card flex items-center justify-between">
@@ -56,9 +77,18 @@ export default function WorkspaceClient() {
             <LineChart data={series}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="t" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="eq" dot={false} />
+              <YAxis domain={getYDomain()} allowDecimals />
+              <Tooltip 
+                formatter={(value: number) => [value.toFixed(6), 'Equity']}
+                labelFormatter={(label) => `Step ${label}`}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="eq" 
+                dot={false} 
+                stroke="#6366f1"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
