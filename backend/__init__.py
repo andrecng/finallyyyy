@@ -1,1 +1,1 @@
-# Backend package for MM Engine
+# Backend package for FondForex Money Management Engine
