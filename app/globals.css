@@ -2,36 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tokens de base (sobre) */
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 15, 16, 32;
-  --background-end-rgb: 11, 12, 30;
+  --bg-from: 247, 250, 255;  /* indigo-50 */
+  --bg-to:   250, 245, 255;  /* fuchsia-50 */
+}
+
+html, body {
+  height: 100%;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
   background: linear-gradient(
-    to bottom right,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
+    135deg,
+    rgba(var(--bg-from), 1) 0%,
+    rgba(var(--bg-to), 1) 100%
   );
-  min-height: 100vh;
+  color: #111827; /* gray-900 */
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* Cartes et boutons génériques */
+.card {
+  @apply rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4;
 }
-
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.3);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.5);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.7);
+.btn {
+  @apply rounded-2xl border border-gray-300 px-4 py-2 hover:bg-gray-50;
 }

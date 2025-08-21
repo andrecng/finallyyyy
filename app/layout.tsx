@@ -1,26 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import MainNavigation from "@/components/navigation/MainNavigation";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "2048 Asset Management - Moteur Alpha",
-  description: "Système de Gestion de Risque Adaptatif avec Simulation Monte Carlo",
-  keywords: "gestion de risque,CPPI,FTMO,simulation,trading",
+  title: "Fond & FTMO Workspace",
+  description: "Moteur de Money Management – daily-first FTMO",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
-        <MainNavigation />
-        {children}
+      <body className="min-h-screen antialiased">
+        <div className="mx-auto max-w-6xl p-4">
+          {children}
+        </div>
       </body>
     </html>
   );
