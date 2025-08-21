@@ -15,7 +15,7 @@ export type SimOutput = {
   logs?: any[];
 };
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8001";
+const BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8001";
 
 export async function simulate(body: SimInput): Promise<SimOutput> {
   const res = await fetch(`${BASE}/simulate`, {
