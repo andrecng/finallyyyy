@@ -6,28 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - uses: actions/setup-node@v4
         with: 
           node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Type check
-        run: npm run typecheck
-      
-      - name: Check unused dependencies
-        run: npx depcheck || true
-      
-      - name: Check dead exports
-        run: npx ts-prune -p tsconfig.json || true
-      
-      - name: Build
-        run: npm run build
-      
-      - name: Check bundle size
-        run: |
-          echo "=== Bundle Analysis ==="
-          npm run build 2>&1 | grep -E "(Route|Size|First Load JS)" || true
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx depcheck || true
+      - run: npx ts-prune -p tsconfig.json || true
+      - run: npm run build
