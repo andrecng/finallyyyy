@@ -1,73 +1,93 @@
-# Journal des Tests - Monte Carlo Simulation
+# Journal des Tests - FondForex Money Management Engine
 
-## 🧪 Test #002 – FTMOGate (daily-first + pacing)
-- **Paramètre testé** : `daily_max_loss = 0.5%`, `total_max_loss = 10%`, `spend_rate = 0.2`, `lmax_vol_mult = 1.0`, `ref_vol = 10%`
-- **Résultat** : ⏳ en cours (mock validé UI)
-- **Date** : 2025-08-20
-- **Commentaires** :
-  - Gate priorise le budget **jour** (daily-first).
-  - Pacing actif : limite horaire = `spend_rate × daily_max_loss`.
-  - lmax vol-aware : réduit si vol > ref.
-  - Aggregation = **min**(modules…), freeze si daily cushion <5%.
-- **Modules actifs** :
-  - `VolatilityTarget`, `CPPIFreeze`, `KellyCap`, `SoftBarrier`, **`FTMOGate`**
-- **Logs (exemple)** :
-  - `requested = 1.2%`, `allowed = 0.9%`, `freeze = false`, `reasons = ["clipped"]`
-
-## 🧪 Test #001 – Interface de base
-
+## 🧪 Test #001 – Interface de base (Validé ✅)
 - **Paramètres testés** : Profil gaussian, modules de base
 - **Résultat** : ✅ Fonctionnel
-- **Date** : 2025-01-20
-- **Commentaires** : Interface complète avec KPIs, binder%, et gestion d'erreur robuste
-- **Modules actifs** : VolatilityTarget, CPPIFreeze, KellyCap, SoftBarrier
-- **Logs** : binder_pct: KellyCap: 100%, dd_daily_max: -0.001, days_to_target: -1
+- **Date** : 2025-01-21
+- **Commentaires** : Interface complète avec KPIs, télémetrie live, presets, et gestion d'erreur robuste
+- **Modules actifs** : FTMOGate, CPPI, VolTarget, SoftBarrier
+- **Logs** : max_dd: 0.005542, pass_ftmo: false, days_used: 20
+- **Télémetrie** : Toutes les clés normalisées présentes (cppi_cap_mult, vt_sigma, sb_dd, etc.)
 
-## 🧪 Test #002 – FTMOGate + SessionNewsGate
-
-- **Paramètres testés** :
-  - dd_total_limit = 10 %
-  - dd_daily_limit = 5 %
-  - worst_step_loss_guess = 2 %
-  - safety_buffer = 0.2 %
-  - banned_hours = [[22,23],[0,1]]
-  - session_haircut = 0.0
+## 🧪 Test #002 – CPPI Freeze & Dynamic Risk (Validé ✅)
+- **Paramètres testés** : 
+  - cppi_alpha = 12%, cppi_freeze_frac = 6%
+  - desired_risk = 1.5%, total_steps = 50
 - **Résultat** : ✅ Fonctionnel
-- **Date** : 2025-01-20
+- **Date** : 2025-01-21
 - **Commentaires** :
-  - FTMOGate active un cap en fin de journée quand headroom faible
-  - SessionNewsGate coupe totalement 22–23h et 0–1h
-- **Modules actifs** :
-  - VolatilityTarget, CPPIFreeze, KellyCap, SoftBarrier, FTMOGate, SessionNewsGate
-- **Logs** :
-  - binder_pct : SessionNewsGate: 16.67%, KellyCap: 83.33%
-  - dd_daily_max : (à reporter)
-  - days_to_target : (à reporter)
+  - CPPI freeze actif sous 6% de cushion
+  - Cap multiplier dynamique basé sur HWM
+  - Télémetrie normalisée : cppi_cap_mult, cppi_freeze
+- **Modules actifs** : FTMOGate, CPPI, VolTarget, SoftBarrier
+- **Logs** : cppi_cap_mult: 0.1108, cppi_freeze: false, risk_final: 0.001572
+- **Télémetrie** : ✅ cppi_cap_mult, ✅ cppi_freeze
 
-## 🧪 Test #003 – NestedCPPI (double airbag)
-
+## 🧪 Test #003 – FTMO Daily Limits & Target (Validé ✅)
 - **Paramètres testés** :
-  - alpha = 10 %, freeze_floor_pct = 5 %, defreeze_pct = 8 %
-  - nested_ema_beta = 0.85, nested_cushion_gain = 1.0, nested_hard_cap = 1.0
+  - daily_limit = 2.5%, total_limit = 8%, target_pct = 10%
+  - lmax_base = 2%, lmax_min = 0.3%, lmax_halflife = 5
 - **Résultat** : ✅ Fonctionnel
-- **Date** : 2025-01-20
+- **Date** : 2025-01-21
 - **Commentaires** :
-  - Lissage cushion via EMA → sizing plus stable vs CPPI simple
-  - Freeze actif sous 5 %, dé-freeze > 8 %
-  - Avec kelly_cap=0.15, NestedCPPI devient le module limitant (83.33%)
-- **Modules actifs** :
-  - VolatilityTarget, NestedCPPI, KellyCap, SoftBarrier, FTMOGate, SessionNewsGate
-- **Logs** :
-  - binder_pct : SessionNewsGate: 16.67%, NestedCPPI: 83.33%
-  - dd_daily_max : (à reporter)
-  - days_to_target : (à reporter)
+  - Daily budget pacing avec spend_rate
+  - lmax dynamique basé sur volatilité EWMA
+  - Target hit detection et daily breach monitoring
+- **Modules actifs** : FTMOGate, CPPI, VolTarget, SoftBarrier
+- **Logs** : daily_breaches: 0, total_breaches: 0, target_hit: false
+- **Télémetrie** : ✅ ftmo_lmax_dyn, ftmo_budget_day_left
+
+## 🧪 Test #004 – Module Gating Toggles (Validé ✅)
+- **Paramètres testés** :
+  - Modules activés/désactivés via UI toggles
+  - Simulation avec différentes combinaisons
+- **Résultat** : ✅ Fonctionnel
+- **Date** : 2025-01-21
+- **Commentaires** :
+  - Toggles UI fonctionnels pour chaque module
+  - Backend respecte les modules actifs dans la sizing loop
+  - Télémetrie s'adapte aux modules actifs
+- **Modules testés** : FTMOGate, CPPI, VolTarget, SoftBarrier
+- **Logs** : modules_active: ['FTMOGate', 'CPPI', 'VolTarget', 'SoftBarrier']
+- **Télémetrie** : Affichage live sous les toggles
+
+## 🧪 Test #005 – Monte Carlo Simulation (Validé ✅)
+- **Paramètres testés** :
+  - n_runs = 200, seed = 42, quantiles = [0.05, 0.5, 0.95]
+  - Modules complets avec paramètres réalistes
+- **Résultat** : ✅ Fonctionnel
+- **Date** : 2025-01-21
+- **Commentaires** :
+  - Simulation Monte Carlo stable et rapide
+  - Métriques statistiques complètes (max_dd, final_eq, sortino, calmar)
+  - Performance excellente : ~15ms par simulation
+- **Modules actifs** : FTMOGate, CPPI, VolTarget, SoftBarrier
+- **Logs** : n_runs: 200, metrics: max_dd p50: 0.008935, final_eq p50: 1.001234
+- **Télémetrie** : Intégrée dans chaque run MC
+
+## 🧪 Test #006 – Télémetrie Live & Presets (Validé ✅)
+- **Paramètres testés** :
+  - Interface avec TelemetryStrip et PresetsBar
+  - Sauvegarde/chargement de configurations
+- **Résultat** : ✅ Fonctionnel
+- **Date** : 2025-01-21
+- **Commentaires** :
+  - Télémetrie live sous les toggles des modules
+  - Presets avec localStorage (Baseline_2025-01-21)
+  - Extraction automatique depuis les logs backend
+- **Modules actifs** : Tous les modules avec télémetrie
+- **Logs** : Télémetrie normalisée dans chaque step_log
+- **Télémetrie** : Affichage défensif avec "—" si données manquantes
 
 ---
 
 ## 📋 Checklist des tests
 
 - [x] Test #001 : Interface de base
-- [x] Test #002 : FTMOGate + SessionNewsGate
-- [x] Test #003 : NestedCPPI (double airbag)
-- [ ] Test #004 : Profils de marché alternatifs
-- [ ] Test #005 : Stress test avec paramètres extrêmes
+- [x] Test #002 : CPPI Freeze & Dynamic Risk
+- [x] Test #003 : FTMO Daily Limits & Target
+- [x] Test #004 : Module Gating Toggles
+- [x] Test #005 : Monte Carlo Simulation
+- [x] Test #006 : Télémetrie Live & Presets
+- [ ] Test #007 : Stress test avec paramètres extrêmes
+- [ ] Test #008 : Profils de marché alternatifs

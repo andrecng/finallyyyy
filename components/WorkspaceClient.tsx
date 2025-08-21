@@ -1,16 +1,26 @@
 "use client";
 import React from "react";
-import { simulate, type SimOutput, ping } from "@/lib/api";
+import { simulate, type SimOutput, ping, mcSimulate, type MCOutput } from "@/lib/api";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import KpiBar from "@/components/KpiBar";
 import ParamForm, { DEFAULT_PARAMS, SimParams } from "@/components/ParamForm";
+import MCPanel from "@/components/MCPanel";
+import ModuleToggles, { ModuleFlags } from "@/components/ModuleToggles";
+import TelemetryStrip from "@/components/TelemetryStrip";
+import PresetsBar from "@/components/PresetsBar";
+import { extractTelemetry, type Telemetry } from "@/lib/telemetry";
 
 export default function WorkspaceClient() {
   const [params, setParams] = React.useState<SimParams>({ ...DEFAULT_PARAMS });
   const [loading, setLoading] = React.useState(false);
   const [data, setData] = React.useState<SimOutput | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+
+  const [mcLoading, setMcLoading] = React.useState(false);
+  const [mc, setMc] = React.useState<MCOutput | null>(null);
+  const [mods, setMods] = React.useState<ModuleFlags>({ FTMOGate:true, CPPI:true, VolTarget:true, SoftBarrier:true });
   const [health, setHealth] = React.useState<string>("checking…");
+  const [telemetry, setTelemetry] = React.useState<Telemetry>({});
 
   React.useEffect(() => {
     (async () => {
@@ -26,16 +36,35 @@ export default function WorkspaceClient() {
   async function onRun() {
     setLoading(true); setError(null);
     try {
-      const modules = ["FTMOGate","CPPI","VolTarget","SoftBarrier"];
+      const modules = Object.entries(mods).filter(([,v])=>v).map(([k])=>k);
       const out = await simulate({ preset: "default", modules, params });
       // garde une forme sûre pour le graphe
       const series = Array.isArray(out.series) ? out.series : [];
       setData({ ...out, series });
+      setMc(null); // reset MC si on relance la simu
+      // Extraire la télémetrie depuis les logs
+      setTelemetry(extractTelemetry(out.logs));
     } catch (e: any) {
       console.error(e);
       setError(String(e?.message || e));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onRunMC() {
+    setMcLoading(true); setError(null);
+    try {
+      const out = await mcSimulate({
+        params: { ...params, steps_per_day: params.steps_per_day ?? 1 },
+        n_runs: 200, seed: 42, quantiles: [0.05, 0.5, 0.95]
+      });
+      setMc(out);
+    } catch (e: any) {
+      console.error(e);
+      setError(String(e?.message || e));
+    } finally {
+      setMcLoading(false);
     }
   }
 
@@ -69,7 +98,29 @@ export default function WorkspaceClient() {
         {error && <div className="text-sm text-red-600 truncate max-w-md">Erreur: {error}</div>}
       </div>
 
-      <ParamForm params={params} onChange={setParams} onRun={onRun} loading={loading} />
+      <PresetsBar
+        params={params}
+        toggles={mods}
+        onLoadPreset={({ params: p, toggles: t }) => {
+          setParams(p);
+          setMods(t);
+        }}
+      />
+
+      <ParamForm params={params} onCommit={setParams} onRun={onRun} loading={loading || mcLoading} />
+
+      <ModuleToggles mods={mods} onChange={setMods} disabled={loading || mcLoading} />
+
+      <TelemetryStrip t={telemetry} />
+
+      <div className="flex gap-2">
+        <button className="btn" onClick={onRun} disabled={loading || mcLoading}>
+          {loading ? "Simulation..." : "Lancer la simulation"}
+        </button>
+        <button className="btn" onClick={onRunMC} disabled={loading || mcLoading}>
+          {mcLoading ? "Monte Carlo..." : "Lancer Monte Carlo (200 runs)"}
+        </button>
+      </div>
 
       <div className="h-72 w-full card">
         {series.length ? (
@@ -99,6 +150,7 @@ export default function WorkspaceClient() {
       </div>
 
       <KpiBar kpis={data?.kpis} />
+      <MCPanel data={mc} />
     </div>
   );
 }
