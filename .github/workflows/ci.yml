@@ -23,13 +23,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Run tests
+    - name: Install package in development mode
       run: |
-        pytest backend/tests/ -v
+        pip install -e .
     
     - name: Test backend import
       run: |
         python -c "from backend.main import app; print('✅ Backend importé avec succès')"
+    
+    - name: Run tests
+      run: |
+        pytest backend/tests/ -v
     
     - name: Test uvicorn startup
       run: |
