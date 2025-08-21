@@ -10,10 +10,16 @@ export type SimulationOutput = {
   modules_active?: string[];
 };
 export interface EngineFacade { simulate(preset: PresetV1): Promise<SimulationOutput>; }
+const API = process.env.NEXT_PUBLIC_API_URL ?? "";
+
 export const engine: EngineFacade = {
   async simulate(preset) {
-    // TODO: brancher la vraie simu. Mock minimal pour faire tourner l'UI.
-    const equity = Array.from({ length: 120 }, (_, i) => i + (Math.sin(i/6) * 5));
-    return { kpis: { max_dd_total: 0.05, max_dd_daily: 0.02 }, series: { equity } };
+    const r = await fetch(`${API}/api/simulate`, {
+      method: "POST", 
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify(preset),
+    });
+    if (!r.ok) throw new Error(`simulate failed: ${r.status}`);
+    return r.json();
   }
 };
