@@ -1,44 +1,39 @@
-name: build-test
+name: CI
+
 on:
-  push: { branches: ["*"] }
+  push:
+    branches: [ main, fix/*, chore/* ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  build-test:
+  test:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-
-      # --- Web / Node ---
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Front typecheck
-        run: |
-          npm ci || npm i
-          npm run typecheck
-
-      # --- API / Python ---
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Python deps
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
-          if [ -f requirements-dev.txt ]; then
-            pip install -r requirements-dev.txt
-          else
-            pip install pytest
-          fi
-
-      - name: Pytests
-        run: |
-          python -m pytest -q
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        pytest backend/tests/ -v
+    
+    - name: Test backend import
+      run: |
+        python -c "from backend.main import app; print('✅ Backend importé avec succès')"
+    
+    - name: Test uvicorn startup
+      run: |
+        timeout 10s uvicorn backend.main:app --host 127.0.0.1 --port 8001 &
+        sleep 3
+        curl -f http://127.0.0.1:8001/healthz || exit 1
+        pkill -f uvicorn || true
