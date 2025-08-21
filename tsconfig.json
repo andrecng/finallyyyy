@@ -23,14 +23,23 @@
       "@/components/*": [
         "components/*"
       ],
-      "@/scripts/*": [
-        "scripts/*"
-      ],
       "@/engine/*": [
         "engine/*"
       ],
       "@/presets/*": [
         "presets/*"
+      ],
+      "@/scripts/*": [
+        "scripts/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
+      ],
+      "@/hooks/*": [
+        "hooks/*"
+      ],
+      "@/stores/*": [
+        "stores/*"
       ]
     },
     "types": [
@@ -53,6 +62,9 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "archive",
+    "docs/archive",
+    "tests"
   ]
 }
