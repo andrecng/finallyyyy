@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import Field from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@/components/ui/input";
 import ResultsPanel from "@/components/workspace/ResultsPanel";
 import EquityChart from "@/components/charts/EquityChart";
 import { runLocalSim } from "@/lib/sim/localRun";
