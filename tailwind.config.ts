@@ -1,16 +1,12 @@
 import type { Config } from "tailwindcss";
 
-const config: Config = {
-  content: ["./app/**/*.{ts,tsx,js,jsx}", "./components/**/*.{ts,tsx,js,jsx}"],
-  theme: {
-    extend: {
-      colors: {
-        brand: { 500: "#6366f1" }, // indigo
-        accent: { 500: "#a855f7" } // violet
-      },
-      borderRadius: { "2xl": "1rem" }
-    },
-  },
-  plugins: [],
-};
-export default config;
+export default {
+  content: [
+    "./app/**/*.{ts,tsx,js,jsx,mdx}",
+    "./components/**/*.{ts,tsx,js,jsx,mdx}",
+    "./src/**/*.{ts,tsx,js,jsx,mdx}",
+    "./pages/**/*.{ts,tsx,js,jsx,mdx}"
+  ],
+  theme: { extend: {} },
+  plugins: []
+} satisfies Config;
