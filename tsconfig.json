@@ -1,10 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
+    "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "preserve",
@@ -15,24 +12,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "*"
-      ],
-      "@/modules/*": [
-        "engine/modules/*"
-      ],
-      "@/engine/*": [
-        "engine/*"
-      ],
-      "@/components/*": [
-        "components/*"
-      ],
-      "@/app/*": [
-        "app/*"
-      ],
-      "@/tests/*": [
-        "tests/*"
-      ]
+      "@/*": ["*"]
     },
     "allowJs": true,
     "incremental": true,
