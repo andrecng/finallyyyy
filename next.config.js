@@ -9,7 +9,7 @@ const nextConfig = {
     return [
       { source: '/', destination: '/workspace', permanent: true },
       { source: '/simulate', destination: '/workspace?step=simulate', permanent: true },
-      { source: '/strategy-t', destination: '/workspace', permanent: true },
+// LEGACY REMOVED       { source: '/strategy-t', destination: '/workspace', permanent: true },
     ];
   },
 };
