@@ -23,20 +23,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Install package in development mode
+    - name: Test backend import with PYTHONPATH
       run: |
-        pip install -e .
-    
-    - name: Test backend import
-      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
         python -c "from backend.main import app; print('✅ Backend importé avec succès')"
     
-    - name: Run tests
+    - name: Run tests with PYTHONPATH
       run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
         pytest backend/tests/ -v
     
     - name: Test uvicorn startup
       run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
         timeout 10s uvicorn backend.main:app --host 127.0.0.1 --port 8001 &
         sleep 3
         curl -f http://127.0.0.1:8001/healthz || exit 1
