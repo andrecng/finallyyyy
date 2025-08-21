@@ -14,33 +14,15 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@/app/*": [
-        "app/*"
-      ],
-      "@/components/*": [
-        "components/*"
-      ],
-      "@/engine/*": [
-        "engine/*"
-      ],
-      "@/presets/*": [
-        "presets/*"
-      ],
-      "@/scripts/*": [
-        "scripts/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ],
-      "@/hooks/*": [
-        "hooks/*"
-      ],
-      "@/stores/*": [
-        "stores/*"
-      ]
+      "@/*": ["*"],
+      "@/app/*": ["app/*"],
+      "@/components/*": ["components/*"],
+      "@/engine/*": ["engine/*"],
+      "@/presets/*": ["presets/*"],
+      "@/scripts/*": ["scripts/*"],
+      "@/lib/*": ["lib/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/stores/*": ["stores/*"]
     },
     "types": [
       "node"
@@ -62,9 +44,6 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "archive",
-    "docs/archive",
-    "tests"
+    "node_modules"
   ]
 }
