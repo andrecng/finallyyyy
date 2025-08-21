@@ -2,22 +2,25 @@
 // 🏭 Factory pour l'injection de dépendances
 
 import { RiskCalculator, DrawdownManager, VolatilityTargeter, PositionSizer, RiskLogger } from '../interfaces/risk-management';
-import { KellyCalculator } from '../../modules/kelly-calculator';
-import { SoftBarrierDrawdownPalier } from '../../modules/drawdown-manager';
-import { VolatilityTarget } from '../../modules/volatility-target';
-import { RiskLoggerImpl } from '../../modules/risk-logger';
+// import { KellyCalculator } from '../../modules/kelly-calculator';
+// import { SoftBarrierDrawdownPalier } from '../../modules/drawdown-manager';
+// import { VolatilityTarget } from '../../modules/volatility-target';
+// import { RiskLoggerImpl } from '../../modules/risk-logger';
 
 export class RiskFactory {
   static createKellyCalculator(): RiskCalculator {
-    return new KellyCalculator();
+    // return new KellyCalculator();
+    throw new Error("TODO: Implémenter KellyCalculator");
   }
 
   static createDrawdownManager(): DrawdownManager {
-    return new SoftBarrierDrawdownPalier();
+    // return new SoftBarrierDrawdownPalier();
+    throw new Error("TODO: Implémenter SoftBarrierDrawdownPalier");
   }
 
   static createVolatilityTargeter(): VolatilityTargeter {
-    return new VolatilityTarget();
+    // return new VolatilityTarget();
+    throw new Error("TODO: Implémenter VolatilityTarget");
   }
 
   static createPositionSizer(
@@ -29,7 +32,8 @@ export class RiskFactory {
   }
 
   static createRiskLogger(): RiskLogger {
-    return new RiskLoggerImpl();
+    // return new RiskLoggerImpl();
+    throw new Error("TODO: Implémenter RiskLoggerImpl");
   }
 
   // Configuration par défaut

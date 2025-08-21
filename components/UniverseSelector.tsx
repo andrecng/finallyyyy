@@ -5,12 +5,13 @@
 'use client';
 
 import { useState } from 'react';
-import { fxUniverse } from '@/modules/presets/universe_fx_major';
-import { equityUniverse } from '@/modules/presets/universe_equity';
+// import { fxUniverse } from '@/lib/modules';
+// import { equityUniverse } from '@/lib/modules';
 
 export default function UniverseSelector() {
   const [selected, setSelected] = useState<'fx' | 'equity'>('fx');
-  const universe = selected === 'fx' ? fxUniverse : equityUniverse;
+  // const universe = selected === 'fx' ? fxUniverse : equityUniverse;
+  const universe: any[] = []; // TODO: Implémenter les univers
 
   return (
     <div className="p-4 text-white">

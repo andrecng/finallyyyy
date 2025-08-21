@@ -1,0 +1,11 @@
+./next.config.js:12:      { source: '/strategy-t', destination: '/workspace', permanent: true },
+./docs/archive/scripts/start_dev.sh:3:# 🚀 Script de démarrage automatique - 2048 Asset Management
+./docs/archive/scripts/start_dev.sh:6:echo "🎯 Démarrage automatique de 2048 Asset Management..."
+./docs/archive/scripts/stop_all.sh:3:# 🛑 Script d'arrêt complet - 2048 Asset Management
+./docs/archive/scripts/stop_all.sh:6:echo "🛑 Arrêt de 2048 Asset Management..."
+./docs/archive/scripts/status.sh:3:# 📊 Script de vérification du statut - 2048 Asset Management
+./docs/archive/scripts/status.sh:6:echo "📊 Statut de 2048 Asset Management"
+./docs/archive/scripts/README.md:1:# 🚀 Scripts de gestion - 2048 Asset Management
+./docs/archive/scripts/start_all.sh:3:# 🚀 Script de démarrage complet - 2048 Asset Management
+./docs/archive/scripts/start_all.sh:6:echo "🎯 Démarrage de 2048 Asset Management..."
+./docs/archive/scripts/clean_logs.sh:3:# 🧹 Script de nettoyage des logs - 2048 Asset Management
