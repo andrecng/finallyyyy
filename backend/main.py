@@ -27,6 +27,9 @@ def simulate(inp: SimInput):
     # CPPI
     p.cppi.alpha = float(inp.params.get("cppi_alpha", 0.10))
     p.cppi.freeze_frac = float(inp.params.get("cppi_freeze_frac", 0.05))
+    # VolTarget (optionnel)
+    p.vt.target_vol = float(inp.params.get("vt_target_vol", p.vt.target_vol))
+    p.vt.halflife   = int(inp.params.get("vt_halflife",   p.vt.halflife))
     # FTMO
     p.ftmo.daily_limit = float(inp.params.get("daily_limit", 0.02))
     p.ftmo.total_limit = float(inp.params.get("total_limit", 0.10))
