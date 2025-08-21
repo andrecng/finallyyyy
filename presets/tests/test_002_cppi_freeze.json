@@ -1,0 +1,19 @@
+{
+  "name": "TEST_002_CPPI_FREEZE",
+  "seed": 42,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "VolatilityTarget": { "vt_target_vol": 0.10, "vt_halflife": 16 },
+    "CPPIFreeze": { "alpha": 0.20, "freeze_frac": 0.05 },
+    "KellyCap": { "cap_mult": 0.0 },
+    "SoftBarrier": { "enabled": false },
+    "FTMOGate": { "enabled": false }
+  },
+  "invariants": {
+    "no_upsize_after_loss": true,
+    "floor_formula": "HWM*(1-α)",
+    "freeze_if_cushion_below": 0.05
+  }
+}

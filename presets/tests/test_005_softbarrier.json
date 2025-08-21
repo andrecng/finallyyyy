@@ -1,0 +1,17 @@
+{
+  "name": "TEST_005_SOFTBARRIER",
+  "seed": 42,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "VolatilityTarget": { "vt_target_vol": 0.10, "vt_halflife": 16 },
+    "CPPIFreeze": { "alpha": 0.20, "freeze_frac": 0.05 },
+    "KellyCap": { "cap_mult": 0.50 },
+    "SoftBarrier": { "enabled": true, "steps": [1,2,3], "haircuts": [0.7,0.5,0.3] },
+    "FTMOGate": { "enabled": false }
+  },
+  "checks": {
+    "drawdown_compressed_in_tiers": true
+  }
+}
