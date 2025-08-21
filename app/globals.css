@@ -6,6 +6,24 @@
 :root {
   --bg-from: 247, 250, 255;  /* indigo-50 */
   --bg-to:   250, 245, 255;  /* fuchsia-50 */
+  
+  /* Variables UI manquantes */
+  --border-base: #e5e7eb;     /* gray-200 */
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --text-muted: #6b7280;      /* gray-500 */
+  --bg-elev: #f3f4f6;         /* gray-100 */
+  --border-border: #d1d5db;    /* gray-300 */
+  --text-muted-foreground: #6b7280; /* gray-500 */
+  --bg-background: #ffffff;
+  --text-foreground: #111827; /* gray-900 */
+  --bg-muted: #f9fafb;        /* gray-50 */
+  --ring: #6366f1;            /* indigo-500 */
+  --ring-offset-background: #ffffff;
+  --accent: #a855f7;          /* violet-500 */
+  --primary: #6366f1;         /* indigo-500 */
+  --success: #10b981;         /* emerald-500 */
+  --warning: #f59e0b;         /* amber-500 */
+  --input: #d1d5db;           /* gray-300 */
 }
 
 html, body {
