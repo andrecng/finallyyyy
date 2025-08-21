@@ -1,104 +1,16 @@
-// 📁 /stores/simStore.ts
-// 🧠 Store Zustand unifié pour simulations multi-actifs
+// Surface simple et stable attendue par l'UI
+export type PresetAny = any;
+export type SimulationOutputAny = any;
 
-import { create } from 'zustand';
+type State = { preset: PresetAny | null; output: SimulationOutputAny | null; };
+let state: State = { preset: null, output: null };
 
-export interface SimulationMetrics {
-  CAGR: number;
-  MaxDD: number;
-  Sharpe: number;
-  Sortino: number;
-  WinRate: number;
-  TimeInDrawdown: number;
-  ES95: number;
-  UlcerIndex: number;
+export function useSimStore() {
+  return {
+    preset: state.preset,
+    output: state.output,
+    setPreset: (p: PresetAny) => { state = { ...state, preset: p }; },
+    setOutput: (o: SimulationOutputAny) => { state = { ...state, output: o }; },
+    reset: () => { state = { preset: null, output: null }; }
+  };
 }
-
-export interface RiskLog {
-  tradeId: string;
-  riskPct: number;
-  modules: string[];
-  notes: string;
-}
-
-export interface SimStore {
-  metrics: SimulationMetrics;
-  equitySeries: number[];
-  riskLog: RiskLog[];
-  presets: Record<string, any>;
-  volatilityTarget: number;
-  capital: number;
-  nbSimulations: number;
-
-  setMetrics: (metrics: SimulationMetrics) => void;
-  setEquity: (equity: number[]) => void;
-  addLog: (log: RiskLog) => void;
-  setVolatilityTarget: (value: number) => void;
-  setCapital: (value: number) => void;
-  setNbSimulations: (value: number) => void;
-  reset: () => void;
-  resetAll: () => void;
-}
-
-export const useSimStore = create<SimStore>()((set) => ({
-  metrics: {
-    CAGR: 0,
-    MaxDD: 0,
-    Sharpe: 0,
-    Sortino: 0,
-    WinRate: 0,
-    TimeInDrawdown: 0,
-    ES95: 0,
-    UlcerIndex: 0,
-  },
-  equitySeries: [],
-  riskLog: [],
-  presets: {},
-  volatilityTarget: 15,
-  capital: 100000,
-  nbSimulations: 1000,
-
-  setMetrics: (metrics) => set({ metrics }),
-  setEquity: (equity) => set({ equitySeries: equity }),
-  addLog: (log) => set((state) => ({ riskLog: [...state.riskLog, log] })),
-  setVolatilityTarget: (value) => set({ volatilityTarget: value }),
-  setCapital: (value) => set({ capital: value }),
-  setNbSimulations: (value) => set({ nbSimulations: value }),
-  reset: () =>
-    set({
-      metrics: {
-        CAGR: 0,
-        MaxDD: 0,
-        Sharpe: 0,
-        Sortino: 0,
-        WinRate: 0,
-        TimeInDrawdown: 0,
-        ES95: 0,
-        UlcerIndex: 0,
-      },
-      equitySeries: [],
-      riskLog: [],
-      presets: {},
-      volatilityTarget: 15,
-      capital: 100000,
-      nbSimulations: 1000,
-    }),
-  resetAll: () => set(() => ({
-    capital: 100000,
-    nbSimulations: 1,
-    volatilityTarget: 15,
-    metrics: {
-      CAGR: 0,
-      MaxDD: 0,
-      Sharpe: 0,
-      Sortino: 0,
-      WinRate: 0,
-      TimeInDrawdown: 0,
-      ES95: 0,
-      UlcerIndex: 0,
-    },
-    equitySeries: [],
-    riskLog: [],
-    presets: {},
-  })),
-}));
