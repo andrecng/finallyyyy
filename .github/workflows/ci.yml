@@ -1,6 +1,6 @@
-name: ci
+name: build-test
 on:
-  push: { branches: ["**"] }
+  push: { branches: ["*"] }
   pull_request:
 
 jobs:
@@ -8,28 +8,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # --- Web / Node ---
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
+
       - name: Front typecheck
         run: |
           npm ci || npm i
-          npx tsc -v || true
-          npx tsc --noEmit || true
+          npm run typecheck || true
+
+      # --- API / Python ---
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
+          cache: "pip"
+
       - name: Python deps
         run: |
-          python -m venv .venv
-          . .venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install pytest
+          fi
+
       - name: Pytests
-        env:
-          PYTHONPATH: .
         run: |
-          . .venv/bin/activate
-          pytest -q
+          python -m pytest -q
