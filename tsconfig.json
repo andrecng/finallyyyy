@@ -23,14 +23,8 @@
       "@/components/*": [
         "components/*"
       ],
-      "@/lib/*": [
-        "lib/*"
-      ],
-      "@/stores/*": [
-        "stores/*"
-      ],
-      "@/modules/*": [
-        "modules/*"
+      "@/scripts/*": [
+        "scripts/*"
       ],
       "@/engine/*": [
         "engine/*"
