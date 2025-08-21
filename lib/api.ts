@@ -1,19 +1,29 @@
-export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8001";
+export type SimInput = { 
+  preset?: string | null; 
+  modules?: string[]; 
+  params?: Record<string, any> 
+};
 
-export async function runSimulation(payload: any) {
-  let res: Response;
-  try {
-    res = await fetch(`${API_URL}/simulate`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(payload),
-    });
-  } catch (e:any) {
-    throw new Error(`Network error: ${e?.message || "Failed to fetch"}`);
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(()=> "");
-    throw new Error(`Backend ${res.status}: ${text || res.statusText}`);
-  }
+export type SimOutput = {
+  series: { t: number; eq: number }[];
+  kpis: { 
+    max_dd?: number; 
+    pass_ftmo?: boolean; 
+    ftmo?: any; 
+    [k: string]: any 
+  };
+  logs?: any[];
+};
+
+const BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8001";
+
+export async function simulate(body: SimInput): Promise<SimOutput> {
+  const res = await fetch(`${BASE}/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`simulate failed: ${res.status}`);
   return res.json();
 }
