@@ -9,8 +9,8 @@ import RiskSummary from '@/components/RiskSummary';
 import EquityChart from '@/components/EquityChart';
 import LaunchSimulation from '@/components/LaunchSimulation';
 import KPIReport from '@/components/KPIReport';
-import UniverseSelector from '@/components/UniverseSelector';
-import VolatilityTargeter from '@/components/VolatilityTargeter';
+// import UniverseSelector from '@/components/UniverseSelector';
+// import VolatilityTargeter from '@/components/VolatilityTargeter';
 import ResetStore from '@/components/ResetStore';
 import PresetsLoader from '@/components/PresetsLoader';
 
@@ -146,7 +146,7 @@ export default function SimulateurMulti() {
 
             {/* Sélecteur d'univers */}
             <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 backdrop-blur-sm">
-              <UniverseSelector />
+              {/* <UniverseSelector /> */}
             </div>
           </div>
         )}
@@ -159,7 +159,7 @@ export default function SimulateurMulti() {
               <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 backdrop-blur-sm">
                 <h3 className="text-lg font-semibold text-slate-100 mb-4">🎯 Paramètres de Simulation</h3>
                 <div className="space-y-4">
-                  <VolatilityTargeter />
+                  {/* <VolatilityTargeter /> */}
                   <PresetsLoader />
                 </div>
               </div>
