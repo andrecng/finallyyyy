@@ -3,7 +3,7 @@
 // 🧠 Simulation simple avec données aléatoires
 
 import { SimulationMetrics } from "@/stores/simStore";
-import { fxUniverse } from "@/modules/presets/universe_fx_major";
+// import { fxUniverse } from "@/lib/modules";
 
 export function simulateReal(): SimulationMetrics & { equitySeries: number[] } {
   // Générer des données d'equity basées sur l'univers FX

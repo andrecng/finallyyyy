@@ -1,0 +1,39 @@
+=== TOP SUSPECTS ===
+
+1. Composants TS morts (exports non utilisés):
+components/CapsAdjuster.tsx
+components/ConfigPanel.tsx
+components/CSVExportButton.tsx
+components/CustomChart.tsx
+components/EquityCurve.tsx
+
+2. Docs legacy avec '2048':
+docs/archive/scripts/README.md
+docs/archive/scripts/*.sh (tous)
+
+3. Redirection legacy dans next.config.js:
+strategy-t → /workspace
+
+4. Composants UI non utilisés:
+components/UniverseSelector.tsx
+components/VolatilityTargeter.tsx
+components/MarketRegimeTag.tsx
+
+5. Hooks non utilisés:
+hooks/useBusinessLogic.ts
+hooks/useRiskManagement.ts
+
+6. Composants de lab non utilisés:
+components/lab/ChartsPanel.tsx
+components/lab/KPIPanel.tsx
+components/lab/MonteCarloPanel.tsx
+components/lab/ParametersPanel.tsx
+
+7. Fichiers de test UI:
+scripts/test_ui_*.py
+scripts/test_*.py
+
+8. Docs d'interface obsolètes:
+docs/INTERFACE_AMELIORATIONS.md
+docs/INTERFACE_MC.md
+docs/NUMBERFIELD.md

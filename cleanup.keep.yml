@@ -1,0 +1,23 @@
+keep:
+  - app/workspace/**
+  - engine/**
+  - presets/profiles.json
+  - docs/00_philosophie.md
+  - docs/01_framework.md
+  - docs/04_tests.md
+  - docs/05_allocation_presets.md
+  - docs/journal_tests.md.rtf
+  - backend/**
+  - scripts/**
+  - components/WorkspaceClient.tsx
+  - components/workspace/**
+  - lib/api.ts
+  - lib/types.ts
+  - stores/**
+  - hooks/use-toast.ts
+  - package.json
+  - tsconfig.json
+  - requirements.txt
+  - README.md
+  - tailwind.config.ts
+  - next.config.js

@@ -1,0 +1,315 @@
+tailwind.config.ts:3 - default
+components/CapsAdjuster.tsx:10 - CapsAdjuster
+components/ConfigPanel.tsx:7 - ConfigPanel
+components/CSVExportButton.tsx:9 - CSVExportButton
+components/CustomChart.tsx:17 - default
+components/EquityCurve.tsx:7 - EquityCurve
+components/ExportCSV.tsx:8 - ExportCSV
+components/index.ts:5 - UnifiedLayout
+components/InlineAlert.tsx:3 - default
+components/InputForm.tsx:6 - default
+components/JsonPresetEditor.tsx:3 - default
+components/KPICards.tsx:1 - default
+components/MarketRegimeTag.tsx:7 - MarketRegimeTag
+components/MonteCarloSlider.tsx:7 - MonteCarloSlider
+components/ProfileSelect.tsx:9 - default
+components/RiskChart.tsx:13 - RiskChartHandle (used in module)
+components/RiskChart.tsx:128 - default
+components/RiskLoggerTable.tsx:7 - RiskLoggerTable
+components/RiskLogViewer.tsx:7 - RiskLogViewer
+components/SimToolbar.tsx:8 - SimToolbar
+components/SimulateurMulti.tsx:17 - default
+components/Sparkline.tsx:1 - default
+components/TradeHistoryTable.tsx:7 - TradeHistoryTable
+components/TradeTable.tsx:7 - TradeTable
+components/TVChart.tsx:17 - default
+config/vitest.config.ts:2 - default
+engine/index.ts:2 - VolatilityTargetConfig
+engine/index.ts:7 - VolatilityTarget
+engine/index.ts:2 - CPPIFreezeConfig
+engine/index.ts:7 - CPPIFreeze
+engine/index.ts:2 - KellyCapConfig
+engine/index.ts:6 - KellyCap
+engine/index.ts:2 - SoftBarrierConfig
+engine/index.ts:6 - SoftBarrier
+hooks/index.ts:5 - useBusinessLogic
+hooks/index.ts:6 - useRiskManagement
+hooks/index.ts:9 - useUnifiedStore
+hooks/index.ts:9 - useSimulation
+hooks/index.ts:9 - useConfig
+hooks/index.ts:9 - useUI
+hooks/index.ts:9 - useActions
+hooks/use-toast.ts:74 - reducer (used in module)
+lib/api.ts:3 - postJSON
+lib/api.ts:1 - API_BASE (used in module)
+lib/api.ts:13 - SimInput (used in module)
+lib/policies.ts:2 - Policy (used in module)
+lib/policies.ts:4 - POLICIES
+lib/telemetry.ts:1 - RawLog (used in module)
+lib/types.ts:9 - CapitalConfig (used in module)
+lib/types.ts:17 - EdgeConfig (used in module)
+lib/types.ts:24 - KellyConfig (used in module)
+lib/types.ts:30 - BayesConfig (used in module)
+lib/types.ts:38 - SequenceConfig (used in module)
+lib/types.ts:47 - DDPaliersConfig (used in module)
+lib/types.ts:53 - CPPIConfig (used in module)
+lib/types.ts:58 - VolTargetConfig (used in module)
+lib/types.ts:63 - MarkovConfig (used in module)
+lib/types.ts:74 - PortfolioConfig (used in module)
+lib/types.ts:81 - StopsConfig (used in module)
+lib/types.ts:86 - StressFlags (used in module)
+lib/types.ts:113 - KPIs (used in module)
+lib/types.ts:134 - Guardrails (used in module)
+lib/types.ts:190 - Trade
+lib/types.ts:200 - SimpleSimulationConfig
+lib/utils.ts:60 - formatPercentage
+lib/utils.ts:69 - formatCurrency
+stores/simStore.ts:17 - RiskLog (used in module)
+stores/simStore.ts:24 - SimStore (used in module)
+stores/workspace.ts:44 - useWorkspace
+components/charts/index.ts:1 - ChartPane
+components/charts/Sparkline.tsx:9 - default
+components/lab/ChartsPanel.tsx:9 - default
+components/lab/KPIPanel.tsx:10 - default
+components/lab/MonteCarloPanel.tsx:56 - default
+components/lab/ParametersPanel.tsx:13 - default
+components/navigation/MainNavigation.tsx:66 - default
+components/ui/accordion.tsx:58 - Accordion (used in module)
+components/ui/accordion.tsx:58 - AccordionItem (used in module)
+components/ui/accordion.tsx:58 - AccordionTrigger (used in module)
+components/ui/accordion.tsx:58 - AccordionContent (used in module)
+components/ui/alert-dialog.tsx:130 - AlertDialog (used in module)
+components/ui/alert-dialog.tsx:131 - AlertDialogPortal (used in module)
+components/ui/alert-dialog.tsx:132 - AlertDialogOverlay (used in module)
+components/ui/alert-dialog.tsx:133 - AlertDialogTrigger (used in module)
+components/ui/alert-dialog.tsx:134 - AlertDialogContent (used in module)
+components/ui/alert-dialog.tsx:135 - AlertDialogHeader (used in module)
+components/ui/alert-dialog.tsx:136 - AlertDialogFooter (used in module)
+components/ui/alert-dialog.tsx:137 - AlertDialogTitle (used in module)
+components/ui/alert-dialog.tsx:138 - AlertDialogDescription (used in module)
+components/ui/alert-dialog.tsx:139 - AlertDialogAction (used in module)
+components/ui/alert-dialog.tsx:140 - AlertDialogCancel (used in module)
+components/ui/alert.tsx:59 - Alert (used in module)
+components/ui/alert.tsx:59 - AlertTitle (used in module)
+components/ui/alert.tsx:59 - AlertDescription (used in module)
+components/ui/aspect-ratio.tsx:7 - AspectRatio (used in module)
+components/ui/avatar.tsx:50 - Avatar (used in module)
+components/ui/avatar.tsx:50 - AvatarImage (used in module)
+components/ui/avatar.tsx:50 - AvatarFallback (used in module)
+components/ui/badge.tsx:26 - BadgeProps (used in module)
+components/ui/badge.tsx:36 - badgeVariants (used in module)
+components/ui/breadcrumb.tsx:108 - Breadcrumb (used in module)
+components/ui/breadcrumb.tsx:109 - BreadcrumbList (used in module)
+components/ui/breadcrumb.tsx:110 - BreadcrumbItem (used in module)
+components/ui/breadcrumb.tsx:111 - BreadcrumbLink (used in module)
+components/ui/breadcrumb.tsx:112 - BreadcrumbPage (used in module)
+components/ui/breadcrumb.tsx:113 - BreadcrumbSeparator (used in module)
+components/ui/breadcrumb.tsx:114 - BreadcrumbEllipsis (used in module)
+components/ui/calendar.tsx:9 - CalendarProps (used in module)
+components/ui/calendar.tsx:61 - Calendar (used in module)
+components/ui/card.tsx:82 - CardFooter (used in module)
+components/ui/card.tsx:84 - CardDescription (used in module)
+components/ui/carousel.tsx:256 - CarouselApi (used in module)
+components/ui/carousel.tsx:257 - Carousel (used in module)
+components/ui/carousel.tsx:258 - CarouselContent (used in module)
+components/ui/carousel.tsx:259 - CarouselItem (used in module)
+components/ui/carousel.tsx:260 - CarouselPrevious (used in module)
+components/ui/carousel.tsx:261 - CarouselNext (used in module)
+components/ui/chart.tsx:11 - ChartConfig (used in module)
+components/ui/chart.tsx:359 - ChartContainer (used in module)
+components/ui/chart.tsx:360 - ChartTooltip (used in module)
+components/ui/chart.tsx:361 - ChartTooltipContent (used in module)
+components/ui/chart.tsx:362 - ChartLegend (used in module)
+components/ui/chart.tsx:363 - ChartLegendContent (used in module)
+components/ui/chart.tsx:364 - ChartStyle (used in module)
+components/ui/checkbox.tsx:30 - Checkbox (used in module)
+components/ui/collapsible.tsx:11 - Collapsible (used in module)
+components/ui/collapsible.tsx:11 - CollapsibleTrigger (used in module)
+components/ui/collapsible.tsx:11 - CollapsibleContent (used in module)
+components/ui/command.tsx:146 - Command (used in module)
+components/ui/command.tsx:147 - CommandDialog (used in module)
+components/ui/command.tsx:148 - CommandInput (used in module)
+components/ui/command.tsx:149 - CommandList (used in module)
+components/ui/command.tsx:150 - CommandEmpty (used in module)
+components/ui/command.tsx:151 - CommandGroup (used in module)
+components/ui/command.tsx:152 - CommandItem (used in module)
+components/ui/command.tsx:153 - CommandShortcut (used in module)
+components/ui/command.tsx:154 - CommandSeparator (used in module)
+components/ui/context-menu.tsx:185 - ContextMenu (used in module)
+components/ui/context-menu.tsx:186 - ContextMenuTrigger (used in module)
+components/ui/context-menu.tsx:187 - ContextMenuContent (used in module)
+components/ui/context-menu.tsx:188 - ContextMenuItem (used in module)
+components/ui/context-menu.tsx:189 - ContextMenuCheckboxItem (used in module)
+components/ui/context-menu.tsx:190 - ContextMenuRadioItem (used in module)
+components/ui/context-menu.tsx:191 - ContextMenuLabel (used in module)
+components/ui/context-menu.tsx:192 - ContextMenuSeparator (used in module)
+components/ui/context-menu.tsx:193 - ContextMenuShortcut (used in module)
+components/ui/context-menu.tsx:194 - ContextMenuGroup (used in module)
+components/ui/context-menu.tsx:195 - ContextMenuPortal (used in module)
+components/ui/context-menu.tsx:196 - ContextMenuSub (used in module)
+components/ui/context-menu.tsx:197 - ContextMenuSubContent (used in module)
+components/ui/context-menu.tsx:198 - ContextMenuSubTrigger (used in module)
+components/ui/context-menu.tsx:199 - ContextMenuRadioGroup (used in module)
+components/ui/dialog.tsx:113 - DialogPortal (used in module)
+components/ui/dialog.tsx:114 - DialogOverlay (used in module)
+components/ui/dialog.tsx:115 - DialogClose (used in module)
+components/ui/dialog.tsx:116 - DialogTrigger (used in module)
+components/ui/dialog.tsx:118 - DialogHeader (used in module)
+components/ui/dialog.tsx:119 - DialogFooter (used in module)
+components/ui/dialog.tsx:120 - DialogTitle (used in module)
+components/ui/dialog.tsx:121 - DialogDescription (used in module)
+components/ui/drawer.tsx:108 - Drawer (used in module)
+components/ui/drawer.tsx:109 - DrawerPortal (used in module)
+components/ui/drawer.tsx:110 - DrawerOverlay (used in module)
+components/ui/drawer.tsx:111 - DrawerTrigger (used in module)
+components/ui/drawer.tsx:112 - DrawerClose (used in module)
+components/ui/drawer.tsx:113 - DrawerContent (used in module)
+components/ui/drawer.tsx:114 - DrawerHeader (used in module)
+components/ui/drawer.tsx:115 - DrawerFooter (used in module)
+components/ui/drawer.tsx:116 - DrawerTitle (used in module)
+components/ui/drawer.tsx:117 - DrawerDescription (used in module)
+components/ui/dropdown-menu.tsx:185 - DropdownMenu (used in module)
+components/ui/dropdown-menu.tsx:186 - DropdownMenuTrigger (used in module)
+components/ui/dropdown-menu.tsx:187 - DropdownMenuContent (used in module)
+components/ui/dropdown-menu.tsx:188 - DropdownMenuItem (used in module)
+components/ui/dropdown-menu.tsx:189 - DropdownMenuCheckboxItem (used in module)
+components/ui/dropdown-menu.tsx:190 - DropdownMenuRadioItem (used in module)
+components/ui/dropdown-menu.tsx:191 - DropdownMenuLabel (used in module)
+components/ui/dropdown-menu.tsx:192 - DropdownMenuSeparator (used in module)
+components/ui/dropdown-menu.tsx:193 - DropdownMenuShortcut (used in module)
+components/ui/dropdown-menu.tsx:194 - DropdownMenuGroup (used in module)
+components/ui/dropdown-menu.tsx:195 - DropdownMenuPortal (used in module)
+components/ui/dropdown-menu.tsx:196 - DropdownMenuSub (used in module)
+components/ui/dropdown-menu.tsx:197 - DropdownMenuSubContent (used in module)
+components/ui/dropdown-menu.tsx:198 - DropdownMenuSubTrigger (used in module)
+components/ui/dropdown-menu.tsx:199 - DropdownMenuRadioGroup (used in module)
+components/ui/form.tsx:171 - useFormField (used in module)
+components/ui/form.tsx:172 - Form (used in module)
+components/ui/form.tsx:173 - FormItem (used in module)
+components/ui/form.tsx:174 - FormLabel (used in module)
+components/ui/form.tsx:175 - FormControl (used in module)
+components/ui/form.tsx:176 - FormDescription (used in module)
+components/ui/form.tsx:177 - FormMessage (used in module)
+components/ui/form.tsx:178 - FormField (used in module)
+components/ui/hover-card.tsx:29 - HoverCard (used in module)
+components/ui/hover-card.tsx:29 - HoverCardTrigger (used in module)
+components/ui/hover-card.tsx:29 - HoverCardContent (used in module)
+components/ui/input-otp.tsx:71 - InputOTP (used in module)
+components/ui/input-otp.tsx:71 - InputOTPGroup (used in module)
+components/ui/input-otp.tsx:71 - InputOTPSlot (used in module)
+components/ui/input-otp.tsx:71 - InputOTPSeparator (used in module)
+components/ui/input.tsx:5 - InputProps (used in module)
+components/ui/menubar.tsx:220 - Menubar (used in module)
+components/ui/menubar.tsx:221 - MenubarMenu (used in module)
+components/ui/menubar.tsx:222 - MenubarTrigger (used in module)
+components/ui/menubar.tsx:223 - MenubarContent (used in module)
+components/ui/menubar.tsx:224 - MenubarItem (used in module)
+components/ui/menubar.tsx:225 - MenubarSeparator (used in module)
+components/ui/menubar.tsx:226 - MenubarLabel (used in module)
+components/ui/menubar.tsx:227 - MenubarCheckboxItem (used in module)
+components/ui/menubar.tsx:228 - MenubarRadioGroup (used in module)
+components/ui/menubar.tsx:229 - MenubarRadioItem (used in module)
+components/ui/menubar.tsx:230 - MenubarPortal (used in module)
+components/ui/menubar.tsx:231 - MenubarSubContent (used in module)
+components/ui/menubar.tsx:232 - MenubarSubTrigger (used in module)
+components/ui/menubar.tsx:233 - MenubarGroup (used in module)
+components/ui/menubar.tsx:234 - MenubarSub (used in module)
+components/ui/menubar.tsx:235 - MenubarShortcut (used in module)
+components/ui/months-card.tsx:12 - MonthsCard
+components/ui/navigation-menu.tsx:119 - navigationMenuTriggerStyle (used in module)
+components/ui/navigation-menu.tsx:120 - NavigationMenu (used in module)
+components/ui/navigation-menu.tsx:121 - NavigationMenuList (used in module)
+components/ui/navigation-menu.tsx:122 - NavigationMenuItem (used in module)
+components/ui/navigation-menu.tsx:123 - NavigationMenuContent (used in module)
+components/ui/navigation-menu.tsx:124 - NavigationMenuTrigger (used in module)
+components/ui/navigation-menu.tsx:125 - NavigationMenuLink (used in module)
+components/ui/navigation-menu.tsx:126 - NavigationMenuIndicator (used in module)
+components/ui/navigation-menu.tsx:127 - NavigationMenuViewport (used in module)
+components/ui/pagination.tsx:110 - Pagination (used in module)
+components/ui/pagination.tsx:111 - PaginationContent (used in module)
+components/ui/pagination.tsx:112 - PaginationEllipsis (used in module)
+components/ui/pagination.tsx:113 - PaginationItem (used in module)
+components/ui/pagination.tsx:114 - PaginationLink (used in module)
+components/ui/pagination.tsx:115 - PaginationNext (used in module)
+components/ui/pagination.tsx:116 - PaginationPrevious (used in module)
+components/ui/popover.tsx:31 - Popover (used in module)
+components/ui/popover.tsx:31 - PopoverTrigger (used in module)
+components/ui/popover.tsx:31 - PopoverContent (used in module)
+components/ui/radio-group.tsx:44 - RadioGroup (used in module)
+components/ui/radio-group.tsx:44 - RadioGroupItem (used in module)
+components/ui/resizable.tsx:45 - ResizablePanelGroup (used in module)
+components/ui/resizable.tsx:45 - ResizablePanel (used in module)
+components/ui/resizable.tsx:45 - ResizableHandle (used in module)
+components/ui/scroll-area.tsx:48 - ScrollArea (used in module)
+components/ui/scroll-area.tsx:48 - ScrollBar (used in module)
+components/ui/select.tsx:151 - SelectGroup (used in module)
+components/ui/select.tsx:155 - SelectLabel (used in module)
+components/ui/select.tsx:157 - SelectSeparator (used in module)
+components/ui/select.tsx:158 - SelectScrollUpButton (used in module)
+components/ui/select.tsx:159 - SelectScrollDownButton (used in module)
+components/ui/separator.tsx:31 - Separator (used in module)
+components/ui/sheet.tsx:130 - Sheet (used in module)
+components/ui/sheet.tsx:131 - SheetPortal (used in module)
+components/ui/sheet.tsx:132 - SheetOverlay (used in module)
+components/ui/sheet.tsx:133 - SheetTrigger (used in module)
+components/ui/sheet.tsx:134 - SheetClose (used in module)
+components/ui/sheet.tsx:135 - SheetContent (used in module)
+components/ui/sheet.tsx:136 - SheetHeader (used in module)
+components/ui/sheet.tsx:137 - SheetFooter (used in module)
+components/ui/sheet.tsx:138 - SheetTitle (used in module)
+components/ui/sheet.tsx:139 - SheetDescription (used in module)
+components/ui/skeleton.tsx:15 - Skeleton (used in module)
+components/ui/stats-card.tsx:17 - StatsCard
+components/ui/switch.tsx:29 - Switch (used in module)
+components/ui/table.tsx:109 - Table (used in module)
+components/ui/table.tsx:110 - TableHeader (used in module)
+components/ui/table.tsx:111 - TableBody (used in module)
+components/ui/table.tsx:112 - TableFooter (used in module)
+components/ui/table.tsx:113 - TableHead (used in module)
+components/ui/table.tsx:114 - TableRow (used in module)
+components/ui/table.tsx:115 - TableCell (used in module)
+components/ui/table.tsx:116 - TableCaption (used in module)
+components/ui/tabs.tsx:55 - Tabs (used in module)
+components/ui/tabs.tsx:55 - TabsList (used in module)
+components/ui/tabs.tsx:55 - TabsTrigger (used in module)
+components/ui/tabs.tsx:55 - TabsContent (used in module)
+components/ui/textarea.tsx:5 - TextareaProps (used in module)
+components/ui/textarea.tsx:24 - Textarea (used in module)
+components/ui/toast.tsx:128 - ToastAction (used in module)
+components/ui/toaster.tsx:13 - Toaster
+components/ui/toggle-group.tsx:61 - ToggleGroup (used in module)
+components/ui/toggle-group.tsx:61 - ToggleGroupItem (used in module)
+components/ui/toggle.tsx:45 - Toggle (used in module)
+components/ui/tooltip.tsx:30 - Tooltip (used in module)
+components/ui/tooltip.tsx:30 - TooltipTrigger (used in module)
+components/ui/tooltip.tsx:30 - TooltipContent (used in module)
+components/ui/tooltip.tsx:30 - TooltipProvider (used in module)
+components/workspace/WorkspaceClient.tsx:13 - default
+lib/interfaces/simulation.ts:6 - SimulationEngine
+lib/interfaces/simulation.ts:10 - PortfolioCaps (used in module)
+lib/interfaces/simulation.ts:16 - TradeMatrix (used in module)
+lib/mm/contracts.ts:1 - MMContext (used in module)
+lib/mm/contracts.ts:15 - ModuleDecision (used in module)
+lib/mm/contracts.ts:21 - MMModule
+lib/mm/contracts.ts:29 - OrchestratorOutput
+lib/modules/index.ts:24 - Trade
+lib/modules/index.ts:24 - TradeContext
+lib/modules/index.ts:24 - RiskResult
+lib/modules/index.ts:25 - SimulationResult
+lib/modules/index.ts:25 - SimulationMetrics
+lib/modules/index.ts:28 - RiskFactory
+lib/modules/index.ts:29 - moduleRegistry
+lib/registry/module-registry.ts:7 - RiskModule (used in module)
+lib/registry/module-registry.ts:16 - ModuleRegistry (used in module)
+lib/sim/localRun.ts:1 - SimParams (used in module)
+lib/sim/localRun.ts:10 - SimResult (used in module)
+lib/simulation/simulateReal.ts:8 - simulateReal
+lib/simulation/simulateReal.ts:43 - simulateRealAdvanced
+.next/types/app/layout.ts:49 - PageProps
+.next/types/app/layout.ts:53 - LayoutProps (used in module)
+.next/types/app/page.ts:49 - PageProps (used in module)
+.next/types/app/page.ts:53 - LayoutProps
+docs/archive/utils/generateFakeMetrics.ts:4 - generateFakeMetrics
+docs/archive/utils/simulateReal.ts:8 - simulateReal
+.next/types/app/workspace/page.ts:49 - PageProps (used in module)
+.next/types/app/workspace/page.ts:53 - LayoutProps

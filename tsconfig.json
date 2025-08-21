@@ -31,6 +31,12 @@
       ],
       "@/modules/*": [
         "modules/*"
+      ],
+      "@/engine/*": [
+        "engine/*"
+      ],
+      "@/presets/*": [
+        "presets/*"
       ]
     },
     "types": [

@@ -1,0 +1,13 @@
+Unused dependencies
+* tailwindcss-animate
+* zod
+Unused devDependencies
+* autoprefixer
+* depcheck
+* kill-port
+* postcss
+* ts-node
+* ts-prune
+Missing dependencies
+* @radix-ui/react-slot: ./components/ui/breadcrumb.tsx
+* @radix-ui/react-toggle: ./components/ui/toggle.tsx
