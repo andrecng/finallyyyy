@@ -51,7 +51,7 @@ export default function WorkspaceClient() {
     setStep("results");
   };
 
-    return (
+  return (
     <main className="min-h-dvh p-6">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Workspace</h1>
