@@ -1,12 +1,22 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, Dict, List
 import random
 
 from engine.pipeline import EngineParams, EngineState, run_step, apply_pnl
-from engine.ftmo_gate import start_day
+from engine.ftmo_gate import start_day # start_day is still used for initializing ftmo state within EngineState
 
 app = FastAPI(title="Fond & FTMO API", version="0.1.0")
+
+# Configuration CORS pour le frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SimInput(BaseModel):
     preset: str | None = None
@@ -41,7 +51,7 @@ def simulate(inp: SimInput):
     p.ftmo.max_days = int(inp.params.get("max_days", 30))
 
     state = EngineState(equity=1.0, equity0=1.0)
-    start_day(state.ftmo, state.equity, p.ftmo)
+    start_day(state.ftmo, state.equity, p.ftmo) # Initialize FTMO state
 
     series = [{"t": 0, "eq": state.equity}]
     logs: List[Dict[str, Any]] = []
