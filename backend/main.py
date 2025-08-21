@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Any, Dict, List
 import random
+import sys
+import os
 
-from engine.ftmo_gate import FTMOGateParams, FTMOGateState, ftmo_gate_step, ftmo_update_after_trade, start_day  # type: ignore
+# Ajouter le répertoire parent au path pour importer engine
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from engine.ftmo_gate import FTMOGateParams, FTMOGateState, ftmo_gate_step, ftmo_update_after_trade, start_day
 
 app = FastAPI(title="Fond & FTMO API", version="0.1.0")
 
