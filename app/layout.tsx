@@ -1,17 +1,10 @@
-import type { Metadata } from "next";
 import "./globals.css";
+import { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  title: "Fond & FTMO Workspace",
-  description: "Moteur Money Management – daily-first",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
-      <body className="min-h-screen">
-        <div className="mx-auto max-w-6xl p-4">{children}</div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

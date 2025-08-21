@@ -1,7 +1,7 @@
 {
   "name": "FondForex",
   "version": "1.0.0",
-  "description": "Moteur de Money Management modulaire 'ANDRE'S BRAIN' - Système avancé de gestion de risque et de position sizing pour 2048 Asset Management",
+  "description": "Moteur de Money Management modulaire - Système avancé de gestion de risque et de position sizing",
   "private": true,
   "scripts": {
     "dev": "npm run kill:ports && concurrently -n FRONT,BACK -c auto \"npm run dev:web\" \"npm run dev:api\"",

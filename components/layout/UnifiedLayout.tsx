@@ -42,7 +42,7 @@ export function UnifiedLayout({
               </div>
               <div className="flex flex-col">
                 <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  2048 Asset Management
+                  FondForex Money Management
                 </h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {description || 'Plateforme de trading avancée'}
@@ -122,7 +122,7 @@ export function UnifiedLayout({
                 <span className="text-sm font-bold text-white">2</span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                © 2024 2048 Asset Management
+                © 2024 FondForex Money Management
               </span>
             </div>
             <div className="flex items-center gap-6">
