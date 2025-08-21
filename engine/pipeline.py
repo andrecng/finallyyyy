@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Any, List, Tuple
 from engine.modules.cppi import CPPIParams, CPPIState, cppi_step
 from engine.ftmo_gate import FTMOGateParams, FTMOGateState, ftmo_gate_step, ftmo_update_after_trade, start_day
@@ -10,16 +10,16 @@ def clamp(x: float, lo: float, hi: float) -> float:
 @dataclass
 class EngineParams:
   desired_risk: float = 0.01
-  cppi: CPPIParams = CPPIParams()
-  ftmo: FTMOGateParams = FTMOGateParams()
+  cppi: CPPIParams = field(default_factory=CPPIParams)
+  ftmo: FTMOGateParams = field(default_factory=FTMOGateParams)
 
 @dataclass
 class EngineState:
   equity: float = 1.0
   equity0: float = 1.0
   prev_risk: float = 0.0
-  cppi: CPPIState = CPPIState()
-  ftmo: FTMOGateState = FTMOGateState()
+  cppi: CPPIState = field(default_factory=CPPIState)
+  ftmo: FTMOGateState = field(default_factory=FTMOGateState)
 
 def run_step(state: EngineState, p: EngineParams) -> Tuple[float, Dict[str, Any]]:
   logs: List[Dict[str, Any]] = []
