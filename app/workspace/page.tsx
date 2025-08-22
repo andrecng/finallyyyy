@@ -7,6 +7,8 @@ import PresetEditor from "@/components/panels/PresetEditor";
 import ResultPanel from "@/components/ResultPanel";
 import EquityChart from "@/components/charts/EquityChart";
 import MonteCarloPanel from "@/components/panels/MonteCarloPanel";
+import PerformanceRiskPanel from "@/components/panels/PerformanceRiskPanel";
+import DiagnosticsPanel from "@/components/panels/DiagnosticsPanel";
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -58,6 +60,9 @@ export default function Workspace() {
         <ResultPanel out={out} />
         <EquityChart series={out?.series?.equity ?? []} />
       </div>
+
+      <PerformanceRiskPanel out={out} />
+      <DiagnosticsPanel out={out} />
 
       <MonteCarloPanel basePreset={preset} />
     </main>
