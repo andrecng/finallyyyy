@@ -1,15 +1,49 @@
 "use client";
 import type { SimulationOutput } from "@/engine/facade";
-import { pct } from "@/lib/format";
+import { pct, asInt01 } from "@/lib/format";
+
+function pick(o: any, key: string) {
+  // supporte out.key OU out.kpis.key
+  return o?.[key] ?? o?.kpis?.[key] ?? null;
+}
 
 export default function ResultPanel({ out }: { out: SimulationOutput | null }) {
-  const vd = out?.violations_daily ?? null;
-  const vt = out?.violations_total ?? null;
+  // si pas de résultat encore
+  if (!out) {
+    return (
+      <div className="rounded border p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold">Résultats</div>
+          <div className="text-xs text-gray-400">—</div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="rounded border p-2">
+            <div className="text-xs text-gray-500">Max DD total</div>
+            <div className="font-medium">—</div>
+          </div>
+          <div className="rounded border p-2">
+            <div className="text-xs text-gray-500">Max DD daily</div>
+            <div className="font-medium">—</div>
+          </div>
+          <div className="rounded border p-2">
+            <div className="text-xs text-gray-500">Viol. daily</div>
+            <div className="font-medium">—</div>
+          </div>
+          <div className="rounded border p-2">
+            <div className="text-xs text-gray-500">Viol. total</div>
+            <div className="font-medium">—</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const pass =
-    vd != null && vt != null
-      ? vd === 0 && vt === 0
-      : null;
+  const max_dd_total = pick(out, "max_dd_total");
+  const max_dd_daily = pick(out, "max_dd_daily");
+  const vd = asInt01(pick(out, "violations_daily"));
+  const vt = asInt01(pick(out, "violations_total"));
+
+  const pass = vd != null && vt != null ? vd === 0 && vt === 0 : null;
 
   return (
     <div className="rounded border p-3 space-y-3">
@@ -29,11 +63,11 @@ export default function ResultPanel({ out }: { out: SimulationOutput | null }) {
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="rounded border p-2">
           <div className="text-xs text-gray-500">Max DD total</div>
-          <div className="font-medium">{pct(out?.max_dd_total)}</div>
+          <div className="font-medium">{pct(max_dd_total)}</div>
         </div>
         <div className="rounded border p-2">
           <div className="text-xs text-gray-500">Max DD daily</div>
-          <div className="font-medium">{pct(out?.max_dd_daily)}</div>
+          <div className="font-medium">{pct(max_dd_daily)}</div>
         </div>
 
         <div className="rounded border p-2">
