@@ -89,20 +89,7 @@ export default function ActionsBar({
     } catch { note("SaveAs error"); }
   };
 
-  const onLoadSelected = () => {
-    if (!selected) return;
-    const p = loadPreset(selected);
-    if (p) { setPreset(p); note(`Loaded (Library): ${selected}`); }
-  };
-
-  const onDeleteSelected = () => {
-    if (!selected) return;
-    if (!confirm(`Supprimer le preset "${selected}" ?`)) return;
-    deletePreset(selected);
-    refreshLib();
-    setSelected("");
-    note("Deleted (Library)");
-  };
+  
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -123,45 +110,65 @@ export default function ActionsBar({
         ⟲ Reset
       </button>
 
-      {/* Preset Library compacte (sélecteur) */}
-      <div className="flex items-center gap-1">
-        <select
-          className="rounded border px-2 py-1 text-sm"
-          value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-        >
-          <option value="">Presets enregistrés…</option>
-          {items.map((m) => (
-            <option key={m.name} value={m.name}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-        <button
-          className="px-2 py-1 rounded border text-xs"
-          onClick={onLoadSelected}
-          disabled={!selected || busy}
-          title="Charger le preset sélectionné"
-        >
-          Load (Library)
-        </button>
-        <button
-          className="px-2 py-1 rounded border text-xs text-red-600"
-          onClick={onDeleteSelected}
-          disabled={!selected || busy}
-          title="Supprimer le preset sélectionné"
-        >
-          Delete (Library)
-        </button>
-        <button
-          className="px-2 py-1 rounded border text-xs"
-          onClick={onSaveAs}
-          disabled={busy}
-          title="Sauvegarder le preset courant sous un nom"
-        >
-          Save As
-        </button>
-      </div>
+                   {/* Preset Library compacte (sélecteur) */}
+             <div className="flex items-center gap-1">
+               <select
+                 className="rounded border px-2 py-1 text-sm"
+                 value={selected}
+                 onChange={(e) => {
+                   const name = e.target.value;
+                   setSelected(name);
+                   if (!name || busy) return;
+                   const p = loadPreset(name);
+                   if (p) {
+                     setPreset(p);
+                     note(`Loaded (Library): ${name}`);
+                   }
+                 }}
+                 title="Choisir un preset enregistré (chargement automatique)"
+               >
+                 <option value="">Presets enregistrés…</option>
+                 {items.map((m) => (
+                   <option key={m.name} value={m.name}>{m.name}</option>
+                 ))}
+               </select>
+
+               <button
+                 className="px-2 py-1 rounded border text-xs text-red-600"
+                 onClick={() => {
+                   if (!selected || busy) return;
+                   if (!confirm(`Supprimer le preset "${selected}" ?`)) return;
+                   deletePreset(selected);
+                   refreshLib();
+                   setSelected("");
+                   note("Deleted (Library)");
+                 }}
+                 disabled={!selected || busy}
+                 title="Supprimer le preset sélectionné"
+               >
+                 Delete (Library)
+               </button>
+
+               <button
+                 className="px-2 py-1 rounded border text-xs"
+                 onClick={() => {
+                   if (busy) return;
+                   const name = sanitizeName(prompt("Nom du preset :", preset.name || "preset") || "");
+                   try {
+                     savePreset(name, { ...preset, name });
+                     note(`Saved (Library): ${name}`);
+                     refreshLib();
+                     setSelected(name);
+                   } catch {
+                     note("SaveAs error");
+                   }
+                 }}
+                 disabled={busy}
+                 title="Sauvegarder le preset courant sous un nom"
+               >
+                 Save As
+               </button>
+             </div>
 
       <span className="mx-1 opacity-50">|</span>
 
