@@ -7,6 +7,7 @@ import PresetEditor from "@/components/panels/PresetEditor";
 import ResultPanel from "@/components/ResultPanel";
 import EquityChart from "@/components/charts/EquityChart";
 import MonteCarloPanel from "@/components/panels/MonteCarloPanel";
+import PresetLibrary from "@/components/panels/PresetLibrary";
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -51,8 +52,10 @@ export default function Workspace() {
         <div className="text-xs text-gray-500">{busy ? "Running..." : "Ready"}</div>
       </div>
 
-      <ActionsBar preset={preset} onRun={run} onReset={reset} setPreset={setPreset} />
+      <ActionsBar preset={preset} onRun={run} onReset={reset} setPreset={setPreset} busy={busy} />
       <PresetEditor preset={preset} setPreset={setPreset} />
+
+      <PresetLibrary current={preset} setPreset={setPreset} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ResultPanel out={out} />
