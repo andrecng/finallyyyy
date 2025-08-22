@@ -1,4 +1,5 @@
 export type PresetV1 = {
+  name?: string;
   schema_version: "1.0";
   seed: number;
   total_steps: number;
@@ -11,10 +12,10 @@ export type PresetV1 = {
     SoftBarrier?: { enabled: boolean; steps: number[]; haircuts: number[] };
     FTMOGate?: {
       enabled: boolean;
-      daily_limit: number;
-      total_limit: number;
-      spend_rate: number;
-      lmax_vol_aware: string;
+      daily_limit: number;   // ex: 0.02
+      total_limit: number;   // ex: 0.10
+      spend_rate: number;    // ex: 0.35
+      lmax_vol_aware: string;// ex: "p50"
     };
   };
 };
@@ -28,6 +29,9 @@ export type SimulationOutput = {
     mar?: number;
     sortino?: number;
     omega?: number;
+    // FTMO:
+    violations_daily?: number;
+    violations_total?: number;
   };
   series?: {
     equity?: number[];
@@ -39,11 +43,9 @@ export type SimulationOutput = {
   modules_active?: string[];
 };
 
-export interface EngineFacade {
-  simulate(p: PresetV1): Promise<SimulationOutput>;
-}
+export interface EngineFacade { simulate(p: PresetV1): Promise<SimulationOutput>; }
 
-// Appelle l'API Next (mock/proxy selon env). Pas d'appel direct backend ici.
+// Appelle l'API Next (mock/proxy selon env). Pas d'URL backend en dur côté UI.
 export const engine: EngineFacade = {
   async simulate(preset) {
     const r = await fetch("/api/simulate", {

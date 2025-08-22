@@ -2,9 +2,11 @@
 import { useState } from "react";
 import type { PresetV1, SimulationOutput } from "@/engine/facade";
 import { engine } from "@/engine/facade";
-import PresetEditor from "@/components/panels/PresetEditor";
 import ActionsBar from "@/components/panels/ActionsBar";
+import PresetEditor from "@/components/panels/PresetEditor";
 import ResultPanel from "@/components/ResultPanel";
+import EquityChart from "@/components/charts/EquityChart";
+import MonteCarloPanel from "@/components/panels/MonteCarloPanel";
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -49,7 +51,13 @@ export default function Workspace() {
 
       <ActionsBar preset={preset} onRun={run} onReset={reset} setPreset={setPreset} />
       <PresetEditor preset={preset} setPreset={setPreset} />
-      <ResultPanel out={out} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ResultPanel out={out} />
+        <EquityChart series={out?.series?.equity ?? []} />
+      </div>
+
+      <MonteCarloPanel basePreset={preset} />
     </main>
   );
 }

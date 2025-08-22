@@ -1,17 +1,12 @@
 "use client";
-import React, { useRef } from "react";
+import { useRef } from "react";
 import type { PresetV1 } from "@/engine/facade";
-
-type Props = {
-  preset: PresetV1;
-  onRun: () => void;
-  onReset: () => void;
-  setPreset: (p: PresetV1) => void;
-};
 
 const STORAGE_KEY = "workspace:preset";
 
-export default function ActionsBar({ preset, onRun, onReset, setPreset }: Props) {
+export default function ActionsBar({
+  preset, onRun, onReset, setPreset,
+}: { preset: PresetV1; onRun: () => void; onReset: () => void; setPreset: (p: PresetV1) => void; }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const saveLS = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(preset));
@@ -24,7 +19,7 @@ export default function ActionsBar({ preset, onRun, onReset, setPreset }: Props)
     const blob = new Blob([JSON.stringify(preset, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "preset.json"; a.click();
+    a.href = url; a.download = `${preset.name ?? "preset"}.json`; a.click();
     URL.revokeObjectURL(url);
   };
   const importFile = (f?: File | null) => {

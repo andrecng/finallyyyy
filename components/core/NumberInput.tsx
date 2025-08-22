@@ -1,14 +1,7 @@
 "use client";
-import React from "react";
-type Props = {
-  value: number;
-  onChange: (v: number) => void;
-  step?: number;
-  min?: number;
-  max?: number;
-  placeholder?: string;
-};
-export default function NumberInput({ value, onChange, step = 0.01, min, max, placeholder }: Props) {
+export default function NumberInput({
+  value, onChange, step = 0.01, min, max, placeholder,
+}: { value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number; placeholder?: string; }) {
   return (
     <input
       type="number"
