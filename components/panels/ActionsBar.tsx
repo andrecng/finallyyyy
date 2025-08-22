@@ -7,24 +7,12 @@ import {
 
 const QUICK_SLOT_KEY = "workspace:preset"; // slot rapide en plus de la Library
 
-function zeroPreset(from: PresetV1): PresetV1 {
-  return {
-    name: "zero",
-    schema_version: from.schema_version,
-    seed: 0,
-    total_steps: 0,
-    mu: 0,
-    fees_per_trade: 0,
-    modules: {}, // tous les modules OFF
-  };
-}
-
 export default function ActionsBar({
   preset, onRun, onReset, setPreset, busy = false,
 }: {
   preset: PresetV1;
   onRun: () => void;
-  onReset: () => void;                // laissé pour compat (non utilisé ici)
+  onReset: () => void;                // restaure le baseline (défini dans /workspace)
   setPreset: (p: PresetV1) => void;
   busy?: boolean;
 }) {
@@ -42,16 +30,11 @@ export default function ActionsBar({
 
   // === Boutons principaux ===
   const onClickRun = () => { if (!busy) onRun(); };
+  const onClickResetBaseline = () => { if (!busy) { onReset(); note("Preset par défaut (baseline)"); } };
 
-  const onClickResetZero = () => {
-    if (busy) return;
-    setPreset(zeroPreset(preset));
-    note("Preset mis à zéro");
-  };
-
-  // === Quick slot Save/Load ===
+  // === Quick slot Save/Load (slot unique) ===
   const saveQuick = () => {
-    try { localStorage.setItem(QUICK_SLOT_KEY, JSON.stringify(preset)); note("Saved"); }
+    try { localStorage.setItem(QUICK_SLOT_KEY, JSON.stringify(preset)); note("Saved (Quick)"); }
     catch { note("Save error"); }
   };
 
@@ -60,8 +43,10 @@ export default function ActionsBar({
       const raw = localStorage.getItem(QUICK_SLOT_KEY);
       if (!raw) return note("Empty");
       setPreset(JSON.parse(raw) as PresetV1);
-      note("Loaded");
-    } catch { note("Load error"); }
+      note("Loaded (Quick)");
+    } catch {
+      note("Load error");
+    }
   };
 
   // === Import/Export fichier ===
@@ -92,13 +77,13 @@ export default function ActionsBar({
     });
   };
 
-  // === Preset Library compacte ===
+  // === Preset Library compacte (sélecteur + Load/Delete + Save As) ===
   const onSaveAs = () => {
     if (busy) return;
     const name = sanitizeName(prompt("Nom du preset :", preset.name || "preset") || "");
     try {
       savePreset(name, { ...preset, name });
-      note(`Saved: ${name}`);
+      note(`Saved (Library): ${name}`);
       refreshLib();
       setSelected(name);
     } catch { note("SaveAs error"); }
@@ -107,7 +92,7 @@ export default function ActionsBar({
   const onLoadSelected = () => {
     if (!selected) return;
     const p = loadPreset(selected);
-    if (p) setPreset(p);
+    if (p) { setPreset(p); note(`Loaded (Library): ${selected}`); }
   };
 
   const onDeleteSelected = () => {
@@ -116,11 +101,12 @@ export default function ActionsBar({
     deletePreset(selected);
     refreshLib();
     setSelected("");
+    note("Deleted (Library)");
   };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Run + Reset (zéro) */}
+      {/* Run + Reset (baseline) */}
       <button
         onClick={onClickRun}
         disabled={busy}
@@ -129,15 +115,15 @@ export default function ActionsBar({
         ▶ Run
       </button>
       <button
-        onClick={onClickResetZero}
+        onClick={onClickResetBaseline}
         disabled={busy}
         className={`px-3 py-1 rounded border ${busy ? "opacity-50 cursor-not-allowed" : ""}`}
-        title="Met le preset actuel entièrement à 0 (modules off)"
+        title="Rétablit le preset par défaut (baseline)"
       >
-        ⟲ Reset (0)
+        ⟲ Reset
       </button>
 
-      {/* Preset Library compacte (à côté de Run) */}
+      {/* Preset Library compacte (sélecteur) */}
       <div className="flex items-center gap-1">
         <select
           className="rounded border px-2 py-1 text-sm"
@@ -157,7 +143,7 @@ export default function ActionsBar({
           disabled={!selected || busy}
           title="Charger le preset sélectionné"
         >
-          Load
+          Load (Library)
         </button>
         <button
           className="px-2 py-1 rounded border text-xs text-red-600"
@@ -165,7 +151,7 @@ export default function ActionsBar({
           disabled={!selected || busy}
           title="Supprimer le preset sélectionné"
         >
-          Delete
+          Delete (Library)
         </button>
         <button
           className="px-2 py-1 rounded border text-xs"
@@ -180,8 +166,8 @@ export default function ActionsBar({
       <span className="mx-1 opacity-50">|</span>
 
       {/* Quick slot + Import/Export */}
-      <button onClick={saveQuick} disabled={busy} className="px-3 py-1 rounded border">💾 Save</button>
-      <button onClick={loadQuick} disabled={busy} className="px-3 py-1 rounded border">📂 Load</button>
+      <button onClick={saveQuick} disabled={busy} className="px-3 py-1 rounded border">💾 Save (Quick)</button>
+      <button onClick={loadQuick} disabled={busy} className="px-3 py-1 rounded border">📂 Load (Quick)</button>
       <button onClick={exportFile} disabled={busy} className="px-3 py-1 rounded border">⬇ Export</button>
       <label className={`px-3 py-1 rounded border cursor-pointer ${busy ? "opacity-50 cursor-not-allowed" : ""}`}>
         ⬆ Import
