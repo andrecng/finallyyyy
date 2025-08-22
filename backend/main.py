@@ -1,18 +1,12 @@
+# main.py
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import Dict, Any, List, Optional
+import numpy as np
 
-app = FastAPI(title="FondForex API", version="1.0.0")
+app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+# ---------- Schémas I/O ----------
 class Preset(BaseModel):
     schema_version: str
     name: Optional[str] = None
@@ -20,7 +14,7 @@ class Preset(BaseModel):
     total_steps: int
     mu: float
     fees_per_trade: float
-    modules: Dict[str, Any]
+    modules: Dict[str, Any] = {}
 
 class Series(BaseModel):
     equity: List[float]
@@ -34,36 +28,119 @@ class SimOut(BaseModel):
     kpis: Optional[Dict[str, Any]] = None
     diag: Optional[Dict[str, Any]] = None
 
+# ---------- Health ----------
 @app.get("/health")
 def health():
     return {"ok": True}
 
+# ---------- Utilitaires KPI ----------
+def max_drawdown_total(equity: np.ndarray) -> float:
+    """Max drawdown global en décimal (0.12 = 12%)."""
+    if equity.size < 2:
+        return 0.0
+    run_max = np.maximum.accumulate(equity)
+    dd = (equity - run_max) / run_max  # <= 0
+    return float(-dd.min())  # positif
+
+def max_drawdown_daily(equity: np.ndarray) -> float:
+    """
+    Max drawdown 'daily' simplifié: pire rendement d'un step (si 1 step = 1 jour).
+    Si tes steps ne sont pas journaliers, adapte ici le regroupement par jour.
+    """
+    if equity.size < 2:
+        return 0.0
+    rets = np.diff(equity) / equity[:-1]
+    worst = float(np.min(rets))
+    return float(max(0.0, -worst))  # rendre positif
+
+def read_ftmo_limits(preset: Preset) -> tuple[float, float]:
+    """Extrait les limites FTMO depuis le preset (décimales)."""
+    gate = preset.modules.get("FTMOGate", {}) if preset.modules else {}
+    daily = float(gate.get("daily_limit", 0.02))   # défaut 2%
+    total = float(gate.get("total_limit", 0.10))   # défaut 10%
+    return daily, total
+
+# ---------- Branche TA vraie simu ici ----------
+def run_true_engine(preset: Preset) -> List[float]:
+    """
+    >>> IMPORTANT <<<
+    Remplace cette fonction par TON moteur réel.
+    Elle doit retourner une liste de niveaux d'équity (index, ex: 1.0 au départ).
+    """
+    # Exemples de points de branchement possibles côté projet :
+    # from backend.core import simulate_equity_path
+    # return simulate_equity_path(preset.dict())
+    raise NotImplementedError("Brancher le moteur réel ici")
+
+# ---------- Fallback temporaire (si tu n'as pas encore branché le moteur) ----------
+def fallback_equity(preset: Preset) -> List[float]:
+    """
+    Fallback NON-RÉALISTE (meilleur que la ligne droite du placeholder).
+    - Random walk calibré grossièrement par mu et une vol proxy,
+    - Frais appliqués à chaque step (simplifié).
+    Remplace dès que possible par run_true_engine(...).
+    """
+    rng = np.random.default_rng(int(preset.seed or 0))
+    n = max(2, int(preset.total_steps or 200))
+    mu = float(preset.mu or 0.0)        # drift "annualisé" simplifié (décimal)
+    vt = preset.modules.get("VolatilityTarget", {}) if preset.modules else {}
+    vol = float(vt.get("vt_target_vol", 0.10))     # vol cible proxy (annualisée)
+    # Approx discretisation simple (pas de formule sensible ici)
+    dt = 1.0 / 252.0
+    sigma_step = vol * np.sqrt(dt)
+    mu_step = mu * dt
+    eps = rng.standard_normal(n - 1)
+    rets = mu_step + sigma_step * eps
+    # frais simplistes par step
+    fees = float(preset.fees_per_trade or 0.0)
+    rets = rets - fees
+    equity = np.empty(n, dtype=float)
+    equity[0] = 1.0
+    equity[1:] = equity[0] * np.cumprod(1.0 + rets)
+    return equity.tolist()
+
+# ---------- Endpoint principal ----------
 @app.post("/simulate", response_model=SimOut)
 def simulate(preset: Preset):
-    # TODO: brancher TON moteur ici (ne mets pas les formules Kelly/Bayes)
-    # placeholders chiffrés pour la démo I/O :
-    series = [1.0 + 0.0005*i for i in range(max(2, preset.total_steps or 200))]
-    
+    # 1) Obtenir la série d'équity depuis TON moteur
+    try:
+        equity = run_true_engine(preset)
+    except NotImplementedError:
+        # Fallback temporaire si non branché
+        equity = fallback_equity(preset)
+
+    equity_arr = np.asarray(equity, dtype=float)
+    if not np.isfinite(equity_arr).all() or equity_arr.size < 2:
+        # Sanity guard pour éviter des valeurs absurdes
+        equity_arr = np.array([1.0, 0.99, 1.01], dtype=float)
+
+    # 2) KPI de base (contrat minimal)
+    dd_total = max_drawdown_total(equity_arr)
+    dd_daily = max_drawdown_daily(equity_arr)
+
+    daily_limit, total_limit = read_ftmo_limits(preset)
+    viol_daily = int(dd_daily > daily_limit)
+    viol_total = int(dd_total > total_limit)
+
+    # 3) Optionnel: KPI étendus (remplis ce que tu veux renvoyer)
+    kpis: Dict[str, Any] = {
+        # "cagr": ..., "vol_realized": ..., "sharpe": ..., etc. (décimaux si %)
+    }
+
+    # 4) Optionnel: Diagnostics modules (compteurs/logs)
+    diag: Dict[str, Any] = {
+        # "kelly_cap_hits": ..., "cppi_freeze_events": ..., "no_upsize_after_loss": True, ...
+    }
+
+    # 5) Réponse au format attendu (décimaux; le front affiche en %)
     out = SimOut(
-        max_dd_total=0.12,
-        max_dd_daily=0.01,
-        violations_daily=0,
-        violations_total=0,
-        series=Series(equity=series),
-        kpis={
-            "cagr": 0.22, "vol_realized": 0.18, "sharpe": 1.1,
-            "sortino": 1.6, "profit_factor": 1.35, "win_rate": 0.54,
-            "best_day_return": 0.031, "worst_day_return": -0.024,
-            "target_profit": 0.10, "max_days": 30, "days_to_target": 18, "target_pass": True,
-            "max_consecutive_losses": 4, "recovery_days_maxdd": 12
-        },
-        diag={
-            "vt_realized_vol": 0.19, "vt_target_vol_echo": 0.20,
-            "cppi_freeze_events": 3, "time_frozen_steps": 27,
-            "kelly_cap_hits": 12, "softbarrier_level_hits": [5,3,1],
-            "ftmo_gate_events": 2, "no_upsize_after_loss": True, "risk_final_is_min": True,
-            "cushion_breaches": 3
-        }
+        max_dd_total=float(dd_total),
+        max_dd_daily=float(dd_daily),
+        violations_daily=viol_daily,
+        violations_total=viol_total,
+        series=Series(equity=[float(x) for x in equity_arr.tolist()]),
+        kpis=kpis or None,
+        diag=diag or None,
     )
     return out
 
