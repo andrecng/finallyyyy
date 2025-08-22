@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "name": "softbarrier-steep",
+  "seed": 1337,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "SoftBarrier": { "enabled": true, "steps": [1,2,4,6], "haircuts": [0.8,0.6,0.4,0.2] },
+    "FTMOGate": { "enabled": true, "daily_limit": 0.02, "total_limit": 0.10, "spend_rate": 0.35, "lmax_vol_aware": "p50" }
+  }
+}

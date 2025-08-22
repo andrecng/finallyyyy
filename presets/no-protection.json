@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "name": "no-protection",
+  "seed": 1337,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {}
+}

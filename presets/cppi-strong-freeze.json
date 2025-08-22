@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "name": "cppi-strong-freeze",
+  "seed": 1337,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "CPPIFreeze": { "alpha": 0.40, "freeze_frac": 0.10 },
+    "FTMOGate": { "enabled": true, "daily_limit": 0.02, "total_limit": 0.10, "spend_rate": 0.35, "lmax_vol_aware": "p50" }
+  }
+}

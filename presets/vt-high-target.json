@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "name": "vt-high-target",
+  "seed": 1337,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "VolatilityTarget": { "vt_target_vol": 0.20, "vt_halflife": 8 },
+    "FTMOGate": { "enabled": true, "daily_limit": 0.02, "total_limit": 0.10, "spend_rate": 0.35, "lmax_vol_aware": "p50" }
+  }
+}

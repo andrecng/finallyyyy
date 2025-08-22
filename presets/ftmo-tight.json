@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "name": "ftmo-tight",
+  "seed": 1337,
+  "total_steps": 2000,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "VolatilityTarget": { "vt_target_vol": 0.10, "vt_halflife": 16 },
+    "CPPIFreeze": { "alpha": 0.20, "freeze_frac": 0.05 },
+    "KellyCap": { "cap_mult": 0.50 },
+    "SoftBarrier": { "enabled": true, "steps": [1,2,3], "haircuts": [0.7,0.5,0.3] },
+    "FTMOGate": { "enabled": true, "daily_limit": 0.01, "total_limit": 0.05, "spend_rate": 0.35, "lmax_vol_aware": "p50" }
+  }
+}
