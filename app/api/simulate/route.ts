@@ -12,17 +12,19 @@ export async function POST(req: Request) {
       body: JSON.stringify(preset),
     });
     const data = await r.json();
-    return new Response(JSON.stringify(data), { 
-      headers: { "content-type": "application/json" } 
+    return new Response(JSON.stringify(data), {
+      headers: { "content-type": "application/json" },
     });
   }
 
-  // MOCK local (pour que le front soit incassable en dev)
-  const equity = Array.from({ length: 120 }, (_, i) => i + Math.sin(i / 6) * 5);
-  return new Response(JSON.stringify({ 
-    kpis: { max_dd_total: 0.05 }, 
-    series: { equity } 
-  }), {
-    headers: { "content-type": "application/json" }
-  });
+  // MOCK simple pour que l'UI fonctionne immédiatement
+  const equity = Array.from({ length: 200 }, (_, i) => i + Math.sin(i / 6) * 5);
+  return new Response(
+    JSON.stringify({
+      kpis: { max_dd_total: 0.05, max_dd_daily: 0.02 },
+      series: { equity },
+      modules_active: Object.keys(preset.modules || {}),
+    }),
+    { headers: { "content-type": "application/json" } }
+  );
 }
