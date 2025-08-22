@@ -1,7 +1,7 @@
 // lib/format.ts
 "use client";
 
-function toNum(x: unknown): number | null {
+export function toNum(x: unknown): number | null {
   if (x == null) return null;
   if (typeof x === "number") return Number.isFinite(x) ? x : null;
   const n = parseFloat(String(x));

@@ -2,7 +2,12 @@
 import { useState } from "react";
 import type { PresetV1, SimulationOutput } from "@/engine/facade";
 import { engine } from "@/engine/facade";
-import { pct } from "@/lib/format";
+import { pct, toNum, asInt01 } from "@/lib/format";
+
+function pick(o: any, key: string) {
+  // supporte out.key OU out.kpis.key
+  return o?.[key] ?? o?.kpis?.[key] ?? null;
+}
 
 export default function MonteCarloPanel({ basePreset }: { basePreset: PresetV1 }) {
   const [iterations, setIterations] = useState<number>(100);
@@ -12,7 +17,6 @@ export default function MonteCarloPanel({ basePreset }: { basePreset: PresetV1 }
     dd_p50: number | null;
     dd_p95: number | null;
     runs: number;
-    used_profit_target: boolean;
   } | null>(null);
 
   async function runMC() {
@@ -20,37 +24,34 @@ export default function MonteCarloPanel({ basePreset }: { basePreset: PresetV1 }
       setBusy(true);
       const N = Math.max(1, Math.floor(iterations));
       const results: SimulationOutput[] = [];
+
       for (let i = 0; i < N; i++) {
         const preset = { ...basePreset, seed: (basePreset.seed ?? 0) + i + 1 };
-        // Un seul point d'entrée
         const out = await engine.simulate(preset);
         results.push(out);
       }
 
-      // Pass DD-only (actuel) : pas de cible profit incluse
       let passCount = 0;
-      let usedProfitTarget = false;
-
       const dds: number[] = [];
-      for (const r of results) {
-        const vd = r.violations_daily ?? 0;
-        const vt = r.violations_total ?? 0;
-        // Si un jour on inclut la cible profit :
-        // const meetsProfit = (r as any)?.target_pass === true || (r as any)?.days_to_target <= 30;
-        // usedProfitTarget = usedProfitTarget || Boolean((r as any)?.target_pass || (r as any)?.days_to_target);
-        const pass = vd === 0 && vt === 0; // DD-only (FTMO)
-        if (pass) passCount += 1;
 
-        if (Number.isFinite(r.max_dd_total as number)) {
-          dds.push(r.max_dd_total as number);
-        }
+      for (const r of results) {
+        // READ violations en racine ou kpis, et tolérer bool/str/num
+        const vd = asInt01(pick(r, "violations_daily"));
+        const vt = asInt01(pick(r, "violations_total"));
+        // Ne JAMAIS compter PASS si une info manque
+        if (vd === 0 && vt === 0) passCount += 1;
+
+        // READ max_dd_total où qu'il soit, même en string
+        const dd = toNum(pick(r, "max_dd_total"));
+        if (dd != null) dds.push(dd);
       }
 
       dds.sort((a, b) => a - b);
-      const q = (p: number) => {
-        if (dds.length === 0) return null;
+      const q = (p: number): number | null => {
+        if (!dds.length) return null;
         const idx = Math.min(dds.length - 1, Math.max(0, Math.floor((dds.length - 1) * p)));
         return dds[idx];
+        // (simple index quantile; suffisant ici)
       };
 
       setSummary({
@@ -58,7 +59,6 @@ export default function MonteCarloPanel({ basePreset }: { basePreset: PresetV1 }
         dd_p50: q(0.5),
         dd_p95: q(0.95),
         runs: results.length,
-        used_profit_target: usedProfitTarget,
       });
     } catch (e) {
       console.error(e);
@@ -95,8 +95,7 @@ export default function MonteCarloPanel({ basePreset }: { basePreset: PresetV1 }
       </div>
 
       <div className="text-xs text-gray-500">
-        Pass rate affiché = **FTMO (DD daily & total)** uniquement.
-        {summary?.used_profit_target ? "" : " La cible de profit n'est pas incluse."}
+        Pass rate = **FTMO (DD daily & total)** uniquement. La cible de profit n'est pas incluse.
       </div>
 
       {summary && (
