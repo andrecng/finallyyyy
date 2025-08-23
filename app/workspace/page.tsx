@@ -6,7 +6,7 @@ import ActionsBar from "@/components/panels/ActionsBar";
 import PresetEditor from "@/components/panels/PresetEditor";
 import ResultPanel from "@/components/ResultPanel";
 import EquityChart from "@/components/charts/EquityChart";
-import MonteCarloPanel from "@/components/panels/MonteCarloPanel";
+
 import PerformanceRiskPanel from "@/components/panels/PerformanceRiskPanel";
 import DiagnosticsPanel from "@/components/panels/DiagnosticsPanel";
 import McPanel from "./components/McPanel";
@@ -72,9 +72,10 @@ export default function Workspace() {
       const payload = mapToBackend(preset);
       console.log("simulate payload →", payload);
       
-      // 2) VÉRIFIER - Bloquer si aucun module actif
-      if (!payload.use_kelly_cap && !payload.use_vt && !payload.use_cppi && !payload.use_soft_barrier) {
-        alert("Aucune exposition envoyée (tous modules OFF ou champs non mappés).");
+      // 2) VÉRIFIER - Bloquer si aucun sizer actif (VT/CPPI)
+      const hasSizer = payload.use_vt || payload.use_cppi;
+      if (!hasSizer) {
+        alert("Aucune exposition envoyée (active VolatilityTarget ou CPPI).");
         return;
       }
       
@@ -122,9 +123,7 @@ export default function Workspace() {
       <PerformanceRiskPanel out={out} />
       <DiagnosticsPanel out={out} />
 
-      <MonteCarloPanel basePreset={preset} />
-      
-      {/* Nouveau panneau Monte-Carlo avec toggle */}
+      {/* Panneau Monte-Carlo moderne */}
       <McPanel mc={mc} />
     </main>
   );
