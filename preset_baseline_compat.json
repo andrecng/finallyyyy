@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "name": "baseline-daily-first",
+  "seed": 42,
+  "total_steps": 500,
+  "mu": 0.0,
+  "fees_per_trade": 0.0002,
+  "modules": {
+    "CPPIFreeze": {
+      "alpha": 0.10,
+      "freeze_frac": 0.05
+    },
+    "VolatilityTarget": {
+      "vt_target_vol": 0.10,
+      "vt_halflife": 20
+    },
+    "KellyCap": {
+      "kelly_cap": 0.10
+    },
+    "SoftBarrier": {
+      "soft_barrier": 0.02
+    },
+    "FTMOGate": {
+      "daily_limit": 0.05,
+      "total_limit": 0.10
+    }
+  }
+}

@@ -1,0 +1,437 @@
+from typing import Dict, Any, List, Optional
+from fastapi import FastAPI, Body
+from pydantic import BaseModel
+import math
+
+app = FastAPI()
+
+# -----------------------------
+# Helpers (stables & lisibles)
+# -----------------------------
+def realized_vol(returns: List[float]) -> float:
+    if not returns:
+        return 0.0
+    m = sum(returns)/len(returns)
+    var = sum((r-m)**2 for r in returns) / max(1, len(returns)-1)
+    return math.sqrt(var)
+
+def drawdowns(equity: List[float]) -> Dict[str, Any]:
+    # Total DD
+    peak = equity[0]
+    max_dd_total = 0.0
+    for x in equity:
+        peak = max(peak, x)
+        dd = (peak - x)/peak
+        if dd > max_dd_total:
+            max_dd_total = dd
+
+    return {"max_dd_total": max_dd_total}
+
+def daily_violations(equity: List[float], daily_limit: float, steps_per_day: int) -> Dict[str, Any]:
+    """
+    On interprète 'daily' comme une fenêtre qui redémarre au début de chaque journée (equity_open).
+    Violation dès que equity descend sous equity_open*(1 - daily_limit).
+    """
+    if steps_per_day <= 0:
+        steps_per_day = len(equity)  # 1 "journée" = tout (fallback)
+
+    violations_daily = 0
+    max_dd_daily = 0.0
+
+    for day_start in range(0, len(equity), steps_per_day):
+        day_end = min(day_start + steps_per_day, len(equity))
+        eq_open = equity[day_start]
+        peak = eq_open
+        local_max_dd = 0.0
+
+        violated = False
+        threshold = eq_open * (1.0 - daily_limit)
+
+        for x in equity[day_start:day_end]:
+            peak = max(peak, x)
+            dd = (peak - x)/peak if peak > 0 else 0.0
+            local_max_dd = max(local_max_dd, dd)
+            if (not violated) and x < threshold:
+                violations_daily += 1
+                violated = True
+
+        max_dd_daily = max(max_dd_daily, local_max_dd)
+
+    return {"max_dd_daily": max_dd_daily, "violations_daily": violations_daily}
+
+def total_violations(equity: List[float], total_limit: float) -> int:
+    """
+    Violation 'total' si on passe sous HWM*(1 - total_limit) à n'importe quel moment.
+    (On compte les occurrences distinctes.)
+    """
+    violations = 0
+    hwm = equity[0]
+    in_violation = False
+    for x in equity:
+        hwm = max(hwm, x)
+        floor = hwm * (1.0 - total_limit)
+        now_viol = x < floor
+        if now_viol and not in_violation:
+            violations += 1
+            in_violation = True
+        if not now_viol and in_violation:
+            in_violation = False
+    return violations
+
+def safe_number(x):
+    """Jamais NaN/Inf dans le JSON"""
+    if x is None:
+        return None
+    if isinstance(x, float) and (math.isinf(x) or math.isnan(x)):
+        return None
+    return x
+
+def compute_basic_kpis_from_equity(equity):
+    if not equity or len(equity) < 2:
+        return {
+            "vol_realized": 0.0,
+            "win_rate": 0.0,
+            "profit_factor": None  # pas d'inf dans le JSON
+        }
+    rets = [(equity[i]/equity[i-1]) - 1.0 for i in range(1, len(equity))]
+    m = sum(rets)/len(rets)
+    var = sum((r-m)**2 for r in rets) / max(1, len(rets)-1)
+    vol_realized = var ** 0.5
+
+    wins = sum(1 for r in rets if r > 0)
+    win_rate = wins / max(1, len(rets))
+
+    gp = sum(r for r in rets if r > 0.0)
+    gl = -sum(r for r in rets if r < 0.0)
+    pf = (gp / gl) if gl > 0.0 else None  # évite inf
+
+    return {
+        "vol_realized": safe_number(vol_realized),
+        "win_rate": safe_number(win_rate),
+        "profit_factor": safe_number(pf)
+    }
+
+def clip01(x, name, clamped):
+    """Filet de sécurité: clippe les valeurs entre 0.0 et 1.0 (unités décimales)"""
+    if x < 0.0:
+        clamped[name] = [x, 0.0]
+        return 0.0
+    if x > 1.0:
+        clamped[name] = [x, 1.0]
+        return 1.0
+    return x
+
+def safe_diag_dict(use_cppi=False, use_vt=False, use_kelly=False, use_soft=False,
+                   kelly_cap_hits=0, cppi_freeze_events=0, no_upsize_after_loss=True,
+                   used_default_expo=False, param_clamps=None):
+    return {
+        "kelly_cap_hits": int(kelly_cap_hits or 0),
+        "cppi_freeze_events": int(cppi_freeze_events or 0),
+        "no_upsize_after_loss": bool(no_upsize_after_loss if no_upsize_after_loss is not None else True),
+        "modules_active": [m for m, flag in {
+            "CPPI": use_cppi, "VolTarget": use_vt, "KellyCap": use_kelly, "SoftBarrier": use_soft
+        }.items() if flag],
+        "used_default_expo": bool(used_default_expo),
+        "param_clamps": param_clamps or {}
+    }
+
+# -----------------------------
+# Modèle d'entrée compatible avec l'ancien frontend
+# -----------------------------
+class SimInput(BaseModel):
+    # Champs requis par l'ancien frontend
+    schema_version: str = "1.0"
+    name: Optional[str] = None
+    seed: Optional[int] = 42
+    total_steps: int = 500
+    mu: float = 0.0
+    fees_per_trade: float = 0.0002
+    
+    # Modules (format compatible)
+    modules: Dict[str, Any] = {}
+    
+    # Nouveaux paramètres (avec valeurs par défaut)
+    steps_per_day: int = 50
+    sigma: float = 0.02
+    
+    # Paramètres des modules (extraits de modules.*)
+    cppi_alpha: float = 0.10
+    cppi_freeze_frac: float = 0.05
+    vt_target_vol: float = 0.10
+    vt_halflife: int = 20
+    kelly_cap: float = 0.10
+    soft_barrier: float = 0.0
+    
+    # Contraintes FTMO
+    daily_limit: float = 0.05
+    total_limit: float = 0.10
+    
+    # Pacing
+    spend_rate: float = 1.0
+    
+    # Drapeaux d'activation (strict opt-in)
+    use_cppi: bool = False
+    use_vt: bool = False
+    use_kelly_cap: bool = False
+    use_soft_barrier: bool = False
+    
+    # Traces de débogage
+    debug: bool = False
+    trace_len: int = 10
+    
+    # Cible de profit
+    target_profit: float = 0.10   # 10% = 0.10
+    max_days: int = 30
+
+# -----------------------------
+# Boucle de simu (sans details privés)
+# -----------------------------
+def simulate_equity(p: SimInput) -> Dict[str, Any]:
+    # Remplace l'usage global de random.seed(...) par un RNG local
+    import random as _random
+    rng = _random.Random(p.seed) if p.seed is not None else _random.Random()
+    
+    # Extraction des paramètres depuis modules.*
+    if p.modules:
+        cppi_config = p.modules.get("CPPIFreeze", {})
+        vt_config = p.modules.get("VolatilityTarget", {})
+        kelly_config = p.modules.get("KellyCap", {})
+        soft_config = p.modules.get("SoftBarrier", {})
+        ftmo_config = p.modules.get("FTMOGate", {})
+        
+        p.cppi_alpha = cppi_config.get("alpha", p.cppi_alpha)
+        p.cppi_freeze_frac = cppi_config.get("freeze_frac", p.cppi_freeze_frac)
+        p.vt_target_vol = vt_config.get("vt_target_vol", p.vt_target_vol)
+        p.vt_halflife = vt_config.get("vt_halflife", p.vt_halflife)
+        p.kelly_cap = kelly_config.get("kelly_cap", p.kelly_cap)
+        p.soft_barrier = soft_config.get("soft_barrier", p.soft_barrier)
+        p.daily_limit = ftmo_config.get("daily_limit", p.daily_limit)
+        p.total_limit = ftmo_config.get("total_limit", p.total_limit)
+
+    # Filets de sécurité sur les params en décimal
+    param_clamps = {}
+    p.daily_limit = clip01(p.daily_limit, "daily_limit", param_clamps)
+    p.total_limit = clip01(p.total_limit, "total_limit", param_clamps)
+    p.kelly_cap   = clip01(p.kelly_cap, "kelly_cap", param_clamps)
+
+    # cppi_freeze_frac ne doit pas dépasser cppi_alpha (sinon freeze instantané)
+    if p.cppi_freeze_frac > p.cppi_alpha:
+        param_clamps["cppi_freeze_frac"] = [p.cppi_freeze_frac, p.cppi_alpha]
+        p.cppi_freeze_frac = p.cppi_alpha
+
+    equity = [1.0]
+    hwm = 1.0
+    floor = hwm * (1.0 - p.cppi_alpha) if p.use_cppi else 0.0
+
+    # EW vol proxy (simple)
+    vol_est = p.sigma
+    lam = math.exp(math.log(0.5)/max(1, p.vt_halflife)) if p.use_vt else 0.5  # demi-vie → lambda
+
+    # Diagnostics
+    kelly_cap_hits = 0
+    cppi_freeze_events = 0
+    no_upsize_after_loss = True
+
+    last_position = 0.0
+    last_step_was_loss = False
+    
+    # Au début de la boucle, initialise la trace et les flags
+    trace = []
+    used_default_expo = False
+    first_cross_step = None  # <- pour la cible de profit
+
+    for t in range(1, p.total_steps+1):
+        # Process bruité (mu, sigma)
+        base_r = rng.gauss(p.mu, p.sigma)
+
+        # Sizers "min aggregator"
+        sizes: List[float] = []
+
+        # VolTarget (approx) → target vol / vol_est
+        if p.use_vt:
+            f_vt = p.vt_target_vol / max(1e-8, vol_est)
+            sizes.append(f_vt)
+
+        # KellyCap (uniquement CAP – pas de formule interne divulguée)
+        if p.use_kelly_cap:
+            sizes.append(p.kelly_cap)
+
+        # SoftBarrier (palier de réduction doux)
+        if p.use_soft_barrier and p.soft_barrier > 0.0:
+            # réduction si DD en cours dépasse soft_barrier
+            dd_now = (hwm - equity[-1]) / max(hwm, 1e-8)
+            if dd_now > p.soft_barrier:
+                sizes.append(max(0.0, 1.0 - dd_now))  # haircut simple
+
+        # Agrégateur min() — strict opt-in: pas d'expo si aucun module
+        used_default_expo = (len(sizes) == 0)
+        f_raw = min(sizes) if sizes else 0.0
+
+        # Pacing
+        f = max(0.0, min(1.0, f_raw * p.spend_rate))
+
+        # Règle d'or: pas d'upsize après une perte (palier soft)
+        if last_step_was_loss and f > last_position:
+            no_upsize_after_loss = False  # on log seulement (diagnostic)
+            # Option stricte (désactivée): f = min(f, last_position)
+
+        # CPPI (cushion_ratio défini seulement si CPPI ON)
+        cushion_ratio = None
+        if p.use_cppi:
+            cushion = max(0.0, equity[-1] - floor)
+            cushion_ratio = (cushion / hwm) if hwm > 0 else 0.0
+            if cushion_ratio < p.cppi_freeze_frac:
+                f = 0.0
+                cppi_freeze_events += 1
+
+        # Cap hit ?
+        if p.use_kelly_cap and abs(f - p.kelly_cap) < 1e-12:
+            kelly_cap_hits += 1
+
+        # PnL step (linéarisé)
+        r_eff = f * base_r
+        new_eq = max(1e-9, equity[-1] * (1.0 + r_eff))
+        equity.append(new_eq)
+
+        # --- détection de la cible ---
+        if first_cross_step is None and new_eq >= (1.0 + p.target_profit):
+            first_cross_step = t
+
+        # Mises à jour HWM / floor
+        if new_eq > hwm:
+            hwm = new_eq
+            if p.use_cppi:
+                floor = hwm * (1.0 - p.cppi_alpha)
+
+        # EW vol update
+        if p.use_vt:
+            vol_est = math.sqrt(lam * (vol_est**2) + (1-lam) * (base_r**2))
+
+        # Diagnostics "no upsize after loss"
+        last_step_was_loss = (new_eq < equity[-2])
+        last_position = f
+        
+        # Ajoute la collecte de trace (sans NameError)
+        if p.debug and len(trace) < p.trace_len:
+            freeze_flag = (p.use_cppi and cushion_ratio is not None and cushion_ratio < p.cppi_freeze_frac and f == 0.0)
+            trace.append({
+                "t": t,
+                "base_r": base_r,
+                "f": f,
+                "hwm": hwm,
+                "floor": floor,
+                "freeze": freeze_flag,
+                "eq": new_eq
+            })
+
+    # ---- DD & Violations ----
+    dd_tot = drawdowns(equity)["max_dd_total"]
+    daily = daily_violations(equity, p.daily_limit, p.steps_per_day)
+    v_total = total_violations(equity, p.total_limit)
+
+    # --- Cible de profit -> days_to_target & target_pass ---
+    days_to_target = None
+    if first_cross_step is not None and p.steps_per_day > 0:
+        days_to_target = int(math.ceil(first_cross_step / p.steps_per_day))
+
+    target_pass = bool(
+        (days_to_target is not None) and
+        (days_to_target <= p.max_days) and
+        (daily["violations_daily"] == 0) and
+        (v_total == 0)
+    )
+
+    # ---- KPIs & Diagnostics ----
+    # Bloc de retour JSON (jamais null + diag enrichi)
+    kpis_out = compute_basic_kpis_from_equity(equity)
+    kpis_out.update({
+        "target_profit": safe_number(p.target_profit),
+        "max_days": int(p.max_days),
+        "days_to_target": days_to_target,   # peut être None si non atteint
+        "target_pass": target_pass
+    })
+    diag_out = safe_diag_dict(
+        use_cppi=p.use_cppi,
+        use_vt=p.use_vt,
+        use_kelly=p.use_kelly_cap,
+        use_soft=p.use_soft_barrier,
+        kelly_cap_hits=kelly_cap_hits,
+        cppi_freeze_events=cppi_freeze_events,
+        no_upsize_after_loss=no_upsize_after_loss,
+        used_default_expo=used_default_expo,
+        param_clamps=param_clamps
+    )
+
+    out = {
+        "series": {"equity": equity},
+        "max_dd_total": dd_tot,
+        "max_dd_daily": daily["max_dd_daily"],
+        "violations_daily": daily["violations_daily"],
+        "violations_total": v_total,
+        "kpis": kpis_out,   # jamais null, jamais inf/nan
+        "diag": diag_out    # modules actifs, clamps, flags
+    }
+    if p.debug:
+        out["trace"] = trace
+    return out
+
+# -----------------------------
+# Endpoints
+# -----------------------------
+@app.get("/health")
+def health():
+    return {"ok": True, "app": "backend.app.main", "rev": "r1"}
+
+@app.post("/simulate")
+def simulate(payload: SimInput = Body(...)):
+    result = simulate_equity(payload)
+    return result
+
+class MCInput(BaseModel):
+    payload: SimInput
+    n: int = 100
+    base_seed: int = 12345
+
+@app.post("/simulate_mc")
+def simulate_mc(inp: MCInput):
+    import copy
+    dds = []
+    pass_ftmo = 0
+    pass_full = 0
+
+    for i in range(inp.n):
+        p = copy.deepcopy(inp.payload)
+        p.seed = inp.base_seed + i
+        res = simulate_equity(p)
+
+        v_daily = res.get("violations_daily", 0)
+        v_total = res.get("violations_total", 0)
+        if v_daily == 0 and v_total == 0:
+            pass_ftmo += 1
+
+        k = res.get("kpis", {})
+        if (k.get("target_pass") is True):
+            pass_full += 1
+
+        dds.append(res.get("max_dd_total", 0.0))
+
+    dds_sorted = sorted(dds)
+    def quantile(arr, q):
+        if not arr: return 0.0
+        idx = int(round(q*(len(arr)-1)))
+        return arr[idx]
+
+    return {
+        "n": inp.n,
+        "mc": {
+            "pass_rate": pass_ftmo / max(1, inp.n),
+            "pass_rate_full": pass_full / max(1, inp.n),
+            "dd_p50": quantile(dds_sorted, 0.50),
+            "dd_p95": quantile(dds_sorted, 0.95)
+        }
+    }
+
+
+
+
+

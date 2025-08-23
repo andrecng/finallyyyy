@@ -1,0 +1,24 @@
+{
+  "total_steps": 500,
+  "steps_per_day": 50,
+  "mu": 0.0,
+  "sigma": 0.02,
+
+  "use_cppi": true,
+  "cppi_alpha": 0.10,
+  "cppi_freeze_frac": 0.05,
+
+  "use_vt": true,
+  "vt_target_vol": 0.10,
+  "vt_halflife": 20,
+
+  "use_kelly_cap": true,
+  "kelly_cap": 0.10,
+
+  "use_soft_barrier": true,
+  "soft_barrier": 0.02,
+
+  "daily_limit": 0.05,
+  "total_limit": 0.10,
+  "spend_rate": 1.0
+}

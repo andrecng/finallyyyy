@@ -1,4 +1,4 @@
-// app/api/simulate/route.ts
+// app/api/simulate_mc/route.ts
 function toBackend(payload: any) {
   if (!payload || typeof payload !== "object") return payload;
 
@@ -53,13 +53,20 @@ function toBackend(payload: any) {
 
 export async function POST(req: Request) {
   const raw = await req.json();
-  const payload = toBackend(raw);
-  console.log("proxy /simulate payload →", payload); // vérif serveur Next
+  
+  // Transformation du payload principal
+  const transformedPayload = {
+    ...raw,
+    payload: toBackend(raw.payload)
+  };
+  
+  console.log("proxy /simulate_mc payload →", transformedPayload); // vérif serveur Next
 
-  const r = await fetch(`${process.env.BACKEND_URL}/simulate`, {
+  const url = `${process.env.BACKEND_URL}/simulate_mc`;
+  const r = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(transformedPayload),
     cache: "no-store",
   });
   const data = await r.json();

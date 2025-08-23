@@ -9,6 +9,10 @@ import EquityChart from "@/components/charts/EquityChart";
 import MonteCarloPanel from "@/components/panels/MonteCarloPanel";
 import PerformanceRiskPanel from "@/components/panels/PerformanceRiskPanel";
 import DiagnosticsPanel from "@/components/panels/DiagnosticsPanel";
+import McPanel from "./components/McPanel";
+import { simulate, simulateMc } from "./lib/api";
+import { normalizePreset } from "./lib/normalize";
+import { mapToBackend } from "./lib/buildPayload";
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -28,16 +32,63 @@ const defaultPreset: PresetV1 = {
 
 export default function Workspace() {
   const [preset, setPreset] = useState<PresetV1>(defaultPreset);
-  const [out, setOut] = useState<SimulationOutput | null>(null);
+  const [out, setOut] = useState<any>(null);
   const [busy, setBusy] = useState(false);
+  const [mc, setMc] = useState<any>(null);
 
   const resetBaseline = () => { setPreset(defaultPreset); setOut(null); };
+
+  // Fonction pour appliquer un preset complet
+  function applyPreset(presetObj: any) {
+    try {
+      // IMPORTANT: on doit setter l'objet complet,
+      // pas {id,name} ni seulement quelques champs.
+      const normalized = normalizePreset(presetObj);
+      setPreset(normalized);
+      setOut(null);
+      setMc(null);
+    } catch (e) {
+      alert("Preset invalide: vérifie % (doivent être en décimal), booléens et nombres.");
+      console.error(e);
+    }
+  }
+
+  // Fonction pour parser un preset JSON manuel
+  function onPastePreset(text: string) {
+    try {
+      // Interdire les commentaires // et trailing %, sinon on sanitize avant
+      const obj = JSON.parse(text);
+      applyPreset(obj);
+    } catch {
+      alert("JSON invalide (pas de // commentaires, pas de % dans les nombres).");
+    }
+  }
 
   async function run() {
     try {
       setBusy(true);
-      const res = await engine.simulate(preset);
+      
+      // 1) MAP - Mapping UI → backend avec log visuel
+      const payload = mapToBackend(preset);
+      console.log("simulate payload →", payload);
+      
+      // 2) VÉRIFIER - Bloquer si aucun module actif
+      if (!payload.use_kelly_cap && !payload.use_vt && !payload.use_cppi && !payload.use_soft_barrier) {
+        alert("Aucune exposition envoyée (tous modules OFF ou champs non mappés).");
+        return;
+      }
+      
+      // 3) FETCH - Simulation principale
+      const res = await simulate(payload);
       setOut(res);
+      
+      // Appel Monte-Carlo avec le même payload
+      try {
+        const mcRes = await simulateMc(payload, 100, 777);
+        setMc(mcRes.mc);
+      } catch (mcError) {
+        console.error("Erreur Monte-Carlo:", mcError);
+      }
     } catch (e) {
       console.error(e);
       alert("Erreur simulate(): " + (e as Error).message);
@@ -56,6 +107,13 @@ export default function Workspace() {
       <ActionsBar preset={preset} onRun={run} onReset={resetBaseline} setPreset={setPreset} busy={busy} />
       <PresetEditor preset={preset} setPreset={setPreset} />
 
+      {/* Alerte exposition par défaut */}
+      {out?.diag?.used_default_expo && (
+        <div className="p-3 rounded-lg bg-yellow-100 border border-yellow-300 text-yellow-800">
+          ⚠️ <strong>Aucune exposition envoyée</strong> (tous modules OFF ou champs non mappés).
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ResultPanel out={out} />
         <EquityChart series={out?.series?.equity ?? []} />
@@ -65,6 +123,9 @@ export default function Workspace() {
       <DiagnosticsPanel out={out} />
 
       <MonteCarloPanel basePreset={preset} />
+      
+      {/* Nouveau panneau Monte-Carlo avec toggle */}
+      <McPanel mc={mc} />
     </main>
   );
 }
