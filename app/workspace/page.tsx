@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import type { PresetV1, SimulationOutput } from "@/engine/facade";
 import { engine } from "@/engine/facade";
 import ActionsBar from "@/components/panels/ActionsBar";
@@ -35,8 +35,30 @@ export default function Workspace() {
   const [out, setOut] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [mc, setMc] = useState<any>(null);
+  
+  // États pour Monte Carlo manuel
+  const [mcN, setMcN] = useState(100);
+  const [mcData, setMcData] = useState<any | null>(null);
+  const [mcStatus, setMcStatus] = useState<"ready" | "running" | "error">("ready");
+  const [passRateFull, setPassRateFull] = useState(false);
+  const [autoMC, setAutoMC] = useState(true);
 
-  const resetBaseline = () => { setPreset(defaultPreset); setOut(null); };
+  // Optionnel: annuler la requête précédente si l'utilisateur relance vite
+  const mcAbortRef = useRef<AbortController | null>(null);
+  const mcReqSeq = useRef(0);
+
+  // stringifier proprement le payload pour détecter les changements
+  function stableStringify(x: any) {
+    return JSON.stringify(x, Object.keys(x).sort());
+  }
+
+  const resetBaseline = () => { 
+    setPreset(defaultPreset); 
+    setOut(null); 
+    setMc(null); 
+    setMcData(null); 
+    setMcStatus("ready"); 
+  };
 
   // Fonction pour appliquer un preset complet
   function applyPreset(presetObj: any) {
@@ -47,6 +69,8 @@ export default function Workspace() {
       setPreset(normalized);
       setOut(null);
       setMc(null);
+      setMcData(null);
+      setMcStatus("ready");
     } catch (e) {
       alert("Preset invalide: vérifie % (doivent être en décimal), booléens et nombres.");
       console.error(e);
@@ -63,6 +87,70 @@ export default function Workspace() {
       alert("JSON invalide (pas de // commentaires, pas de % dans les nombres).");
     }
   }
+
+  // Fonction Monte Carlo avec contrôle d'annulation et refresh fiable
+  async function runMc(nOverride?: number) {
+    const n = nOverride ?? mcN;
+    setMcStatus("running");
+
+    // Annule l'ancien fetch s'il existe
+    mcAbortRef.current?.abort();
+    const ctl = new AbortController();
+    mcAbortRef.current = ctl;
+
+    const seq = ++mcReqSeq.current;
+
+    try {
+      const res = await fetch(`/api/simulate_mc?ts=${Date.now()}`, {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+        body: JSON.stringify({ payload: mapToBackend(preset), n }),
+        signal: ctl.signal,
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      const json = await res.json();
+
+      // si entre temps un autre run est parti, on jette ce résultat
+      if (seq !== mcReqSeq.current) return;
+
+      // le backend peut renvoyer { n, mc: {...} } ou directement {...}
+      const mc = json.mc ?? json;
+      setMcData({
+        pass_rate: mc.pass_rate,
+        pass_rate_full: mc.pass_rate_full,
+        dd_p50: mc.dd_p50,
+        dd_p95: mc.dd_p95,
+      });
+      setMcStatus("ready");
+    } catch (e) {
+      if (seq !== mcReqSeq.current) return;
+      console.error("Erreur Monte Carlo:", e);
+      setMcStatus("error");
+    }
+  }
+
+  // Détecter les changements de payload pour reset Monte Carlo
+  const payload = mapToBackend(preset);
+  const payloadKey = useMemo(() => stableStringify(payload), [payload]);
+
+  // Quand le payload change (tu modifies un paramètre / un module), on remet le MC à zéro
+  useEffect(() => {
+    setMcData(null);
+    setMcStatus("ready");
+    // (si tu avais un auto-MC, déclenche-le ici avec runMc(); sinon on reste manuel)
+  }, [payloadKey]);
+
+  // Auto-run Monte-Carlo si activé
+  useEffect(() => {
+    if (!autoMC) return;
+    const t = setTimeout(() => runMc(), 250); // petit debounce
+    return () => clearTimeout(t);
+  }, [payloadKey, mcN, autoMC]);
 
   async function run() {
     try {
@@ -83,13 +171,16 @@ export default function Workspace() {
       const res = await simulate(payload);
       setOut(res);
       
-      // Appel Monte-Carlo avec le même payload
-      try {
-        const mcRes = await simulateMc(payload, 100, 777);
-        setMc(mcRes.mc);
-      } catch (mcError) {
-        console.error("Erreur Monte-Carlo:", mcError);
-      }
+      // Appel Monte-Carlo automatique COMMENTÉ
+      // const AUTO_MC = false;
+      // if (AUTO_MC) {
+      //   try {
+      //     const mcRes = await simulateMc(payload, 100, 777);
+      //     setMc(mcRes.mc);
+      //   } catch (mcError) {
+      //     console.error("Erreur Monte-Carlo:", mcError);
+      //   }
+      // }
     } catch (e) {
       console.error(e);
       alert("Erreur simulate(): " + (e as Error).message);
@@ -123,8 +214,18 @@ export default function Workspace() {
       <PerformanceRiskPanel out={out} />
       <DiagnosticsPanel out={out} />
 
-      {/* Panneau Monte-Carlo moderne */}
-      <McPanel mc={mc} />
+      {/* Panneau Monte-Carlo moderne avec contrôle de N et refresh fiable */}
+      <McPanel
+        n={mcN}
+        status={mcStatus}
+        data={mcData}
+        onRun={() => runMc()}
+        passRateFull={passRateFull}
+        onToggleFull={setPassRateFull}
+        onNChange={setMcN}
+        autoMC={autoMC}
+        onToggleAutoMC={setAutoMC}
+      />
     </main>
   );
 }
