@@ -1,6 +1,5 @@
 import { toBackend } from "@/app/api/_lib/toBackend";
-
-// app/api/simulate_mc/route.ts
+import { callBackend } from "@/lib/backend";
 
 export async function POST(req: Request) {
   try {
@@ -15,16 +14,11 @@ export async function POST(req: Request) {
 
     console.log("proxy /simulate_mc payload →", body.payload, "n=", body.n);
 
-    const base = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE;
-    const r = await fetch(`${base}/simulate_mc`, {
+    return callBackend("/simulate_mc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      cache: "no-store",
     });
-
-    const data = await r.json();
-    return Response.json(data, { status: r.status });
   } catch (e: any) {
     console.error("proxy /simulate_mc error:", e?.message || e);
     return Response.json({ error: "proxy_fail", detail: String(e) }, { status: 502 });

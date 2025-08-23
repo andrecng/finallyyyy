@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run kill:ports && concurrently -n FRONT,BACK -c auto \"npm run dev:web\" \"npm run dev:api\"",
-    "dev:api": "uvicorn backend.main:app --host 127.0.0.1 --port 8001 --reload",
+    "dev:api": "uvicorn backend.app.main:app --host 127.0.0.1 --port 8001 --reload",
     "dev:web": "next dev -p 3000",
     "kill:ports": "bash scripts/kill_ports.sh",
     "build": "next build",

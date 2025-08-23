@@ -1,4 +1,5 @@
 import { toBackend } from "@/app/api/_lib/toBackend";
+import { callBackend } from "@/lib/backend";
 
 export async function POST(req: Request) {
   try {
@@ -6,16 +7,12 @@ export async function POST(req: Request) {
     const payload = toBackend(raw);
     console.log("proxy /simulate payload →", payload); // vérif côté serveur Next
 
-    const r = await fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE}/simulate`, {
+    return callBackend("/simulate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      cache: "no-store",
     });
-
-    const data = await r.json();
-    return Response.json(data, { status: r.status });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error("proxy /simulate error:", e?.message || e);
     return Response.json({ error: "proxy_fail", detail: String(e) }, { status: 502 });
   }

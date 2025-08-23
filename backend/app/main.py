@@ -136,6 +136,130 @@ def safe_diag_dict(use_cppi=False, use_vt=False, use_kelly=False, use_soft=False
     }
 
 # -----------------------------
+# Helpers KPI étendus pour Performance & Risque (version blindée)
+# -----------------------------
+def safe_num(x):
+    try:
+        v = float(x)
+        if v != v or v == float("inf") or v == float("-inf"):
+            return None
+        return v
+    except Exception:
+        return None
+
+def _daily_returns(equity, steps_per_day: int):
+    """Agrège en 'jours' à partir d'une série equity par step.
+       Retourne une liste (peut être vide) de rendements journaliers."""
+    n = len(equity)
+    if n < 2:
+        return []
+    spd = int(steps_per_day or 0)
+    if spd <= 0:
+        spd = n  # 1 "jour" = tout
+    out = []
+    for d0 in range(0, n, spd):
+        d1 = min(d0 + spd, n)
+        eo = equity[d0]
+        ec = equity[d1 - 1]
+        if eo and eo > 0:
+            out.append((ec / eo) - 1.0)
+    return out
+
+def compute_extended_kpis(equity, steps_per_day: int):
+    """Toujours retourner un DICT (jamais None) et des nombres sûrs ou None."""
+    try:
+        rd = _daily_returns(equity, steps_per_day)
+        if not rd:
+            return {
+                "cagr": None, "sharpe": None, "sortino": None,
+                "best_day": None, "worst_day": None,
+                "max_consec_losses": None, "days_to_recover": None,
+            }
+
+        import math
+
+        m = sum(rd) / len(rd)
+        var = sum((r - m)**2 for r in rd) / max(1, len(rd) - 1)
+        sd = math.sqrt(max(0.0, var))
+
+        downside = [min(0.0, r) for r in rd]
+        if len(downside) > 1:
+            md = sum(downside) / len(downside)
+            vard = sum((x - md)**2 for x in downside) / (len(downside) - 1)
+            sd_dn = math.sqrt(max(0.0, vard))
+        else:
+            sd_dn = 0.0
+
+        sharpe = (math.sqrt(252.0) * m / sd) if sd > 0 else None
+        sortino = (math.sqrt(252.0) * m / sd_dn) if sd_dn > 0 else None
+
+        best_day = max(rd)
+        worst_day = min(rd)
+
+        # max pertes consécutives
+        max_consec_losses, run = 0, 0
+        for r in rd:
+            if r < 0:
+                run += 1
+                if run > max_consec_losses:
+                    max_consec_losses = run
+            else:
+                run = 0
+
+        # CAGR
+        eq0 = equity[0] if equity else 1.0
+        eq1 = equity[-1] if equity else 1.0
+        days = len(rd)
+        cagr = (eq1/eq0)**(252.0/max(1.0, days)) - 1.0 if (eq0 and eq0 > 0) else None
+
+        # days_to_recover (sur equity quotidienne reconstruite)
+        spd = int(steps_per_day or 0)
+        if spd <= 0:
+            spd = len(equity)
+        eq_daily = [equity[min(i + spd, len(equity)) - 1] for i in range(0, len(equity), spd)]
+        peak = eq_daily[0]
+        peak_idx = 0
+        trough_idx = 0
+        max_dd = 0.0
+        for i, x in enumerate(eq_daily):
+            if x > peak:
+                peak = x; peak_idx = i
+            dd = (peak - x) / peak if peak > 0 else 0.0
+            if dd > max_dd:
+                max_dd = dd; trough_idx = i
+        days_to_recover = None
+        if trough_idx > peak_idx:
+            target = eq_daily[peak_idx]
+            for j in range(trough_idx, len(eq_daily)):
+                if eq_daily[j] >= target:
+                    days_to_recover = j - trough_idx
+                    break
+
+        return {
+            "cagr": safe_num(cagr),
+            "sharpe": safe_num(sharpe),
+            "sortino": safe_num(sortino),
+            "best_day": safe_num(best_day),
+            "worst_day": safe_num(worst_day),
+            "max_consec_losses": int(max_consec_losses),
+            "days_to_recover": None if days_to_recover is None else int(days_to_recover),
+        }
+    except Exception:
+        # En cas d'erreur, renvoyer un dict neutre (jamais None) pour ne pas casser l'API
+        return {
+            "cagr": None, "sharpe": None, "sortino": None,
+            "best_day": None, "worst_day": None,
+            "max_consec_losses": None, "days_to_recover": None,
+        }
+
+def safe_merge_dict(a, b):
+    """Toujours retourner un dict; ne plante pas si 'a' ou 'b' ne sont pas des dicts."""
+    out = a if isinstance(a, dict) else {}
+    if isinstance(b, dict):
+        out.update(b)
+    return out
+
+# -----------------------------
 # Modèle d'entrée compatible avec l'ancien frontend
 # -----------------------------
 class SimInput(BaseModel):
@@ -343,7 +467,15 @@ def simulate_equity(p: SimInput) -> Dict[str, Any]:
 
     # ---- KPIs & Diagnostics ----
     # Bloc de retour JSON (jamais null + diag enrichi)
-    kpis_out = compute_basic_kpis_from_equity(equity)
+    kpis_out = compute_basic_kpis_from_equity(equity)  # doit toujours être un dict
+
+    # extended
+    spd = getattr(p, "steps_per_day", None) or 0
+    ext = compute_extended_kpis(equity, steps_per_day=spd)
+
+    # merge robuste (même si ext/basiques étaient None par erreur)
+    kpis_out = safe_merge_dict(kpis_out, ext)
+    
     kpis_out.update({
         "target_profit": safe_number(p.target_profit),
         "max_days": int(p.max_days),
@@ -430,8 +562,6 @@ def simulate_mc(inp: MCInput):
             "dd_p95": quantile(dds_sorted, 0.95)
         }
     }
-
-
 
 
 
