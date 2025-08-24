@@ -23,10 +23,39 @@ export default function PresetEditor({ preset, setPreset }: { preset: PresetV1; 
       {/* A — Paramètres */}
       <div className="rounded border p-3 space-y-3">
         <div className="text-sm font-semibold">Paramètres</div>
-        <Field label="Seed"><NumberInput value={preset.seed} onChange={(v) => update({ seed: v })} step={1} /></Field>
-        <Field label="Total steps"><NumberInput value={preset.total_steps} onChange={(v) => update({ total_steps: v })} step={10} /></Field>
-        <Field label="Drift μ"><NumberInput value={preset.mu} onChange={(v) => update({ mu: v })} step={0.01} /></Field>
-        <Field label="Frais par trade"><NumberInput value={preset.fees_per_trade} onChange={(v) => update({ fees_per_trade: v })} step={0.0001} /></Field>
+        
+        {/* Ligne 1 */}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Total steps">
+            <NumberInput value={preset.total_steps} onChange={(v) => update({ total_steps: v })} step={10} />
+          </Field>
+          <Field label="Seed">
+            <NumberInput value={preset.seed} onChange={(v) => update({ seed: v })} step={1} />
+          </Field>
+        </div>
+
+        {/* Ligne 2 */}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Drift μ">
+            <NumberInput value={preset.mu} onChange={(v) => update({ mu: v })} step={0.01} />
+          </Field>
+          <Field label="Frais par trade">
+            <NumberInput value={preset.fees_per_trade} onChange={(v) => update({ fees_per_trade: v })} step={0.0001} />
+          </Field>
+        </div>
+
+        {/* Paramètres avancés */}
+        <div className="pt-2 border-t">
+          <div className="text-xs text-gray-500 mb-2">Paramètres avancés</div>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Sigma (volatilité)">
+              <NumberInput value={preset.sigma || 0.02} onChange={(v) => update({ sigma: v })} step={0.01} />
+            </Field>
+            <Field label="Steps par jour">
+              <NumberInput value={preset.steps_per_day || 50} onChange={(v) => update({ steps_per_day: v })} step={1} />
+            </Field>
+          </div>
+        </div>
       </div>
 
       {/* B — Modules (1) */}
@@ -164,6 +193,34 @@ export default function PresetEditor({ preset, setPreset }: { preset: PresetV1; 
               </Field>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* D — Contraintes & Objectifs */}
+      <div className="rounded border p-3 space-y-3">
+        <div className="text-sm font-semibold">Contraintes & Objectifs</div>
+        
+        {/* Objectifs de performance */}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Target profit">
+            <NumberInput value={preset.target_profit || 0.10} onChange={(v) => update({ target_profit: v })} step={0.01} />
+          </Field>
+          <Field label="Max days">
+            <NumberInput value={preset.max_days || 30} onChange={(v) => update({ max_days: v })} step={1} />
+          </Field>
+        </div>
+
+        {/* Contraintes de risque */}
+        <div className="pt-2 border-t">
+          <div className="text-xs text-gray-500 mb-2">Contraintes FTMO</div>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Daily limit">
+              <NumberInput value={preset.daily_limit || 0.02} onChange={(v) => update({ daily_limit: v })} step={0.01} />
+            </Field>
+            <Field label="Total limit">
+              <NumberInput value={preset.total_limit || 0.10} onChange={(v) => update({ total_limit: v })} step={0.01} />
+            </Field>
+          </div>
         </div>
       </div>
     </div>

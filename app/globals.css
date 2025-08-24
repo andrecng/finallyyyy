@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==== MM UI compact plus serré ==== */
+.compact-form label{font-size:0.875rem;color:rgb(75 85 99)}
+.compact-form .hint{font-size:0.75rem;color:rgb(107 114 128)}
+.compact-form input[type="number"],
+.compact-form input[type="text"],
+.compact-form select{width:8rem}
+
+/* Cartes "propres" (pas de flèche/collapse natif) */
+.mm-card{border-radius:1rem;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 2px rgba(0,0,0,.04);background:#fff}
+
+/* Boutons utilitaires */
+.btn{border:1px solid rgba(0,0,0,.12);border-radius:0.75rem;padding:0.375rem 0.75rem;font-size:.875rem;background:#fff}
+.btn:hover{background:#f8fafc}
+
 html, body { height: 100%; }
 body { color: #111827; background: #f8fafc; }
 .card { @apply rounded-2xl border p-4 bg-white; }

@@ -1,44 +1,17 @@
-import { cn } from "@/lib/utils";
+"use client";
 
-type InputProps = {
-  value?: string | number;
-  onChange?: (value: string) => void;
-  placeholder?: string;
-  type?: "text" | "number" | "email";
-  disabled?: boolean;
+import React from "react";
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
-  label?: string;
-};
+  compact?: boolean;
+}
 
-export default function Input({ 
-  value, 
-  onChange, 
-  placeholder, 
-  type = "text", 
-  disabled = false,
-  className,
-  label
-}: InputProps) {
+export function Input({ className = "", compact = false, ...props }: InputProps) {
   return (
-    <div className="space-y-1">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700">
-          {label}
-        </label>
-      )}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={cn(
-          "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm",
-          "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-          "disabled:bg-gray-50 disabled:text-gray-500",
-          className
-        )}
-      />
-    </div>
+    <input 
+      className={`border rounded px-2 py-1 ${compact ? "w-36" : "w-full"} ${className}`} 
+      {...props} 
+    />
   );
 }

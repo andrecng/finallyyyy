@@ -5,6 +5,12 @@ export type PresetV1 = {
   total_steps: number;
   mu: number;
   fees_per_trade: number;
+  sigma?: number;           // volatilité du marché
+  steps_per_day?: number;   // pas par jour pour l'agrégation
+  target_profit?: number;   // objectif de profit (ex: 0.10 = 10%)
+  max_days?: number;        // délai maximum pour atteindre l'objectif
+  daily_limit?: number;     // limite de drawdown quotidien
+  total_limit?: number;     // limite de drawdown total
   modules: {
     VolatilityTarget?: { vt_target_vol: number; vt_halflife: number };
     CPPIFreeze?: { alpha: number; freeze_frac: number };
@@ -103,7 +109,7 @@ async function simulateMock(preset: PresetV1): Promise<SimulationOutput> {
     },
     kpis: {
       pass_rate: 0.0,
-      days_to_target: null,
+      days_to_target: undefined,
       cagr: 0.12,
       vol_realized: 0.15,
       sharpe: 0.8,

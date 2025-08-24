@@ -4,17 +4,19 @@ import type { PresetV1 } from "@/engine/facade";
 import {
   listPresets, savePreset, loadPreset, deletePreset, sanitizeName,
 } from "@/lib/presetStorage";
+import { Chip, ChipPct } from "@/components/StatusChips";
 
 const QUICK_SLOT_KEY = "workspace:preset"; // slot rapide en plus de la Library
 
 export default function ActionsBar({
-  preset, onRun, onReset, setPreset, busy = false,
+  preset, onRun, onReset, setPreset, busy = false, results,
 }: {
   preset: PresetV1;
   onRun: () => void;
   onReset: () => void;                // restaure le baseline (défini dans /workspace)
   setPreset: (p: PresetV1) => void;
   busy?: boolean;
+  results?: any;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<string>("");
@@ -92,7 +94,7 @@ export default function ActionsBar({
   
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="sticky top-2 z-10 bg-white/80 backdrop-blur rounded-xl border p-2 flex flex-wrap items-center gap-2">
       {/* Run + Reset (baseline) */}
       <button
         onClick={onClickRun}
@@ -188,6 +190,16 @@ export default function ActionsBar({
       </label>
 
       {msg && <span className="text-xs text-gray-500">{msg}</span>}
+      
+      {/* Compteurs "santé FTMO" */}
+      <div className="ml-auto flex items-center gap-2">
+        <Chip label="Viol. daily" v={results?.diag?.violations_daily} />
+        <Chip label="Viol. total" v={results?.diag?.violations_total} />
+        <ChipPct label="DD daily" val={results?.kpis?.max_dd_daily} limit={0.05} />
+        <ChipPct label="DD total" val={results?.kpis?.max_dd_total} limit={0.10} />
+        <Chip label="Freeze hits" v={results?.diag?.cppi_freeze_events} />
+        <Chip label="Kelly hits" v={results?.diag?.kelly_cap_hits} />
+      </div>
     </div>
   );
 }
