@@ -26,9 +26,30 @@ type SearchResult = {
 
 export default function OptimizePage() {
   const [searchConfig, setSearchConfig] = useState<SearchConfig>({
-    "modules.VolatilityTarget.vt_target_vol": { min: 0.05, max: 0.20, step: 0.02 },
-    "modules.VolatilityTarget.vt_halflife": { min: 10, max: 30, step: 5 },
-    "modules.KellyCap.cap_mult": { min: 0.3, max: 0.7, step: 0.1 },
+    // VolatilityTarget
+    "modules.VolatilityTarget.vt_target_vol": { min: 0.06, max: 0.14, step: 0.02 },
+    "modules.VolatilityTarget.vt_halflife": { min: 8, max: 28, step: 4 },
+    
+    // KellyCap
+    "modules.KellyCap.cap_mult": { min: 0.30, max: 0.70, step: 0.10 },
+    
+    // CPPIFreeze
+    "modules.CPPIFreeze.alpha": { min: 0.05, max: 0.30, step: 0.05 },
+    "modules.CPPIFreeze.freeze_frac": { min: 0.05, max: 0.20, step: 0.05 },
+    
+    // SoftBarrier
+    "modules.SoftBarrier.daily_limit": { min: 0.015, max: 0.025, step: 0.005 },
+    "modules.SoftBarrier.total_limit": { min: 0.08, max: 0.12, step: 0.02 },
+    
+    // FTMOGate
+    "modules.FTMOGate.daily_limit": { min: 0.015, max: 0.025, step: 0.005 },
+    "modules.FTMOGate.total_limit": { min: 0.08, max: 0.12, step: 0.02 },
+    "modules.FTMOGate.spend_rate": { min: 0.30, max: 0.50, step: 0.05 },
+    
+    // NestedCPPI (si disponible)
+    "modules.NestedCPPI.ema_half_life": { min: 8, max: 24, step: 4 },
+    "modules.NestedCPPI.floor_alpha": { min: 0.05, max: 0.20, step: 0.05 },
+    "modules.NestedCPPI.freeze_cushion_min": { min: 0.05, max: 0.10, step: 0.025 },
   });
   
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -76,10 +97,10 @@ export default function OptimizePage() {
       fees_per_trade: 0.0002,
       modules: {
         VolatilityTarget: { vt_target_vol: 0.10, vt_halflife: 16 },
-        CPPIFreeze: { alpha: 0.20, freeze_frac: 0.05 },
+        CPPIFreeze: { alpha: 0.15, freeze_frac: 0.10 },
         KellyCap: { cap_mult: 0.50 },
         SoftBarrier: { enabled: true, steps: [1,2,3], haircuts: [0.7,0.5,0.3] },
-        FTMOGate: { enabled: true, daily_limit: 0.02, total_limit: 0.10, spend_rate: 0.35, lmax_vol_aware: "p50" }
+        FTMOGate: { enabled: true, daily_limit: 0.02, total_limit: 0.10, spend_rate: 0.40, lmax_vol_aware: "p60" }
       }
     };
 
@@ -235,6 +256,21 @@ export default function OptimizePage() {
       {/* Configuration des ranges */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Configuration des Ranges</h2>
+        
+        {/* Note importante sur la règle d'or */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="text-amber-600 text-lg">⚠️</div>
+            <div>
+              <h3 className="font-medium text-amber-800 mb-1">Règle d'Or - Risk Management</h3>
+              <p className="text-sm text-amber-700">
+                <strong>Aucun module ne doit augmenter la taille après une perte.</strong> 
+                Le risk_final = min(modules) doit être respecté pour maintenir la cohérence 
+                du système de gestion des risques.
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(searchConfig).map(([paramPath, range]) => (
             <div key={paramPath} className="border rounded-lg p-4 space-y-2">
