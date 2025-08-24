@@ -23,6 +23,11 @@ import { Chip } from "@/components/StatusChips";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import AutoPresetSelect from "@/components/AutoPresetSelect";
 import KpiBox from "@/components/KpiBox";
+import NestedCPPISettings from "@/app/workspace/components/NestedCPPISettings";
+import SessionGateSettings from "@/app/workspace/components/SessionGateSettings";
+import McSummaryChips from "@/components/McSummaryChips";
+import FtmoBadge from "@/components/FtmoBadge";
+import StatusChips from "@/components/StatusChips";
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -78,6 +83,25 @@ export default function Workspace() {
   // Optionnel: annuler la requête précédente si l'utilisateur relance vite
   const mcAbortRef = useRef<AbortController | null>(null);
   const mcReqSeq = useRef(0);
+
+  // helpers pour modifier le state imbriqué preset.modules.NestedCPPI / SessionGate
+  const setNested = (key: string, val: any) =>
+    setPreset(prev => ({
+      ...prev,
+      modules: {
+        ...prev.modules,
+        NestedCPPI: { ...(prev.modules?.NestedCPPI||{}), [key]: val }
+      }
+    }));
+
+  const setSG = (key: string, val: any) =>
+    setPreset(prev => ({
+      ...prev,
+      modules: {
+        ...prev.modules,
+        SessionGate: { ...(prev.modules?.SessionGate||{}), [key]: val }
+      }
+    }));
 
   // stringifier proprement le payload pour détecter les changements
   function stableStringify(x: any) {
@@ -244,6 +268,8 @@ export default function Workspace() {
 
           {/* Statuts à droite */}
           <div className="ml-auto flex items-center gap-2">
+            {/* Badge FTMO */}
+            <FtmoBadge r={out} />
             <div className="text-xs text-gray-500">{busy ? "Running..." : "Ready"}</div>
           </div>
         </div>
@@ -262,6 +288,11 @@ export default function Workspace() {
 
           {/* Lien Bibliothèque */}
           <a href="/presets" className="text-sm underline">Bibliothèque</a>
+
+          {/* StatusChips à droite */}
+          <div className="ml-auto">
+            <StatusChips r={out} />
+          </div>
         </div>
       </div>
       
@@ -541,6 +572,20 @@ export default function Workspace() {
                   </div>
                 )}
               </div>
+
+              {/* NestedCPPI */}
+              <div className="mt-4 border-t pt-3">
+                <NestedCPPISettings
+                  use={!!preset.modules?.NestedCPPI?.use}
+                  onUse={(b)=>setNested("use", b)}
+                  emaHalfLife={preset.modules?.NestedCPPI?.ema_half_life ?? 16}
+                  onEmaHalfLife={(n)=>setNested("ema_half_life", n)}
+                  floorAlpha={preset.modules?.NestedCPPI?.floor_alpha ?? 0.10}
+                  onFloorAlpha={(n)=>setNested("floor_alpha", n)}
+                  freezeCushionMin={preset.modules?.NestedCPPI?.freeze_cushion_min ?? 0.05}
+                  onFreezeCushionMin={(n)=>setNested("freeze_cushion_min", n)}
+                />
+              </div>
             </section>
 
             <section className="mm-card p-4 compact-form">
@@ -617,6 +662,20 @@ export default function Workspace() {
                   </div>
                 )}
               </div>
+
+              {/* SessionGate */}
+              <div className="mt-4 border-t pt-3">
+                <SessionGateSettings
+                  use={!!preset.modules?.SessionGate?.use}
+                  onUse={(b)=>setSG("use", b)}
+                  preMin={preset.modules?.SessionGate?.news_pre_blackout_min ?? 0}
+                  onPreMin={(n)=>setSG("news_pre_blackout_min", n)}
+                  postMin={preset.modules?.SessionGate?.news_post_blackout_min ?? 0}
+                  onPostMin={(n)=>setSG("news_post_blackout_min", n)}
+                  ddFreezeThresh={preset.modules?.SessionGate?.dd_daily_freeze_threshold ?? 0.8}
+                  onDdFreezeThresh={(n)=>setSG("dd_daily_freeze_threshold", n)}
+                />
+              </div>
             </section>
           </div>
 
@@ -646,7 +705,8 @@ export default function Workspace() {
           <section className="mm-card p-4 flex flex-col" id="results-and-charts">
             <div className="flex items-center justify-between">
               <h3 className="font-medium">A. Résultats & Graphiques</h3>
-              {/* badge FTMO PASS/FAIL si tu l'as */}
+              {/* Badge FTMO */}
+              <FtmoBadge r={out} />
             </div>
 
             {/* Ligne unique de KPIs (en haut) */}
@@ -656,6 +716,9 @@ export default function Workspace() {
               <KpiBox label="Viol. daily" value={out?.diagnostics?.violations_daily} />
               <KpiBox label="Viol. total" value={out?.diagnostics?.violations_total} />
             </div>
+
+            {/* Résumé Monte Carlo */}
+            <McSummaryChips mc={mc} />
 
             {/* Graphique — SUPPRIME l'espace mort : pas de min-height global ; fixe une hauteur au chart */}
             <div className="mt-3 h-[280px]">

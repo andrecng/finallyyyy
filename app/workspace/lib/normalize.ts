@@ -48,5 +48,10 @@ export function normalizePreset(raw: any) {
   n.use_kelly_cap    = bool(n.use_kelly_cap, false);
   n.use_soft_barrier = bool(n.use_soft_barrier, false);
 
+  // Normalisation des nouveaux modules
+  n.modules ??= {};
+  n.modules.NestedCPPI ??= { use: false, ema_half_life: 16, floor_alpha: 0.10, freeze_cushion_min: 0.05 };
+  n.modules.SessionGate ??= { use: false, news_pre_blackout_min: 0, news_post_blackout_min: 0, dd_daily_freeze_threshold: 0.8 };
+
   return n;
 }

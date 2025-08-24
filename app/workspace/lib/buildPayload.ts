@@ -58,5 +58,17 @@ export function mapToBackend(raw: any) {
     // cible (si utilisée)
     target_profit: num(raw.target_profit, 0.10),
     max_days: num(raw.max_days, 30),
+
+    // NestedCPPI
+    use_nested_cppi: !!m.NestedCPPI?.use,
+    nc_ema_half_life: num(m.NestedCPPI?.ema_half_life, 16),
+    nc_floor_alpha: num(m.NestedCPPI?.floor_alpha, 0.10),
+    nc_freeze_cushion_min: num(m.NestedCPPI?.freeze_cushion_min, 0.05),
+
+    // Session/News Gate
+    use_session_gate: !!m.SessionGate?.use,
+    news_pre_blackout_min: num(m.SessionGate?.news_pre_blackout_min, 0),
+    news_post_blackout_min: num(m.SessionGate?.news_post_blackout_min, 0),
+    dd_daily_freeze_threshold: num(m.SessionGate?.dd_daily_freeze_threshold, 0.8),
   };
 }
