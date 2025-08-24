@@ -16,6 +16,10 @@
 .btn{border:1px solid rgba(0,0,0,.12);border-radius:0.75rem;padding:0.375rem 0.75rem;font-size:.875rem;background:#fff}
 .btn:hover{background:#f8fafc}
 
+/* Sélecteur de presets - largeur appropriée */
+.preset-select{min-width:200px;width:auto}
+.preset-select select{min-width:200px;width:100%}
+
 html, body { height: 100%; }
 body { color: #111827; background: #f8fafc; }
 .card { @apply rounded-2xl border p-4 bg-white; }

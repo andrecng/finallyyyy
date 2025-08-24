@@ -13,8 +13,7 @@ import PerformanceRiskPanel from "@/components/panels/PerformanceRiskPanel";
 import DiagnosticsPanel from "@/components/panels/DiagnosticsPanel";
 import McPanel from "./components/McPanel";
 const RunJournalPanel = dynamic(() => import("@/components/RunJournalPanel"), { ssr: false });
-import { simulate, simulateMc } from "./lib/api";
-import { normalizePreset } from "./lib/normalize";
+import { fromLibraryPreset, validatePresetV1 } from "./lib/presetAdapters";
 import { mapToBackend } from "./lib/buildPayload";
 import { getWorkspacePayload } from "@/app/lib/workspacePayload";
 import { Input } from "@/components/core/Input";
@@ -28,6 +27,9 @@ import SessionGateSettings from "@/app/workspace/components/SessionGateSettings"
 import McSummaryChips from "@/components/McSummaryChips";
 import FtmoBadge from "@/components/FtmoBadge";
 import StatusChips from "@/components/StatusChips";
+import RunButtons from "@/components/RunButtons";
+import type { RunKind } from "@/lib/api";
+import PresetSelect from "@/components/PresetSelect";
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -63,7 +65,7 @@ export default function Workspace() {
     if (workspacePayload) {
       try {
         // Essayer de normaliser et appliquer le payload
-        const normalized = normalizePreset(workspacePayload);
+        const normalized = fromLibraryPreset(workspacePayload);
         setPreset(normalized);
         // Nettoyer le localStorage après utilisation
         localStorage.removeItem("mm_workspace_payload_v1");
@@ -109,20 +111,45 @@ export default function Workspace() {
   }
 
   const resetBaseline = () => { 
-    setPreset(defaultPreset); 
-    setOut(null); 
-    setMc(null); 
-    setMcData(null); 
-    setMcStatus("ready"); 
+    if (confirm("Remettre tous les paramètres à zéro ?")) {
+      setPreset({
+        schema_version: "1.0",
+        name: "reset",
+        seed: 0,
+        total_steps: 0,
+        mu: 0,
+        fees_per_trade: 0,
+        sigma: 0,
+        steps_per_day: 0,
+        target_profit: 0,
+        max_days: 0,
+        daily_limit: 0,
+        total_limit: 0,
+        modules: {
+          VolatilityTarget: { vt_target_vol: 0, vt_halflife: 0 },
+          CPPIFreeze: { alpha: 0, freeze_frac: 0 },
+          KellyCap: { cap_mult: 0 },
+          SoftBarrier: { enabled: false, steps: [0], haircuts: [0] },
+          FTMOGate: { enabled: false, daily_limit: 0, total_limit: 0, spend_rate: 0, lmax_vol_aware: "p50" },
+          NestedCPPI: { ema_halflife: 0, floor_alpha: 0, freeze_cushion: 0 },
+          SessionGate: { news_pre_blackout_min: 0, news_post_blackout_min: 0, dd_daily_freeze_threshold: 0, sess_windows: [] }
+        }
+      });
+      setOut(null); 
+      setMc(null); 
+      setMcData(null); 
+      setMcStatus("ready");
+      alert("Paramètres remis à zéro !");
+    }
   };
 
   // Fonction pour appliquer un preset complet
   function applyPreset(presetObj: any) {
     try {
-      // IMPORTANT: on doit setter l'objet complet,
-      // pas {id,name} ni seulement quelques champs.
-      const normalized = normalizePreset(presetObj);
-      setPreset(normalized);
+              // IMPORTANT: on doit setter l'objet complet,
+        // pas {id,name} ni seulement quelques champs.
+        const normalized = fromLibraryPreset(presetObj);
+        setPreset(normalized);
       setOut(null);
       setMc(null);
       setMcData(null);
@@ -157,7 +184,13 @@ export default function Workspace() {
     const seq = ++mcReqSeq.current;
 
     try {
-      const data = await simulateMc(payload, n, preset.seed, preset.name);
+      // Utilise le nouveau client API abortable
+      const { runWithAbort } = await import("@/lib/api");
+      const data = await runWithAbort("simulate_mc", { 
+        payload, 
+        n, 
+        base_seed: preset.seed 
+      });
 
       // si entre temps un autre run est parti, on jette ce résultat
       if (seq !== mcReqSeq.current) return;
@@ -201,6 +234,31 @@ export default function Workspace() {
     if (e.key === "Enter") run();
   };
 
+  // Gestionnaire des résultats pour RunButtons
+  const handleResult = (kind: RunKind, data: unknown) => {
+    switch (kind) {
+      case "simulate":
+        setOut(data);
+        break;
+      case "simulate_mc":
+        // Le backend peut renvoyer { n, mc: {...} } ou directement {...}
+        const mc = (data as any).mc ?? data;
+        setMc(mc);
+        break;
+      case "optimize":
+        // Gérer les résultats d'optimisation si nécessaire
+        console.log("Optimization result:", data);
+        break;
+    }
+  };
+
+  // Factory pour créer le payload à envoyer
+  const createPayload = () => {
+    const payload = mapToBackend(preset);
+    console.log("simulate payload →", payload);
+    return payload;
+  };
+
   async function run() {
     try {
       setBusy(true);
@@ -216,8 +274,9 @@ export default function Workspace() {
         return;
       }
       
-      // 3) FETCH - Simulation principale
-      const res = await simulate(payload, preset.name);
+      // 3) FETCH - Simulation principale avec nouveau client API
+      const { runWithAbort } = await import("@/lib/api");
+      const res = await runWithAbort("simulate", payload);
       setOut(res);
       
       // Appel Monte-Carlo automatique COMMENTÉ
@@ -244,23 +303,122 @@ export default function Workspace() {
       <div className="sticky top-2 z-10 bg-white/80 backdrop-blur rounded-xl border p-2">
         {/* Rangée 1 : actions principales */}
         <div className="flex flex-wrap items-center gap-2">
-          <button 
-            onClick={run} 
-            disabled={busy}
-            className="btn"
-          >
-            {busy ? "⏳ Running..." : "▶︎ Run"}
-          </button>
+          {/* Nouveaux boutons avec gestion abortable */}
+          <RunButtons 
+            payloadFactory={createPayload}
+            onResult={handleResult}
+            className="flex-1"
+          />
+          
           <button onClick={resetBaseline} className="btn">↺ Reset</button>
 
-          {/* Presets manuels */}
-          <select className="border rounded px-2 py-1 text-sm">
-            <option value="">Sélectionner un preset</option>
-            {/* TODO: Ajouter la liste des presets manuels */}
-          </select>
+          {/* Presets manuels (defaults + manuels) */}
+          <PresetSelect 
+            currentPreset={preset.name}
+            onPresetChange={(newPreset) => {
+              // Convertir le format du preset vers PresetV1
+              const converted: PresetV1 = {
+                schema_version: "1.0",
+                name: newPreset.name || preset.name,
+                seed: newPreset.seed ?? preset.seed,
+                total_steps: newPreset.total_steps ?? preset.total_steps,
+                mu: newPreset.mu ?? preset.mu,
+                fees_per_trade: newPreset.fees_per_trade ?? preset.fees_per_trade,
+                sigma: newPreset.sigma ?? preset.sigma,
+                steps_per_day: newPreset.steps_per_day ?? preset.steps_per_day,
+                target_profit: newPreset.target_profit ?? preset.target_profit,
+                max_days: newPreset.max_days ?? preset.max_days,
+                daily_limit: newPreset.daily_limit ?? preset.daily_limit,
+                total_limit: newPreset.total_limit ?? preset.total_limit,
+                modules: {
+                  VolatilityTarget: newPreset.modules?.VolatilityTarget ? {
+                    vt_target_vol: newPreset.modules.VolatilityTarget.vt_target_vol,
+                    vt_halflife: newPreset.modules.VolatilityTarget.vt_halflife
+                  } : preset.modules.VolatilityTarget,
+                  CPPIFreeze: newPreset.modules?.CPPIFreeze ? {
+                    alpha: newPreset.modules.CPPIFreeze.alpha,
+                    freeze_frac: newPreset.modules.CPPIFreeze.freeze_frac
+                  } : preset.modules.CPPIFreeze,
+                  KellyCap: newPreset.modules?.KellyCap ? {
+                    cap_mult: newPreset.modules.KellyCap.cap_mult
+                  } : preset.modules.KellyCap,
+                  SoftBarrier: newPreset.modules?.SoftBarrier ? {
+                    enabled: newPreset.modules.SoftBarrier.enabled,
+                    steps: newPreset.modules.SoftBarrier.steps || [1,2,3],
+                    haircuts: newPreset.modules.SoftBarrier.haircuts || [0.7,0.5,0.3]
+                  } : preset.modules.SoftBarrier,
+                  FTMOGate: newPreset.modules?.FTMOGate ? {
+                    enabled: newPreset.modules.FTMOGate.enabled,
+                    daily_limit: newPreset.modules.FTMOGate.daily_limit,
+                    total_limit: newPreset.modules.FTMOGate.total_limit,
+                    spend_rate: newPreset.modules.FTMOGate.spend_rate,
+                    lmax_vol_aware: newPreset.modules.FTMOGate.lmax_vol_aware || "p50"
+                  } : preset.modules.FTMOGate
+                }
+              };
+              
+              console.log("🎯 Preset appliqué:", converted);
+              setPreset(converted);
+            }}
+          />
 
-          <button className="btn">Delete (Library)</button>
-          <button className="btn">Save As</button>
+          <button 
+            className="btn" 
+            onClick={() => {
+              if (confirm(`Supprimer le preset "${preset.name}" de la bibliothèque ?`)) {
+                // Supprimer de la bibliothèque
+                import("@/lib/presets").then(({ deletePreset, listPresets }) => {
+                  const presets = listPresets();
+                  const currentPreset = presets.find(p => p.name === preset.name);
+                  if (currentPreset) {
+                    deletePreset(currentPreset.id);
+                    alert(`Preset "${preset.name}" supprimé !`);
+                    // Recharger la liste des presets
+                    window.location.reload();
+                  } else {
+                    alert("Preset non trouvé dans la bibliothèque.");
+                  }
+                });
+              }
+            }}
+          >
+            Delete (Library)
+          </button>
+          <button 
+            className="btn" 
+            onClick={() => {
+              const name = prompt("Nom du nouveau preset:");
+              if (name) {
+                const newPreset = {
+                  name,
+                  payload: {
+                    seed: preset.seed,
+                    total_steps: preset.total_steps,
+                    mu: preset.mu,
+                    fees_per_trade: preset.fees_per_trade,
+                    sigma: preset.sigma,
+                    steps_per_day: preset.steps_per_day,
+                    target_profit: preset.target_profit,
+                    max_days: preset.max_days,
+                    daily_limit: preset.daily_limit,
+                    total_limit: preset.total_limit,
+                    modules: preset.modules
+                  },
+                  meta: { source: "manual" }
+                };
+                
+                // Sauvegarder dans la bibliothèque
+                import("@/lib/presets").then(({ savePreset }) => {
+                  savePreset(newPreset);
+                  alert(`Preset "${name}" sauvegardé !`);
+                  // Recharger la liste des presets
+                  window.location.reload();
+                });
+              }
+            }}
+          >
+            Save As
+          </button>
           <button className="btn">💾 Save (Quick)</button>
           <button className="btn">📂 Load (Quick)</button>
           <button className="btn">⬇︎ Export</button>
@@ -270,9 +428,9 @@ export default function Workspace() {
           <div className="ml-auto flex items-center gap-2">
             {/* Badge FTMO */}
             <FtmoBadge r={out} />
-            <div className="text-xs text-gray-500">{busy ? "Running..." : "Ready"}</div>
+            <div className="text-xs text-gray-500">Ready</div>
           </div>
-        </div>
+      </div>
 
         {/* Rangée 2 : Auto‑Search + Presets (Auto‑Search) */}
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -295,7 +453,7 @@ export default function Workspace() {
           </div>
         </div>
       </div>
-      
+
       {/* ======= LAYOUT EN 2 COLONNES ======= */}
       <div className="grid gap-4 xl:grid-cols-12">
         {/* ========== COLONNE GAUCHE (7) ========== */}
@@ -683,17 +841,17 @@ export default function Workspace() {
           <section className="mm-card p-4" id="montecarlo">
             <h3 className="font-medium mb-2">C. Monte-Carlo</h3>
             <div className="mt-4 space-y-4">
-              <McPanel
-                n={mcN}
-                status={mcStatus}
-                data={mcData}
-                onRun={() => runMc()}
-                passRateFull={passRateFull}
-                onToggleFull={setPassRateFull}
-                onNChange={setMcN}
-                autoMC={autoMC}
-                onToggleAutoMC={setAutoMC}
-              />
+      <McPanel
+        n={mcN}
+        status={mcStatus}
+        data={mcData}
+        onRun={() => runMc()}
+        passRateFull={passRateFull}
+        onToggleFull={setPassRateFull}
+        onNChange={setMcN}
+        autoMC={autoMC}
+        onToggleAutoMC={setAutoMC}
+      />
             </div>
           </section>
 
