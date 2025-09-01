@@ -1,46 +1,51 @@
-// Simple client avec AbortController par action
 export type RunKind = "simulate" | "simulate_mc" | "optimize";
 
-type Endpoints = Record<RunKind, string>;
-const ENDPOINTS: Endpoints = {
-  simulate: "/api/simulate",
-  simulate_mc: "/api/simulate_mc",
-  optimize: "/api/optimize",
-};
-
 const controllers = new Map<RunKind, AbortController>();
+
+function endpoint(kind: RunKind): string {
+  if (kind === "simulate") return "/api/simulate";
+  if (kind === "simulate_mc") return "/api/simulate_mc";
+  return "/api/optimize";
+}
+
+export async function runWithAbort(kind: RunKind, payload: unknown, timeoutMs = 120_000) {
+  const prev = controllers.get(kind);
+  if (prev) { try { prev.abort(); } catch {} }
+
+  const ctrl = new AbortController();
+  controllers.set(kind, ctrl);
+
+  const timer = setTimeout(() => { try { ctrl.abort(); } catch {} }, timeoutMs);
+
+  try {
+    const res = await fetch(endpoint(kind), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload ?? {}),
+      signal: ctrl.signal,
+    });
+
+    const text = await res.text();
+    let data: unknown = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+
+    if (!res.ok) {
+      const err: any = new Error(`HTTP ${res.status}`);
+      err.status = res.status;
+      err.response = data;
+      throw err;
+    }
+    return data;
+  } finally {
+    clearTimeout(timer);
+    if (controllers.get(kind) === ctrl) controllers.delete(kind);
+  }
+}
 
 export function abortRun(kind: RunKind) {
   const c = controllers.get(kind);
   if (c) {
-    c.abort();
-    controllers.delete(kind);
-  }
-}
-
-export async function runWithAbort<T = unknown>(kind: RunKind, payload: unknown): Promise<T> {
-  // Annule une éventuelle requête encore en vol pour cette action
-  abortRun(kind);
-
-  const controller = new AbortController();
-  controllers.set(kind, controller);
-
-  try {
-    const res = await fetch(ENDPOINTS[kind], {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload ?? {}),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} – ${text || res.statusText}`);
-    }
-    const data = (await res.json()) as T;
-    return data;
-  } finally {
-    // Libère le contrôleur quand terminé (succès/erreur/abort)
+    try { c.abort(); } catch {}
     controllers.delete(kind);
   }
 }

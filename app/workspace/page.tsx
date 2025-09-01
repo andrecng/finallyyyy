@@ -1,35 +1,53 @@
 "use client";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import type { PresetV1, SimulationOutput } from "@/engine/facade";
 import { engine } from "@/engine/facade";
-import ActionsBar from "@/components/panels/ActionsBar";
-import PresetEditor from "@/components/panels/PresetEditor";
-import ResultPanel from "@/components/ResultPanel";
 import EquityChart from "@/components/charts/EquityChart";
 
-import PerformanceRiskPanel from "@/components/panels/PerformanceRiskPanel";
-import DiagnosticsPanel from "@/components/panels/DiagnosticsPanel";
 import McPanel from "./components/McPanel";
-const RunJournalPanel = dynamic(() => import("@/components/RunJournalPanel"), { ssr: false });
-import { fromLibraryPreset, validatePresetV1 } from "./lib/presetAdapters";
+const RunJournalPanel = dynamic(() => import("@/app/components/RunJournalPanel"), { ssr: false });
 import { mapToBackend } from "./lib/buildPayload";
 import { getWorkspacePayload } from "@/app/lib/workspacePayload";
 import { Input } from "@/components/core/Input";
 import InputPercent from "@/components/core/InputPercent";
 import { Chip } from "@/components/StatusChips";
 import CollapsibleCard from "@/components/CollapsibleCard";
-import AutoPresetSelect from "@/components/AutoPresetSelect";
 import KpiBox from "@/components/KpiBox";
-import NestedCPPISettings from "@/app/workspace/components/NestedCPPISettings";
-import SessionGateSettings from "@/app/workspace/components/SessionGateSettings";
+// import NestedCPPISettings from "@/app/workspace/components/NestedCPPISettings";
+// import SessionGateSettings from "@/app/workspace/components/SessionGateSettings";
 import McSummaryChips from "@/components/McSummaryChips";
 import FtmoBadge from "@/components/FtmoBadge";
 import StatusChips from "@/components/StatusChips";
-import RunButtons from "@/components/RunButtons";
-import type { RunKind } from "@/lib/api";
-import PresetSelect from "@/components/PresetSelect";
+import RunSimButton from "@/app/components/RunSimButton";
+
+
+function normalizeSimOut(r: any) {
+  // equity: accepte plusieurs formes (series.equity | equity | out.equity | series[])
+  const equity =
+    r?.series?.equity ??
+    r?.equity ??
+    r?.out?.equity ??
+    (Array.isArray(r?.series) ? r.series : []);
+
+  const kpis =
+    r?.kpis ?? r?.KPIs ?? r?.metrics ?? r?.summary?.kpis ?? {};
+
+  const diagnostics = r?.diagnostics ?? r?.diag ?? {};
+
+  return {
+    ...r,
+    series: { ...(r.series ?? {}), equity: Array.isArray(equity) ? [...equity] : [] },
+    kpis,
+    diagnostics,
+    diag: diagnostics,
+  };
+}
+import PresetDropdown from "@/app/components/PresetDropdown";
+
+
+
 
 const defaultPreset: PresetV1 = {
   schema_version: "1.0",
@@ -58,15 +76,44 @@ export default function Workspace() {
   const [out, setOut] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [mc, setMc] = useState<any>(null);
+  const [runId, setRunId] = useState(0);
+    // construit le payload à partir des inputs
+  const getSimPayload = useCallback(() => {
+    // si tu as déjà un builder existant, appelle-le ici.
+    // sinon on renvoie tel quel ce qu'on a dans la ref :
+    return preset;
+  }, [preset]);
+
+  // Exemple: supposons que tu as un state "form" qui porte tous les inputs
+  // const [form, setForm] = useState<any>(DEFAULTS);
+
+  function getFormSnapshot() {
+    // renvoie une copie plain-object de tes inputs courants
+    // ex: return { ...form };
+    // si tu n'as pas un seul objet, compose-le ici
+    return { ...preset };
+  }
+
+  function applyPresetToInputs(data: any) {
+    // Fusion "douce" : ce qui n'est pas dans le preset reste tel quel
+    setPreset((prev: any) => ({
+      ...prev,
+      ...(data ?? {}),
+    }));
+  }
+  
+  // Log des changements de out pour debug
+  useEffect(() => {
+    console.log("🔁 out updated:", out?.series?.equity?.length, "points");
+  }, [out]);
   
   // Récupérer le payload du workspace au chargement
   useEffect(() => {
     const workspacePayload = getWorkspacePayload();
     if (workspacePayload) {
       try {
-        // Essayer de normaliser et appliquer le payload
-        const normalized = fromLibraryPreset(workspacePayload);
-        setPreset(normalized);
+        // Essayer de normaliser et appliquer le payload (système obsolète)
+        console.log("Payload workspace reçu mais système obsolète:", workspacePayload);
         // Nettoyer le localStorage après utilisation
         localStorage.removeItem("mm_workspace_payload_v1");
       } catch (e) {
@@ -86,24 +133,14 @@ export default function Workspace() {
   const mcAbortRef = useRef<AbortController | null>(null);
   const mcReqSeq = useRef(0);
 
-  // helpers pour modifier le state imbriqué preset.modules.NestedCPPI / SessionGate
-  const setNested = (key: string, val: any) =>
-    setPreset(prev => ({
-      ...prev,
-      modules: {
-        ...prev.modules,
-        NestedCPPI: { ...(prev.modules?.NestedCPPI||{}), [key]: val }
-      }
-    }));
+  // helpers pour modifier le state imbriqué (simplifiés)
+  const setNested = (key: string, val: any) => {
+    console.log("setNested appelé mais module non implémenté:", key, val);
+  };
 
-  const setSG = (key: string, val: any) =>
-    setPreset(prev => ({
-      ...prev,
-      modules: {
-        ...prev.modules,
-        SessionGate: { ...(prev.modules?.SessionGate||{}), [key]: val }
-      }
-    }));
+  const setSG = (key: string, val: any) => {
+    console.log("setSG appelé mais module non implémenté:", key, val);
+  };
 
   // stringifier proprement le payload pour détecter les changements
   function stableStringify(x: any) {
@@ -130,9 +167,7 @@ export default function Workspace() {
           CPPIFreeze: { alpha: 0, freeze_frac: 0 },
           KellyCap: { cap_mult: 0 },
           SoftBarrier: { enabled: false, steps: [0], haircuts: [0] },
-          FTMOGate: { enabled: false, daily_limit: 0, total_limit: 0, spend_rate: 0, lmax_vol_aware: "p50" },
-          NestedCPPI: { ema_halflife: 0, floor_alpha: 0, freeze_cushion: 0 },
-          SessionGate: { news_pre_blackout_min: 0, news_post_blackout_min: 0, dd_daily_freeze_threshold: 0, sess_windows: [] }
+          FTMOGate: { enabled: false, daily_limit: 0, total_limit: 0, spend_rate: 0, lmax_vol_aware: "p50" }
         }
       });
       setOut(null); 
@@ -173,6 +208,12 @@ export default function Workspace() {
 
   // Fonction Monte Carlo avec contrôle d'annulation et refresh fiable
   async function runMc(nOverride?: number) {
+    // Protection contre les appels multiples
+    if (mcStatus === "running") {
+      console.log("⚠️ Monte Carlo déjà en cours, ignoré");
+      return;
+    }
+    
     const n = nOverride ?? mcN;
     setMcStatus("running");
 
@@ -211,45 +252,47 @@ export default function Workspace() {
     }
   }
 
-  // Détecter les changements de payload pour reset Monte Carlo
+  // Détecter les changements de payload pour reset Monte Carlo (avec debounce)
   const payload = mapToBackend(preset);
   const payloadKey = useMemo(() => stableStringify(payload), [payload]);
+  
+  // Debounce pour éviter les changements trop fréquents
+  const [debouncedPayloadKey, setDebouncedPayloadKey] = useState(payloadKey);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPayloadKey(payloadKey), 2000); // 2 secondes de debounce
+    return () => clearTimeout(timer);
+  }, [payloadKey]);
 
   // Quand le payload change (tu modifies un paramètre / un module), on remet le MC à zéro
   useEffect(() => {
+    console.log("🔄 Payload changé, reset Monte Carlo");
     setMcData(null);
     setMcStatus("ready");
     // (si tu avais un auto-MC, déclenche-le ici avec runMc(); sinon on reste manuel)
-  }, [payloadKey]);
+  }, [debouncedPayloadKey]); // Utilise le debounced pour éviter les resets trop fréquents
 
-  // Auto-run Monte-Carlo si activé
+  // Auto-run Monte-Carlo si activé (UNIQUEMENT après simulation principale)
   useEffect(() => {
     if (!autoMC) return;
-    const t = setTimeout(() => runMc(), 250); // petit debounce
+    // Ne relance Monte Carlo que si on a des résultats de simulation
+    if (!out) return;
+    // Éviter la boucle : vérifier que ce n'est pas déjà en cours
+    if (mcStatus === "running") return;
+    console.log("🔄 Auto-lancement Monte Carlo après simulation...");
+    const t = setTimeout(() => runMc(), 1000); // debounce plus long
     return () => clearTimeout(t);
-  }, [payloadKey, mcN, autoMC]);
+  }, [autoMC, out, mcStatus]); // Ajouter mcStatus pour éviter les boucles
 
   // Fonction pour lancer la simulation avec Entrée
   const onEnterRun: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter") run();
   };
 
-  // Gestionnaire des résultats pour RunButtons
-  const handleResult = (kind: RunKind, data: unknown) => {
-    switch (kind) {
-      case "simulate":
-        setOut(data);
-        break;
-      case "simulate_mc":
-        // Le backend peut renvoyer { n, mc: {...} } ou directement {...}
-        const mc = (data as any).mc ?? data;
-        setMc(mc);
-        break;
-      case "optimize":
-        // Gérer les résultats d'optimisation si nécessaire
-        console.log("Optimization result:", data);
-        break;
-    }
+  // Gestionnaire des résultats pour RunSimButton
+  const handleResult = (out: any) => {
+    setOut(out);
+    setRunId((x) => x + 1); // force refresh graphe & KPI
+    console.log("✅ simulate result (normalized):", out);
   };
 
   // Factory pour créer le payload à envoyer
@@ -258,6 +301,11 @@ export default function Workspace() {
     console.log("simulate payload →", payload);
     return payload;
   };
+
+  // Exposer la fonction de création de payload à la fenêtre pour RunSimButton
+  if (typeof window !== "undefined") {
+    (window as any).buildSimPayload = createPayload;
+  }
 
   async function run() {
     try {
@@ -303,126 +351,15 @@ export default function Workspace() {
       <div className="sticky top-2 z-10 bg-white/80 backdrop-blur rounded-xl border p-2">
         {/* Rangée 1 : actions principales */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Nouveaux boutons avec gestion abortable */}
-          <RunButtons 
-            payloadFactory={createPayload}
-            onResult={handleResult}
-            className="flex-1"
+          {/* Bouton de simulation avec gestion abortable */}
+          <RunSimButton
+            onOut={handleResult}
+            className="mr-2"
           />
           
           <button onClick={resetBaseline} className="btn">↺ Reset</button>
 
-          {/* Presets manuels (defaults + manuels) */}
-          <PresetSelect 
-            currentPreset={preset.name}
-            onPresetChange={(newPreset) => {
-              // Convertir le format du preset vers PresetV1
-              const converted: PresetV1 = {
-                schema_version: "1.0",
-                name: newPreset.name || preset.name,
-                seed: newPreset.seed ?? preset.seed,
-                total_steps: newPreset.total_steps ?? preset.total_steps,
-                mu: newPreset.mu ?? preset.mu,
-                fees_per_trade: newPreset.fees_per_trade ?? preset.fees_per_trade,
-                sigma: newPreset.sigma ?? preset.sigma,
-                steps_per_day: newPreset.steps_per_day ?? preset.steps_per_day,
-                target_profit: newPreset.target_profit ?? preset.target_profit,
-                max_days: newPreset.max_days ?? preset.max_days,
-                daily_limit: newPreset.daily_limit ?? preset.daily_limit,
-                total_limit: newPreset.total_limit ?? preset.total_limit,
-                modules: {
-                  VolatilityTarget: newPreset.modules?.VolatilityTarget ? {
-                    vt_target_vol: newPreset.modules.VolatilityTarget.vt_target_vol,
-                    vt_halflife: newPreset.modules.VolatilityTarget.vt_halflife
-                  } : preset.modules.VolatilityTarget,
-                  CPPIFreeze: newPreset.modules?.CPPIFreeze ? {
-                    alpha: newPreset.modules.CPPIFreeze.alpha,
-                    freeze_frac: newPreset.modules.CPPIFreeze.freeze_frac
-                  } : preset.modules.CPPIFreeze,
-                  KellyCap: newPreset.modules?.KellyCap ? {
-                    cap_mult: newPreset.modules.KellyCap.cap_mult
-                  } : preset.modules.KellyCap,
-                  SoftBarrier: newPreset.modules?.SoftBarrier ? {
-                    enabled: newPreset.modules.SoftBarrier.enabled,
-                    steps: newPreset.modules.SoftBarrier.steps || [1,2,3],
-                    haircuts: newPreset.modules.SoftBarrier.haircuts || [0.7,0.5,0.3]
-                  } : preset.modules.SoftBarrier,
-                  FTMOGate: newPreset.modules?.FTMOGate ? {
-                    enabled: newPreset.modules.FTMOGate.enabled,
-                    daily_limit: newPreset.modules.FTMOGate.daily_limit,
-                    total_limit: newPreset.modules.FTMOGate.total_limit,
-                    spend_rate: newPreset.modules.FTMOGate.spend_rate,
-                    lmax_vol_aware: newPreset.modules.FTMOGate.lmax_vol_aware || "p50"
-                  } : preset.modules.FTMOGate
-                }
-              };
-              
-              console.log("🎯 Preset appliqué:", converted);
-              setPreset(converted);
-            }}
-          />
 
-          <button 
-            className="btn" 
-            onClick={() => {
-              if (confirm(`Supprimer le preset "${preset.name}" de la bibliothèque ?`)) {
-                // Supprimer de la bibliothèque
-                import("@/lib/presets").then(({ deletePreset, listPresets }) => {
-                  const presets = listPresets();
-                  const currentPreset = presets.find(p => p.name === preset.name);
-                  if (currentPreset) {
-                    deletePreset(currentPreset.id);
-                    alert(`Preset "${preset.name}" supprimé !`);
-                    // Recharger la liste des presets
-                    window.location.reload();
-                  } else {
-                    alert("Preset non trouvé dans la bibliothèque.");
-                  }
-                });
-              }
-            }}
-          >
-            Delete (Library)
-          </button>
-          <button 
-            className="btn" 
-            onClick={() => {
-              const name = prompt("Nom du nouveau preset:");
-              if (name) {
-                const newPreset = {
-                  name,
-                  payload: {
-                    seed: preset.seed,
-                    total_steps: preset.total_steps,
-                    mu: preset.mu,
-                    fees_per_trade: preset.fees_per_trade,
-                    sigma: preset.sigma,
-                    steps_per_day: preset.steps_per_day,
-                    target_profit: preset.target_profit,
-                    max_days: preset.max_days,
-                    daily_limit: preset.daily_limit,
-                    total_limit: preset.total_limit,
-                    modules: preset.modules
-                  },
-                  meta: { source: "manual" }
-                };
-                
-                // Sauvegarder dans la bibliothèque
-                import("@/lib/presets").then(({ savePreset }) => {
-                  savePreset(newPreset);
-                  alert(`Preset "${name}" sauvegardé !`);
-                  // Recharger la liste des presets
-                  window.location.reload();
-                });
-              }
-            }}
-          >
-            Save As
-          </button>
-          <button className="btn">💾 Save (Quick)</button>
-          <button className="btn">📂 Load (Quick)</button>
-          <button className="btn">⬇︎ Export</button>
-          <button className="btn">⬆︎ Import</button>
 
           {/* Statuts à droite */}
           <div className="ml-auto flex items-center gap-2">
@@ -437,21 +374,26 @@ export default function Workspace() {
           {/* Bouton Auto‑Search existant */}
           <a href="/optimize" className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-sm">Auto‑Search</a>
 
-          {/* Sélecteur Auto‑Search */}
-          <AutoPresetSelect onApply={(p) => {
-            setPreset(p);
-            // Optionnel : lancer automatiquement la simulation
-            // run();
-          }} />
+          {/* Sélecteur Auto‑Search (système obsolète) */}
+          <span className="text-sm text-gray-500">Auto‑Search (obsolète)</span>
 
-          {/* Lien Bibliothèque */}
-          <a href="/presets" className="text-sm underline">Bibliothèque</a>
+
 
           {/* StatusChips à droite */}
           <div className="ml-auto">
             <StatusChips r={out} />
           </div>
         </div>
+      </div>
+
+      {/* Toolbar principale */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <PresetDropdown
+          getFormSnapshot={getFormSnapshot}
+          onApplyPreset={applyPresetToInputs}
+        />
+
+        {/* Bouton Run Simulation (supprimé car doublon) */}
       </div>
 
       {/* ======= LAYOUT EN 2 COLONNES ======= */}
@@ -731,8 +673,8 @@ export default function Workspace() {
                 )}
               </div>
 
-              {/* NestedCPPI */}
-              <div className="mt-4 border-t pt-3">
+              {/* NestedCPPI - Temporairement commenté */}
+              {/* <div className="mt-4 border-t pt-3">
                 <NestedCPPISettings
                   use={!!preset.modules?.NestedCPPI?.use}
                   onUse={(b)=>setNested("use", b)}
@@ -743,7 +685,7 @@ export default function Workspace() {
                   freezeCushionMin={preset.modules?.NestedCPPI?.freeze_cushion_min ?? 0.05}
                   onFreezeCushionMin={(n)=>setNested("freeze_cushion_min", n)}
                 />
-              </div>
+              </div> */}
             </section>
 
             <section className="mm-card p-4 compact-form">
@@ -821,8 +763,8 @@ export default function Workspace() {
                 )}
               </div>
 
-              {/* SessionGate */}
-              <div className="mt-4 border-t pt-3">
+              {/* SessionGate - Temporairement commenté */}
+              {/* <div className="mt-4 border-t pt-3">
                 <SessionGateSettings
                   use={!!preset.modules?.SessionGate?.use}
                   onUse={(b)=>setSG("use", b)}
@@ -833,7 +775,7 @@ export default function Workspace() {
                   ddFreezeThresh={preset.modules?.SessionGate?.dd_daily_freeze_threshold ?? 0.8}
                   onDdFreezeThresh={(n)=>setSG("dd_daily_freeze_threshold", n)}
                 />
-              </div>
+              </div> */}
             </section>
           </div>
 
@@ -869,10 +811,10 @@ export default function Workspace() {
 
             {/* Ligne unique de KPIs (en haut) */}
             <div className="mt-3 flex flex-wrap items-stretch gap-3">
-              <KpiBox label="Max DD total" value={out?.kpis?.max_dd_total} fmt="pct" />
-              <KpiBox label="Max DD daily" value={out?.kpis?.max_dd_daily} fmt="pct" />
-              <KpiBox label="Viol. daily" value={out?.diagnostics?.violations_daily} />
-              <KpiBox label="Viol. total" value={out?.diagnostics?.violations_total} />
+              <KpiBox label="Max DD total" value={out?.kpis?.max_dd_total ?? out?.max_dd_total ?? out?.kpis?.dd_total} fmt="pct" />
+              <KpiBox label="Max DD daily" value={out?.kpis?.max_dd_daily ?? out?.max_dd_daily ?? out?.kpis?.dd_daily} fmt="pct" />
+              <KpiBox label="Viol. daily" value={out?.diagnostics?.violations_daily ?? out?.diag?.violations_daily ?? out?.violations_daily} />
+              <KpiBox label="Viol. total" value={out?.diagnostics?.violations_total ?? out?.diag?.violations_total ?? out?.violations_total} />
             </div>
 
             {/* Résumé Monte Carlo */}
@@ -881,9 +823,18 @@ export default function Workspace() {
             {/* Graphique — SUPPRIME l'espace mort : pas de min-height global ; fixe une hauteur au chart */}
             <div className="mt-3 h-[280px]">
               {/* ⬇️ colle ton composant graphique actuel (le même que l'ancien bloc A) */}
-              {/* ex: <EquityChart data={results?.equity} className="h-full w-full" /> */}
-              <EquityChart series={out?.series?.equity ?? []} />
+                    {/* ex: <EquityChart data={results?.equity} className="h-full w-full" /> */}
+      <EquityChart key={runId} series={(() => {
+        const equity = Array.isArray(out?.series?.equity)
+          ? out!.series!.equity!
+          : Array.isArray(out?.equity)
+          ? out!.equity!
+          : [];
+        return equity;
+      })()} />
             </div>
+
+
           </section>
 
           {/* === B. Performance & Risque (original, déplacé sous A) === */}
@@ -891,15 +842,15 @@ export default function Workspace() {
             <h3 className="font-medium mb-2">B. Performance & Risque</h3>
             {/* ⬇️ colle ici ton bloc B existant */}
             <div className="mt-4 space-y-4">
-              <PerformanceRiskPanel out={out} />
-              <DiagnosticsPanel out={out} />
+              {/* Composants obsolètes supprimés */}
+              <div className="text-sm text-gray-500">Performance & Risque (système obsolète)</div>
             </div>
           </section>
         </div>
       </div>
 
       {/* Alerte exposition par défaut */}
-      {out?.diag?.used_default_expo && (
+      {out && out?.diag?.used_default_expo && (
         <div className="p-3 rounded-lg bg-yellow-100 border border-yellow-300 text-yellow-800">
           ⚠️ <strong>Aucune exposition envoyée</strong> (tous modules OFF ou champs non mappés).
         </div>

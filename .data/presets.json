@@ -1,0 +1,254 @@
+{
+  "presets": [
+    {
+      "id": "cf55564d-ebd0-4c5c-aa2e-3f7a80fbe05e",
+      "name": "test-preset",
+      "payload": {
+        "test": true
+      },
+      "updatedAt": "2025-08-24T23:28:37.993Z"
+    },
+    {
+      "id": "8d820419-9fc4-4caf-9e97-59ebdb1d7646",
+      "name": "essaipresets",
+      "payload": {
+        "schema_version": "1.0",
+        "name": "baseline-daily-first",
+        "seed": 1337,
+        "total_steps": 2000,
+        "mu": 0,
+        "fees_per_trade": 0.0002,
+        "sigma": 0.02,
+        "steps_per_day": 50,
+        "target_profit": 0.1,
+        "max_days": 30,
+        "daily_limit": 0.02,
+        "total_limit": 0.1,
+        "modules": {
+          "VolatilityTarget": {
+            "vt_target_vol": 0.1,
+            "vt_halflife": 19
+          },
+          "CPPIFreeze": {
+            "alpha": 0.2,
+            "freeze_frac": 0.05
+          },
+          "KellyCap": {
+            "cap_mult": 0.5
+          },
+          "SoftBarrier": {
+            "enabled": true,
+            "steps": [
+              1,
+              2,
+              3
+            ],
+            "haircuts": [
+              0.7,
+              0.5,
+              0.3
+            ]
+          },
+          "FTMOGate": {
+            "enabled": true,
+            "daily_limit": 0.02,
+            "total_limit": 0.1,
+            "spend_rate": 0.35,
+            "lmax_vol_aware": "p50"
+          }
+        }
+      },
+      "updatedAt": "2025-08-24T23:29:09.934Z"
+    },
+    {
+      "id": "ca797fc0-c924-4660-b2b7-b09e10d57f15",
+      "name": "voltargereetete",
+      "payload": {
+        "schema_version": "1.0",
+        "name": "baseline-daily-first",
+        "seed": 1337,
+        "total_steps": 2000,
+        "mu": 0,
+        "fees_per_trade": 0.0002,
+        "sigma": 0.02,
+        "steps_per_day": 50,
+        "target_profit": 0.1,
+        "max_days": 30,
+        "daily_limit": 0.02,
+        "total_limit": 0.1,
+        "modules": {
+          "VolatilityTarget": {
+            "vt_target_vol": 0.1,
+            "vt_halflife": 19
+          },
+          "CPPIFreeze": {
+            "alpha": 0.2,
+            "freeze_frac": 0.05
+          },
+          "KellyCap": {
+            "cap_mult": 0.5
+          },
+          "SoftBarrier": {
+            "enabled": true,
+            "steps": [
+              1,
+              2,
+              3
+            ],
+            "haircuts": [
+              0.7,
+              0.5,
+              0.3
+            ]
+          },
+          "FTMOGate": {
+            "enabled": true,
+            "daily_limit": 0.02,
+            "total_limit": 0.1,
+            "spend_rate": 0.35,
+            "lmax_vol_aware": "p50"
+          }
+        }
+      },
+      "updatedAt": "2025-08-24T23:29:28.730Z"
+    },
+    {
+      "id": "27d43e5f-1649-410e-8833-258fb0f8086a",
+      "name": "module1rempli",
+      "payload": {
+        "schema_version": "1.0",
+        "name": "baseline-daily-first",
+        "seed": 1337,
+        "total_steps": 2000,
+        "mu": 0,
+        "fees_per_trade": 0.0002,
+        "sigma": 0.02,
+        "steps_per_day": 50,
+        "target_profit": 0.1,
+        "max_days": 30,
+        "daily_limit": 0.02,
+        "total_limit": 0.1,
+        "modules": {
+          "VolatilityTarget": {
+            "vt_target_vol": 0.1,
+            "vt_halflife": 16
+          },
+          "CPPIFreeze": {
+            "alpha": 0.1,
+            "freeze_frac": 0.11
+          },
+          "KellyCap": {
+            "cap_mult": 0.08
+          },
+          "SoftBarrier": {
+            "enabled": true,
+            "steps": [
+              1,
+              2,
+              3
+            ],
+            "haircuts": [
+              0.7,
+              0.5,
+              0.3
+            ]
+          },
+          "FTMOGate": {
+            "enabled": true,
+            "daily_limit": 0.02,
+            "total_limit": 0.1,
+            "spend_rate": 0.35,
+            "lmax_vol_aware": "p50"
+          }
+        }
+      },
+      "updatedAt": "2025-08-25T03:00:34.190Z"
+    },
+    {
+      "id": "b0c921d3-95ae-4d64-90e4-5a4121b201df",
+      "name": "esssai rempli",
+      "payload": {
+        "schema_version": "1.0",
+        "name": "reset",
+        "seed": 0,
+        "total_steps": 2000,
+        "mu": 0,
+        "fees_per_trade": 0.0002,
+        "sigma": 0,
+        "steps_per_day": 0,
+        "target_profit": 0,
+        "max_days": 0,
+        "daily_limit": 0,
+        "total_limit": 0,
+        "modules": {
+          "VolatilityTarget": {
+            "vt_target_vol": 0.1,
+            "vt_halflife": 2
+          },
+          "CPPIFreeze": {
+            "alpha": 0.02,
+            "freeze_frac": 0.01
+          },
+          "KellyCap": {
+            "cap_mult": 0.02
+          },
+          "SoftBarrier": {
+            "enabled": true,
+            "steps": [
+              1,
+              2,
+              3
+            ],
+            "haircuts": [
+              0.7,
+              0.5,
+              0.3
+            ]
+          },
+          "FTMOGate": {
+            "enabled": true,
+            "daily_limit": 0.02,
+            "total_limit": 0.1,
+            "spend_rate": 0.35,
+            "lmax_vol_aware": "p50"
+          }
+        }
+      },
+      "updatedAt": "2025-08-25T03:07:37.214Z"
+    },
+    {
+      "id": "92ac22a4-2542-4660-aaa3-3e6a9156d8eb",
+      "name": "test-auto-apply",
+      "payload": {
+        "use_session_gate": false,
+        "use_nested_cppi": true,
+        "news_pre_blackout_min": 15
+      },
+      "updatedAt": "2025-08-25T03:10:36.200Z"
+    },
+    {
+      "id": "a22adb8b-1aba-4af8-beba-bcdd671ac28d",
+      "name": "essailol",
+      "payload": {
+        "use_session_gate": true,
+        "use_nested_cppi": true,
+        "news_pre_blackout_min": 15,
+        "news_post_blackout_min": 30,
+        "sess_windows": []
+      },
+      "updatedAt": "2025-08-25T03:11:43.691Z"
+    },
+    {
+      "id": "f472098d-b07f-4d8a-ac99-fe25fc5b7975",
+      "name": "drdre",
+      "payload": {
+        "use_session_gate": true,
+        "use_nested_cppi": true,
+        "news_pre_blackout_min": 30,
+        "news_post_blackout_min": 10,
+        "sess_windows": []
+      },
+      "updatedAt": "2025-08-25T03:12:06.794Z"
+    }
+  ]
+}

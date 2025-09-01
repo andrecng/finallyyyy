@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import { PresetV1 } from "@/engine/facade";
 import { addRun, hashPayload, shortHash } from "@/app/lib/runJournal";
 import { setWorkspacePayload } from "@/app/lib/workspacePayload";
-import { suggestPresetName, addPreset } from "@/app/lib/presets";
-import PresetSaver from "./components/PresetSaver";
+
 
 type SearchRange = {
   min: number;
@@ -215,12 +214,7 @@ export default function OptimizePage() {
     return score;
   }
 
-  function savePreset(preset: PresetV1) {
-    // Copier dans le clipboard
-    const presetJson = JSON.stringify(preset, null, 2);
-    navigator.clipboard.writeText(presetJson);
-    alert("Preset copié dans le clipboard !");
-  }
+
 
   function setAsWorkspace(preset: PresetV1) {
     // Sauvegarder dans le workspace
@@ -240,12 +234,7 @@ export default function OptimizePage() {
             >
               ← Workspace
             </a>
-            <a 
-              href="/presets" 
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
-            >
-              Bibliothèque
-            </a>
+
           </div>
           <div className="text-xs text-gray-500">
             {isSearching ? `Recherche en cours... ${Math.round(searchProgress * 100)}%` : "Prêt"}
@@ -354,15 +343,7 @@ export default function OptimizePage() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Top {topK} Résultats</h2>
           
-          {/* PresetSaver pour le meilleur résultat */}
-          <PresetSaver
-            disabled={isSearching}
-            getPreset={() => results[0] ? {
-              name: results[0].preset.name,
-              payload: results[0].preset,
-              meta: { score: results[0].score, kpis: results[0].kpis, mc: results[0].mc }
-            } : null}
-          />
+
           
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-gray-300">
@@ -398,40 +379,14 @@ export default function OptimizePage() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => savePreset(result.preset)}
-                          className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                        >
-                          Copier
-                        </button>
+
                         <button
                           onClick={() => setAsWorkspace(result.preset)}
                           className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                         >
                           Set as Workspace
                         </button>
-                        <button
-                          onClick={() => {
-                            const name = suggestPresetName({
-                              score: result.score,
-                              pass_rate_full: result.mc?.pass_rate_full,
-                              payload: result.preset,
-                            });
-                            addPreset({ 
-                              name, 
-                              payload: result.preset, 
-                              meta: { 
-                                score: result.score, 
-                                kpis: result.kpis, 
-                                mc: result.mc 
-                              } 
-                            });
-                            alert(`Preset enregistré: ${name}`);
-                          }}
-                          className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
-                        >
-                          Enregistrer
-                        </button>
+
                       </div>
                     </td>
                   </tr>
