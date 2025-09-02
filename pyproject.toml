@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fondforex-backend"
+version = "0.1.0"
+description = "Money Management engine + FastAPI endpoints"
+readme = "README.md"
+requires-python = ">=3.10"
+
+# On laisse les dépendances dans requirements.txt pour l'instant,
+# donc on NE liste pas ici "dependencies = [...]" (pour ne rien bousculer).

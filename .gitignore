@@ -27,3 +27,5 @@ pnpm-debug.log*
 reports/
 venv/
 yarn-debug.log*
+*.zip
+*.egg-info/
