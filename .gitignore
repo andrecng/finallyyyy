@@ -1,4 +1,3 @@
-
 __pycache__/
 .DS_Store
 .env
@@ -19,13 +18,6 @@ __pycache__/
 archive/
 dist/
 docs/metrics/
-logs/
-node_modules/
-npm-debug.log*
-out/
-pnpm-debug.log*
-reports/
-venv/
-yarn-debug.log*
-*.zip
 *.egg-info/
+build/
+*.zip

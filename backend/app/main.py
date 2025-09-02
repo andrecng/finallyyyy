@@ -2,6 +2,10 @@ from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, Body
 from pydantic import BaseModel
 import math
+import numpy as np
+
+# Importer notre nouveau moteur
+from backend.engine.core import run_strategy
 
 app = FastAPI()
 
@@ -516,8 +520,119 @@ def health():
 
 @app.post("/simulate")
 def simulate(payload: SimInput = Body(...)):
-    result = simulate_equity(payload)
-    return result
+    # Génération des trades aléatoires basés sur les paramètres
+    import random as _random
+    rng = _random.Random(payload.seed) if payload.seed is not None else _random.Random()
+
+    # Générer des rendements aléatoires pour les trades
+    trades = [rng.gauss(payload.mu, payload.sigma) for _ in range(payload.total_steps)]
+
+    # Préparer les modules pour le moteur
+    modules = {}
+
+    # Configuration des modules de gestion des risques
+    if payload.use_cppi:
+        modules["cppi_freeze"] = {
+            "enabled": True,
+            "floor": 1.0 - payload.cppi_alpha,
+            "freeze_threshold": payload.cppi_freeze_frac,
+            "multiplier": 1.0 / payload.cppi_freeze_frac if payload.cppi_freeze_frac > 0 else 10.0
+        }
+
+    if payload.use_vt:
+        modules["volatility_target"] = {
+            "enabled": True,
+            "target": payload.vt_target_vol,
+            "lookback": payload.vt_halflife,
+            "max_alloc": 2.0
+        }
+
+    if payload.use_kelly_cap:
+        modules["kelly_cap"] = {
+            "enabled": True,
+            "max_alloc": payload.kelly_cap
+        }
+
+    if payload.use_soft_barrier and payload.soft_barrier > 0.0:
+        modules["soft_barrier"] = {
+            "enabled": True,
+            "threshold": payload.soft_barrier
+        }
+
+    # Appel au moteur de stratégie
+    result = run_strategy(
+        trades=trades,
+        initial_capital=10000.0,
+        mu=payload.mu,
+        sigma=payload.sigma,
+        fees_per_trade=payload.fees_per_trade,
+        modules=modules
+    )
+
+    # Extraction des résultats du moteur
+    capital_history = result["capital_history"]
+    equity = capital_history[1:]  # Enlever le capital initial
+
+    # Calcul des violations et drawdowns en utilisant les fonctions existantes
+    dd_tot = result["max_dd_total"]
+    daily = daily_violations(equity, payload.daily_limit, payload.steps_per_day)
+    v_total = total_violations(equity, payload.total_limit)
+
+    # Préparation des KPIs et diagnostics
+    kpis_out = compute_basic_kpis_from_equity(equity)
+    ext = compute_extended_kpis(equity, steps_per_day=payload.steps_per_day)
+    kpis_out = safe_merge_dict(kpis_out, ext)
+
+    # Calcul de l'atteinte de la cible de profit
+    first_cross_step = None
+    for i, eq in enumerate(equity):
+        if eq >= (equity[0] * (1.0 + payload.target_profit)):
+            first_cross_step = i + 1
+            break
+
+    days_to_target = None
+    if first_cross_step is not None and payload.steps_per_day > 0:
+        days_to_target = int(math.ceil(first_cross_step / payload.steps_per_day))
+
+    target_pass = bool(
+        (days_to_target is not None) and
+        (days_to_target <= payload.max_days) and
+        (daily["violations_daily"] == 0) and
+        (v_total == 0)
+    )
+
+    kpis_out.update({
+        "target_profit": safe_number(payload.target_profit),
+        "max_days": int(payload.max_days),
+        "days_to_target": days_to_target,
+        "target_pass": target_pass
+    })
+
+    # Extraction des diagnostics du moteur
+    diag_out = safe_diag_dict(
+        use_cppi=payload.use_cppi,
+        use_vt=payload.use_vt,
+        use_kelly=payload.use_kelly_cap,
+        use_soft=payload.use_soft_barrier,
+        kelly_cap_hits=result.get("kelly_cap_hits", 0),
+        cppi_freeze_events=result.get("cppi_freeze_events", 0),
+        no_upsize_after_loss=True,
+        used_default_expo=False,
+        param_clamps={}
+    )
+
+    # Construction du résultat final
+    out = {
+        "series": {"equity": equity},
+        "max_dd_total": dd_tot,
+        "max_dd_daily": daily["max_dd_daily"],
+        "violations_daily": daily["violations_daily"],
+        "violations_total": v_total,
+        "kpis": kpis_out,
+        "diag": diag_out
+    }
+
+    return out
 
 class MCInput(BaseModel):
     payload: SimInput
@@ -562,6 +677,3 @@ def simulate_mc(inp: MCInput):
             "dd_p95": quantile(dds_sorted, 0.95)
         }
     }
-
-
-
